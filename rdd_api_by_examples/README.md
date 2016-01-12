@@ -12,5 +12,7 @@
 | [SeqFile] | SequenceFileRDDFunctions | 這些擴充的方法讓使用者可以從RDD產生Hadoop sequence file。 (把記憶體上的資料結構寫到檔案中，之後讀出能還原成原先的模樣) |
 
 依照字母順序練習解讀 RDD function call 的運算過程
+- [aggregate](aggregate.md)
+- [aggregateByKey](aggregateByKey.md) 
 
 << 未完待續 >>
