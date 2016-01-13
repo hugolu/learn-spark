@@ -1,0 +1,3 @@
+## countByKey [pair]
+
+<<< TBC >>>

@@ -1,0 +1,3 @@
+## mapValues [pair]
+
+<<< TBC >>>

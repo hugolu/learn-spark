@@ -1,0 +1,3 @@
+## flatMapValues [Pair]
+
+<<< TBC >>>

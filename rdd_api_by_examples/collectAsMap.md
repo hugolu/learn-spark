@@ -1,0 +1,3 @@
+## collectAsMap [pair]
+
+<<< TBC >>>

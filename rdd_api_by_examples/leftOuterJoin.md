@@ -1,0 +1,3 @@
+## leftOuterJoin [pair]
+
+<<< TBC >>>
