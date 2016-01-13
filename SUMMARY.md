@@ -4,105 +4,105 @@
     * [aggregate](rdd_api_by_examples/aggregate.md)
     * [aggregateByKey](rdd_api_by_examples/aggregateByKey.md)
     * [cartesian](rdd_api_by_examples/cartesian.md)
-    * checkpoint
-    * coalesce, repartition
-    * cogroup [pair], groupWith [Pair]
-    * collect, toArray
-    * collectAsMap [pair]
-    * combineByKey [pair]
-    * compute
-    * context, sparkContext
-    * count
-    * countApprox
-    * countApproxDistinct
-    * countApproxDistinctByKey [pair]
-    * countByKey [pair]
-    * countByKeyApprox [pair]
-    * countByValue
-    * countByValueApprox
-    * dependencies
-    * distinct
-    * first
-    * filter
-    * filterByRange [Ordered]
-    * filterWith
-    * flatMap
-    * flatMapValues [Pair]
-    * flatMapWith
-    * fold
-    * foldByKey [Pair]
-    * foreach
-    * foreachPartition
-    * foreachWith
-    * fullOuterJoin [Pair]
-    * generator, setGenerator
-    * getCheckpointFile
-    * preferredLocations
-    * getStorageLevel
-    * glom
-    * groupBy
-    * groupByKey [Pair]
-    * histogram [Double]
-    * id
-    * intersection
-    * isCheckpointed
-    * iterator
-    * join [pair]
-    * keyBy
-    * keys [pair]
-    * leftOuterJoin [pair]
-    * lookup [pair]
-    * map
-    * mapPartitions
-    * mapPartitionsWithContext
-    * mapPartitionsWithIndex
-    * mapPartitionsWithSplit
-    * mapValues [pair]
-    * mapWith
-    * max
-    * mean [Double], meanApprox [Double]
-    * min
-    * name, setName
-    * partitionBy [Pair]
-    * partitioner
-    * partitions
-    * persist, cache
-    * pipe
-    * randomSplit
-    * reduce
-    * reduceByKey [Pair], reduceByKeyLocally[Pair], reduceByKeyToDriver[Pair]
-    * repartition
-    * repartitionAndSortWithPartitions [Ordered]
-    * rightOuterJoin [Pair]
-    * sample
-    * sampleByKey [Pair]
-    * sampleByKeyExact [Pair]
-    * saveAsHodoopFile [Pair], saveAsHadoopDataset [Pair], saveAsNewAPIHadoopFile [Pair]
-    * saveAsObjectFile
-    * saveAsSequenceFile [SeqFile]
-    * saveAsTextFile
-    * stats [Double]
-    * sortBy
-    * sortByKey [Ordered]
-    * stdev [Double], sampleStdev [Double]
-    * subtract
-    * subtractByKey [Pair]
-    * sum [Double], sumApprox[Double]
-    * take
-    * takeOrdered
-    * takeSample
-    * treeAggregate
-    * treeReduce
-    * toDebugString
-    * toJavaRDD
-    * toLocalIterator
-    * top
-    * toString
-    * union, ++
-    * unpersist
-    * values [Pair]
-    * variance [Double], sampleVariance [Double]
-    * zip
-    * zipPartitions
-    * zipWithIndex
-    * zipWithUniquId
+    * [checkpoint](rdd_api_by_examples/checkpoint.md)
+    * [coalesce, repartition](rdd_api_by_examples/coalesce.md)
+    * [cogroup, groupWith](rdd_api_by_examples/cogroup,md)
+    * [collect, toArray](rdd_api_by_examples/collect.md)
+    * [collectAsMap](rdd_api_by_examples/collectAsMap.md)
+    * [combineByKey](rdd_api_by_examples/combineByKey.md)
+    * [compute](rdd_api_by_examples/compute.md)
+    * [context, sparkContext](rdd_api_by_examples/context.md)
+    * [count](rdd_api_by_examples/count.md)
+    * [countApprox](rdd_api_by_examples/countApprox.md)
+    * [countApproxDistinct](rdd_api_by_examples/countApproxDistinct.md)
+    * [countApproxDistinctByKey](rdd_api_by_examples/countApproxDistinctByKey.md)
+    * [countByKey](rdd_api_by_examples/countByKey.md)
+    * [countByKeyApprox](rdd_api_by_examples/countByKeyApprox.md)
+    * [countByValue](rdd_api_by_examples/countByValue.md)
+    * [countByValueApprox](rdd_api_by_examples/countByValueApprox.md)
+    * [dependencies](rdd_api_by_examples/dependencies.md)
+    * [distinct](rdd_api_by_examples/distinct.md)
+    * [first](rdd_api_by_examples/first.md)
+    * [filter](rdd_api_by_examples/filter.md)
+    * [filterByRange](rdd_api_by_examples/filterByRange.md)
+    * [filterWith](rdd_api_by_examples/filterWith.md)
+    * [flatMap](rdd_api_by_examples/flatMap.md)
+    * [flatMapValues](rdd_api_by_examples/flatMapValues.md)
+    * [flatMapWith](rdd_api_by_examples/flatMapWith.md)
+    * [fold](rdd_api_by_examples/fold.md)
+    * [foldByKey](rdd_api_by_examples/foldByKey.md)
+    * [foreach](rdd_api_by_examples/foreach.md)
+    * [foreachPartition](rdd_api_by_examples/foreachPartition.md)
+    * [foreachWith](rdd_api_by_examples/foreachWith.md)
+    * [fullOuterJoin](rdd_api_by_examples/fullOuterJoin.md)
+    * [generator, setGenerator](rdd_api_by_examples/generator.md)
+    * [getCheckpointFile](rdd_api_by_examples/getCheckpointFile.md)
+    * [preferredLocations](rdd_api_by_examples/preferredLocations.md)
+    * [getStorageLevel](rdd_api_by_examples/getStorageLevel.md)
+    * [glom](rdd_api_by_examples/glom.md)
+    * [groupBy](rdd_api_by_examples/groupBy.md)
+    * [groupByKey](rdd_api_by_examples/groupByKey.md)
+    * [histogram](rdd_api_by_examples/histogram.md)
+    * [id](rdd_api_by_examples/id.md)
+    * [intersection](rdd_api_by_examples/intersection.md)
+    * [isCheckpointed](rdd_api_by_examples/isCheckpointed.md)
+    * [iterator](rdd_api_by_examples/iterator.md)
+    * [join](rdd_a](rdd_api_by_examples/join.md)
+    * [keyBy](rdd_api_by_examples/keyBy.md)
+    * [keys](rdd_api_by_examples/keys.md)
+    * [leftOuterJoin](rdd_api_by_examples/leftOuterJoin.md)
+    * [lookup](rdd_api_by_examples/lookup.md)
+    * [map](rdd_api_by_examples/map.md)
+    * [mapPartitions](rdd_api_by_examples/mapPartitions.md)
+    * [mapPartitionsWithContext](rdd_api_by_examples/mapPartitionsWithContext.md)
+    * [mapPartitionsWithIndex](rdd_api_by_examples/mapPartitionsWithIndex.md)
+    * [mapPartitionsWithSplit](rdd_api_by_examples/mapPartitionsWithSplit.md)
+    * [mapValues](rdd_api_by_examples/mapValues.md)
+    * [mapWith](rdd_api_by_examples/mapWith.md)
+    * [max](rdd_api_by_examples/max.md)
+    * [mean, meanApprox](rdd_api_by_examples/mean.md)
+    * [min](rdd_api_by_examples/min.md)
+    * [name, setName](rdd_api_by_examples/name.md)
+    * [partitionBy](rdd_api_by_examples/partitionBy.md)
+    * [partitioner](rdd_api_by_examples/partitioner.md)
+    * [partitions](rdd_api_by_examples/partitions.md)
+    * [persist, cache](rdd_api_by_examples/persist.md)
+    * [pipe](rdd_api_by_examples/pipe.md)
+    * [randomSplit](rdd_api_by_examples/.md)
+    * [reduce](rdd_api_by_examples/randomSplit.md)
+    * [reduceByKey, reduceByKeyLocally, reduceByKeyToDriver](rdd_api_by_examples/reduceByKey.md)
+    * [repartition](rdd_api_by_examples/repartition.md)
+    * [repartitionAndSortWithPartitions](rdd_api_by_examples/repartitionAndSortWithPartitions.md)
+    * [rightOuterJoin](rdd_api_by_examples/rightOuterJoin.md)
+    * [sample](rdd_api_by_examples/sample.md)
+    * [sampleByKey](rdd_api_by_examples/sampleByKey.md)
+    * [sampleByKeyExact](rdd_api_by_examples/sampleByKeyExact.md)
+    * [saveAsHodoopFile, saveAsHadoopDataset, saveAsNewAPIHadoopFile](rdd_api_by_examples/saveAsHodoopFile.md)
+    * [saveAsObjectFile](rdd_api_by_examples/saveAsObjectFile.md)
+    * [saveAsSequenceFile](rdd_api_by_examples/saveAsSequenceFile.md)
+    * [saveAsTextFile](rdd_api_by_examples/saveAsTextFile.md)
+    * [stats](rdd_api_by_examples/stats.md)
+    * [sortBy](rdd_api_by_examples/sortBy.md)
+    * [sortByKey](rdd_api_by_examples/sortByKey.md)
+    * [stdev, sampleStdev](rdd_api_by_examples/stdev.md)
+    * [subtract](rdd_api_by_examples/subtract.md)
+    * [subtractByKey](rdd_api_by_examples/subtractByKey.md)
+    * [sum, sumApprox](rdd_api_by_examples/sum.md)
+    * [take](rdd_api_by_examples/take.md)
+    * [takeOrdered](rdd_api_by_examples/takeOrdered.md)
+    * [takeSample](rdd_api_by_examples/takeSample.md)
+    * [treeAggregate](rdd_api_by_examples/treeAggregate.md)
+    * [treeReduce](rdd_api_by_examples/treeReduce.md)
+    * [toDebugString](rdd_api_by_examples/toDebugString.md)
+    * [toJavaRDD](rdd_api_by_examples/toJavaRDD.md)
+    * [toLocalIterator](rdd_api_by_examples/toLocalIterator.md)
+    * [top](rdd_api_by_examples/top.md)
+    * [toString](rdd_api_by_examples/toString.md)
+    * [union, ++](rdd_api_by_examples/union.md)
+    * [unpersist](rdd_api_by_examples/unpersist.md)
+    * [values](rdd_api_by_examples/values.md)
+    * [variance, sampleVariance](rdd_api_by_examples/variance.md)
+    * [zip](rdd_api_by_examples/zip.md)
+    * [zipPartitions](rdd_api_by_examples/zipPartitions.md)
+    * [zipWithIndex](rdd_api_by_examples/zipWithIndex.md)
+    * [zipWithUniquId](rdd_api_by_examples/zipWithUniquId.md)
