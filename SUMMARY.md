@@ -1,9 +1,9 @@
 # Summary
 
 * [RDD API by Examples](rdd_api_by_examples/README.md)
-    * [aggregate](aggregate.md)
-    * [aggregateByKey](aggregateByKey.md)
-    * [cartesian](cartesian.md)
+    * [aggregate](rdd_api_by_examples/aggregate.md)
+    * [aggregateByKey](rdd_api_by_examples/aggregateByKey.md)
+    * [cartesian](rdd_api_by_examples/cartesian.md)
     * checkpoint
     * coalesce, repartition
     * cogroup [pair], groupWith [Pair]
