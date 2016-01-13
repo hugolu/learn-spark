@@ -6,7 +6,7 @@
     * [cartesian](rdd_api_by_examples/cartesian.md)
     * [checkpoint](rdd_api_by_examples/checkpoint.md)
     * [coalesce, repartition (?)](rdd_api_by_examples/coalesce.md)
-    * [cogroup, groupWith](rdd_api_by_examples/cogroup,md)
+    * [cogroup, groupWith](rdd_api_by_examples/cogroup.md)
     * [collect, toArray](rdd_api_by_examples/collect.md)
     * [collectAsMap](rdd_api_by_examples/collectAsMap.md)
     * [combineByKey](rdd_api_by_examples/combineByKey.md)
