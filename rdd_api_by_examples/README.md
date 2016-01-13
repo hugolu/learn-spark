@@ -14,7 +14,7 @@
 依照字母順序練習解讀 RDD function call 的運算過程
 - [aggregate](aggregate.md)
 - [aggregateByKey](aggregateByKey.md) 
-- cartesian
+- [cartesian](cartesian.md)
 - checkpoint
 - coalesce, repartition
 - cogroup [pair], groupWith [Pair]
