@@ -4,6 +4,7 @@
 ```
 def collectAsMap(): Map[K, V]
 ```
+- Warning: this doesn't return a multimap (so if you have multiple values to the same key, only one value per key is preserved in the map returned)
 
 範例
 ```
