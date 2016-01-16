@@ -13,7 +13,6 @@
     * [compute](rdd_api_by_examples/compute.md)
     * [context, sparkContext](rdd_api_by_examples/context.md)
     * [count](rdd_api_by_examples/count.md)
-    * [countApprox](rdd_api_by_examples/countApprox.md)
     * [countApproxDistinct](rdd_api_by_examples/countApproxDistinct.md)
     * [countApproxDistinctByKey](rdd_api_by_examples/countApproxDistinctByKey.md)
     * [countByKey](rdd_api_by_examples/countByKey.md)
