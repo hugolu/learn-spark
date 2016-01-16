@@ -30,7 +30,6 @@
     * [foldByKey](rdd_api_by_examples/foldByKey.md)
     * [foreach](rdd_api_by_examples/foreach.md)
     * [foreachPartition](rdd_api_by_examples/foreachPartition.md)
-    * [foreachWith](rdd_api_by_examples/foreachWith.md)
     * [fullOuterJoin](rdd_api_by_examples/fullOuterJoin.md)
     * [generator, setGenerator](rdd_api_by_examples/generator.md)
     * [getCheckpointFile](rdd_api_by_examples/getCheckpointFile.md)
