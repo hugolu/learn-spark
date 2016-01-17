@@ -91,7 +91,7 @@ res7: Array[Int] = Array(1, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5
 val x  = sc.parallelize(1 to 10, 3)
 x.flatMap(List.fill(scala.util.Random.nextInt(10))(_)).collect
 ```
-- ```mapPartitions()``` - 針對個別partition的值呼叫```List.fill()```
+- ```mapPartitions()``` - 針對個別partition iterator呼叫```List.fill()```
 - ```flatMap()``` - 一口氣對所有partition元素呼叫```List.fill()```
 
 
