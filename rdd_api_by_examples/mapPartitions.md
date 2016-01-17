@@ -44,3 +44,20 @@ res0: Array[(Int, Int)] = Array((2,3), (1,2), (5,6), (4,5), (8,9), (7,8))
         - res = (7, 8) :: res
         - res = (8, 9) :: res
         - then, res = List((8, 9), (7, 8))
+
+範例
+```
+val x = sc.parallelize(List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), 3)
+
+def myfunc(iter: Iterator[Int]) : Iterator[Int] = {
+  var res = List[Int]()
+  while (iter.hasNext) {
+    val cur = iter.next;
+    res = res ::: List.fill(scala.util.Random.nextInt(10))(cur)
+  }
+  res.iterator
+}
+
+x.mapPartitions(myfunc).collect
+res7: Array[Int] = Array(1, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10)
+```
