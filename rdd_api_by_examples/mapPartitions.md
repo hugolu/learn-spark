@@ -95,6 +95,18 @@ x.flatMap(List.fill(scala.util.Random.nextInt(10))(_)).collect
 - ```flatMap()``` - 一一對所有partition元素呼叫```List.fill()```
 
 
+範例
+```
+val x = sc.parallelize(1 to 10, 3)
+
+x.map(n => n*n).collect
+res31: Array[Int] = Array(1, 4, 9, 16, 25, 36, 49, 64, 81, 100)
+
+x.mapPartitions(_.toList.map(n => n*n).iterator).collect
+res33: Array[Int] = Array(1, 4, 9, 16, 25, 36, 49, 64, 81, 100)
+```
+- ```map()```比```mapPartitions()```更簡潔，但缺少對於partition內元素的操作能力
+
 ### 補充
 ```
 scala> val list = List[Int]()
