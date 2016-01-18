@@ -4,7 +4,7 @@
 ```
 def flatMap[U: ClassTag](f: T => TraversableOnce[U]): RDD[U]
 ```
-- map之後flat
+- map之後flat每個TraversableOnce[U]裡面的元素
 
 範例
 ```
@@ -16,16 +16,25 @@ res34: Array[scala.collection.immutable.Range.Inclusive] = Array(Range(1), Range
 scala> a.flatMap(1 to _).collect
 res35: Array[Int] = Array(1, 1, 2, 1, 2, 3, 1, 2, 3, 4, 1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 ```
+- for 1 to 10 in ```map(1 to _)```
+    - 1: Range(1)
+    - 2: Range(1, 2)
+    - 3: Range(1, 2, 3)
+    - ...
+- for 1 to 10 in ```flatMap(1 to _)```
+    - 1: Range(1) is flattened into 1
+    - 2: Range(1, 2) is flattened into 1, 2
+    - 3: Range(1, 2, 3) is flattened into 1, 2, 3
 
 範例
 ```
-scala> val a = sc.parallelize(List(1, 2, 3), 2)
+scala> val a = sc.parallelize(List("apple", "banana", "carrot"))
+scala> val b = a.flatMap(n=>n)
 
-scala> a.map(x => List(x,x,x)).collect
-res36: Array[List[Int]] = Array(List(1, 1, 1), List(2, 2, 2), List(3, 3, 3))
-
-scala>
-
-scala> a.flatMap(x => List(x,x,x)).collect
-res37: Array[Int] = Array(1, 1, 1, 2, 2, 2, 3, 3, 3)
+scala> b.collect
+res7: Array[Char] = Array(a, p, p, l, e, b, a, n, a, n, a, c, a, r, r, o, t)
 ```
+- ```flatMap(n=>n)```
+    - ```"apple"```: "a", "p", "p", "l", "e"
+    - ```"banana"```: "b", "a", "n", "a", "n", "a"
+    - ```"carrot"```: "c", "a", "r", "r", "o", "t"
