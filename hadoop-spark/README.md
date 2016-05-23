@@ -10,38 +10,38 @@
 ## 重點整理
 
 ### 基本概念介紹
-- 大數據與機器學習
+- [大數據與機器學習](big-data-and-machine-learning.md)
 
 ### Hadoop 安裝
-- 安裝 Virtual Box 虛擬機器
-- 安裝 Ubuntu Linux
-- 安裝 Hadoop Single Node Cluster
-- 安裝 Hadoop Multi Node Cluster
+- [安裝 Virtual Box 虛擬機器](virtual-box-installation.md)
+- [安裝 Ubuntu Linux](ubuntu-linux-installation.md)
+- [安裝 Hadoop Single Node Cluster](hadoop-single-node-cluster-installation.md)
+- [安裝 Hadoop Multi Node Cluster](hadoop-multi-node-cluster-installation.md)
 
 ### Hadoop 基本功能
-- Hadoop HDFS 命令
-- Hadoop MapReduce
+- [Hadoop HDFS 命令](hadoop-hdfs.md)
+- [Hadoop MapReduce](hadoop-mapreduce.md)
 
 ### Spark 基本功能
-- 安裝 Spark
-- Spark RDD
-- Spark IDE
+- [安裝 Spark](spark-installation.md)
+- [Spark RDD](spark-rdd.md)
+- [Spark IDE](spark-ide.md)
 
 ### 推薦引擎
-- 建立推薦引擎
+- [建立推薦引擎](recommender-system.md)
 
 ### 二元分類
-- StumbleUpon 資料集介紹
-- 決策數二元分類
-- 邏輯迴歸二元分類
-- SVM 二元分類
-- 單存貝式二元分類
+- [StumbleUpon 資料集介紹](stumbleupon-dataset.md)
+- [決策樹二元分類](decision-tree-binary.md)
+- [邏輯迴歸二元分類](logistic-regression.md)
+- [SVM 二元分類](svm-binary.md)
+- [單純貝式二元分類](naive-bayes-binary.md)
 
 ### 多元分類
-- 決策數多元分類
+- [決策樹多元分類](decision-tree-multi.md)
 
 ### 迴歸分析
-- 決策數迴歸分析
+- [決策樹迴歸分析](decision-tree-regression.md)
 
 ### 資料視覺化
-- 使用 Apache Zeppelin 資料視覺化
+- [Apache Zeppelin 資料視覺化](apache-zeppelin.md)
