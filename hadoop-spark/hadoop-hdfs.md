@@ -11,3 +11,22 @@
 `-cat <src> ...`                            | Fetch all files that match the file pattern <src> and display their content on stdout.
 `-cp [-f] <src> ... <dst>`                  | Copy files that match the file pattern <src> to a destination.
 `-rm [-f] [-r|-R] <src> ...`                | Delete all files that match the specified file pattern.
+
+## 建立、查看目錄
+
+### 建立目錄
+```shell
+$ hadoop fs -mkdir /user
+$ hadoop fs -mkdir /user/hduser
+$ hadoop fs -mkdir /user/hduser/test
+$ hadoop fs -mkdir -p /dir1/dir2/dir3
+```
+
+### 查看目錄
+```shell
+$ hadoop fs -ls /
+$ hadoop fs -ls /user
+$ hadoop fs -ls /user/hduser
+$ hadoop fs -ls -R /
+$ hadoop fs -ls # check hduser's home directory
+```
