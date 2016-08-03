@@ -30,3 +30,25 @@ $ hadoop fs -ls /user/hduser
 $ hadoop fs -ls -R /
 $ hadoop fs -ls # check hduser's home directory
 ```
+
+## 從本機複製檔案到 HDFS
+
+### 使用 `copyFromLocal`
+```shell
+$ hadoop fs -copyFromLocal /usr/local/hadoop/README.txt /user/hduser/test
+$ hadoop fs -copyFromLocal /usr/local/hadoop/README.txt /user/hduser/test/test1.txt
+$ hadoop fs -ls /user/hduser/test
+$ hadoop fs -cat /user/hduser/test/README.txt
+
+$ hadoop fs -copyFromLocal -f /usr/local/hadoop/README.txt /user/hduser/test  # -f: overwrite
+$ hadoop fs -copyFromLocal /usr/local/hadoop/NOTICE.txt /usr/local/hadoop/LICENSE.txt /user/hduser/test # copy multiple files
+
+$ hadoop fs -copyFromLocal /usr/local/hadoop/etc /user/hduser/test  # copy a directory
+$ hadoop fs -ls -R /user/hduser/test/etc  # -R: Recursively list the contents of directories.
+```
+
+### 使用 `-put`
+```shell
+$ hadoop fs -put /usr/local/hadoop/README.txt /user/hduser/test/test2.txt
+$ echo hello world | hadoop fs -put - /user/hduser/test/test3.txt # file's content from stdin
+```
