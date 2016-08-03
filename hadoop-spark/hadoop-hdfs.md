@@ -66,3 +66,17 @@ $ hadoop fs -copyToLocal /user/hduser/test/etc        # copy a directory
 $ hadoop fs -get /user/hduser/test/README.txt localREADME.txt # copy a file
 $ hadoop fs -get /user/hduser/test/etc etc2                   # copy a directory
 ```
+
+## 複製、刪除檔案
+
+### 複製
+```shell
+$ hadoop fs -cp test/README.txt test/README2.txt  # copy a file
+$ hadoop fs -cp test/etc test/etc2                # copy a directory
+```
+
+### 刪除
+```shell
+$ hadoop fs -rm test/README2.txt                  # remove a file
+$ hadoop fs -rm -R test/etc2                      # remove a directory
+```
