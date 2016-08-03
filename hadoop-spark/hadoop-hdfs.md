@@ -52,3 +52,17 @@ $ hadoop fs -ls -R /user/hduser/test/etc  # -R: Recursively list the contents of
 $ hadoop fs -put /usr/local/hadoop/README.txt /user/hduser/test/test2.txt
 $ echo hello world | hadoop fs -put - /user/hduser/test/test3.txt # file's content from stdin
 ```
+
+## 將 HDFS 檔案複製到本機
+
+### 使用 `-copyToLocal`
+```shell
+$ hadoop fs -copyToLocal /user/hduser/test/README.txt # copy a file
+$ hadoop fs -copyToLocal /user/hduser/test/etc        # copy a directory
+```
+
+### 使用 `-get`
+```shell
+$ hadoop fs -get /user/hduser/test/README.txt localREADME.txt # copy a file
+$ hadoop fs -get /user/hduser/test/etc etc2                   # copy a directory
+```
