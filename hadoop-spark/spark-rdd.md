@@ -127,8 +127,87 @@ res10: Double = 16.0
 ```
 
 ## Key-Value 基本轉換運算
+Spark RDD 支援 Key-Value 運算，鍵值運算是 MapReduce 的基礎。
+
+```scala
+scala> val kvRDD1 = sc.parallelize(List((3,4), (3,6), (5,6), (1,2)))
+kvRDD1: org.apache.spark.rdd.RDD[(Int, Int)] = ParallelCollectionRDD[0] at parallelize at <console>:21
+
+scala> kvRDD1.keys.collect
+res0: Array[Int] = Array(3, 3, 5, 1)
+
+scala> kvRDD1.values.collect
+res1: Array[Int] = Array(4, 6, 6, 2)
+
+scala> kvRDD1.filter({ case (k, v) => k < 5 }).collect
+res2: Array[(Int, Int)] = Array((3,4), (3,6), (1,2))
+
+scala> kvRDD1.filter{ case (k, v) => v < 5 }.collect
+res3: Array[(Int, Int)] = Array((3,4), (1,2))
+
+scala> kvRDD1.mapValues(x=>x*x).collect
+res4: Array[(Int, Int)] = Array((3,16), (3,36), (5,36), (1,4))
+
+scala> kvRDD1.sortByKey().collect
+res5: Array[(Int, Int)] = Array((1,2), (3,4), (3,6), (5,6))
+
+scala> kvRDD1.sortByKey(false).collect
+res6: Array[(Int, Int)] = Array((5,6), (3,4), (3,6), (1,2))
+
+scala> kvRDD1.reduceByKey(_+_).collect
+res7: Array[(Int, Int)] = Array((1,2), (3,10), (5,6))
+```
 
 ## Key-Value 多個轉換運算
+
+### join
+```scala
+scala> kvRDD1.join(kvRDD2).foreach(println)
+(3,(4,8))
+(3,(6,8))
+```
+- 將兩個 RDD 依照相同的鍵值 join 起來 (key = 3)
+- kvRDD1: (3,4), (3,6)
+- kvRDD2: (3,8)
+
+### leftOuterJoin
+```scala
+scala> kvRDD1.leftOuterJoin(kvRDD2).foreach(println)
+(1,(2,None))
+(3,(4,Some(8)))
+(3,(6,Some(8)))
+(5,(6,None))
+```
+- 由左邊集合 kvRDD1 對應到右邊集合 kvRDD2，顯示所有左邊集合中所有元素
+- kvRDD2: (3,8)
+
+kvRDD1 | result
+-------|--------
+(3,4)  | (3, (4, Some(8))
+(3,6)  | (3, (6, Some(8))
+(5,6)  | (5, (6, None))
+(1,2)  | (1, (2, None))
+
+### rigthOuterJoin
+```scala
+scala> kvRDD1.rightOuterJoin(kvRDD2).foreach(println)
+(3,(Some(4),8))
+(3,(Some(6),8))
+```
+- 由右邊集合 kvRDD2 對應到左邊集合 kvRDD1，顯示右邊所有集合中的元素
+- kvRDD1: (3,4), (3,6), (5,6), (1,2)
+
+kvRDD2 | result
+-------|-------
+(3,8)  | (3, (Some(4), 8))
+       | (3, (Some(6), 8))
+
+### substractByKey
+```scala
+scala> kvRDD1.subtractByKey(kvRDD2).collect
+res7: Array[(Int, Int)] = Array((1,2), (5,6))
+```
+- 移除相同鍵值的資料
 
 ## Key-Value 動作運算
 
