@@ -109,5 +109,7 @@ $ SPARK_JAR=/usr/local/spark/lib/spark-assembly-1.4.0-hadoop2.6.0.jar HADOOP_CON
 - `/usr/local/spark/bin/spark-shell` spark client full path
 
 ## 建置 Spark standalone cluster 執行環境
+> 我的機器不夠力，不能跑四個 VM，實驗略過
 
 ## spark-shell (Spark standalone)
+> 我的機器不夠力，不能跑四個 VM，實驗略過
