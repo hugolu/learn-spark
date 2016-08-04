@@ -259,6 +259,39 @@ res11: Seq[Int] = WrappedArray()
 
 ## Broadcast 廣播變數
 
+### 不使用 broadcast
+```scala
+scala> val kvFruit = sc.parallelize(List((1, "apple"), (2, "orange"), (3, "banana"), (4, "grape")))
+kvFruit: org.apache.spark.rdd.RDD[(Int, String)] = ParallelCollectionRDD[0] at parallelize at <console>:21
+
+scala> val fruitMap = kvFruit.collectAsMap
+fruitMap: scala.collection.Map[Int,String] = Map(2 -> orange, 4 -> grape, 1 -> apple, 3 -> banana)
+
+scala> val fruitIds = sc.parallelize(List(2, 4, 1, 3))
+fruitIds: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[1] at parallelize at <console>:21
+
+scala> val fruitNames = fruitIds.map(x => fruitMap(x)).collect
+fruitNames: Array[String] = Array(orange, grape, apple, banana)
+```
+
+平行處理中，每次轉換都須將 fruitIds 與 fruitMap 傳送到 worker node 才能執行運算。如果 fruitMap 很大，需要轉換的 fruitIds 也很大，會耗費很多記憶體與時間。
+
+### 使用 broadcast
+規則：
+- 使用 SparkContext.broadcast([initial values]) 建立廣播變數
+- 使用 .value 方法讀取廣播的值
+- 廣播變數建立後不可修改
+
+```scala
+scala> val bcFruitMap = sc.broadcast(fruitMap)
+bcFruitMap: org.apache.spark.broadcast.Broadcast[scala.collection.Map[Int,String]] = Broadcast(2)
+
+scala> val fruitNames = fruitIds.map(x => bcFruitMap.value(x)).collect
+fruitNames: Array[String] = Array(orange, grape, apple, banana)
+```
+
+平行處理中，bcFruitMap 廣播變數會傳送到 worker node，儲存在記憶體。後續 worker node 使用此 bcFruitMap 廣播變數執行轉換，可以節省很多記憶體(?)與傳送時間。
+
 ## accumulator 累加器
 
 ## RDD 持久化
