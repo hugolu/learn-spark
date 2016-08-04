@@ -87,6 +87,45 @@ res5: Array[(Int, Int)] = Array((3,5), (3,6), (1,5), (1,6), (2,5), (2,6), (5,5),
 
 ## 基本動作運算
 
+### 讀取元素
+```scala
+scala> intRDD.first
+res0: Int = 3
+
+scala> intRDD.take(2)
+res1: Array[Int] = Array(3, 1)
+
+scala> intRDD.takeOrdered(3)
+res2: Array[Int] = Array(1, 2, 3)
+
+scala> intRDD.takeOrdered(3)(Ordering[Int].reverse)
+res3: Array[Int] = Array(5, 5, 3)
+```
+
+### 統計功能
+```scala
+scala> intRDD.stats
+res4: org.apache.spark.util.StatCounter = (count: 5, mean: 3.200000, stdev: 1.600000, max: 5.000000, min: 1.000000)
+
+scala> intRDD.count
+res5: Long = 5
+
+scala> intRDD.mean
+res6: Double = 3.2
+
+scala> intRDD.stdev
+res7: Double = 1.6
+
+scala> intRDD.max
+res8: Int = 5
+
+scala> intRDD.min
+res9: Int = 1
+
+scala> intRDD.sum
+res10: Double = 16.0
+```
+
 ## Key-Value 基本轉換運算
 
 ## Key-Value 多個轉換運算
