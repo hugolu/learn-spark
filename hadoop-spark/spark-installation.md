@@ -99,6 +99,15 @@ textFile: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[3] at textFile at 
 
 ## spark-shell (Hadoop YARN)
 
+### 啟動 spark-shell
+```shell
+$ SPARK_JAR=/usr/local/spark/lib/spark-assembly-1.4.0-hadoop2.6.0.jar HADOOP_CONF_DIR=/usr/local/hadoop/etc/hadoop/ MASTER=yarn-client /usr/local/spark/bin/spark-shell
+```
+- `SPARK_JAR=...` spark jar path
+- `HADOOP_CONF_DIR=...` hadoop config path
+- `MASTER=...` yarn client
+- `/usr/local/spark/bin/spark-shell` spark client full path
+
 ## 建置 Spark standalone cluster 執行環境
 
 ## spark-shell (Spark standalone)
