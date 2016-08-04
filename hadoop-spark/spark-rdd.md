@@ -45,6 +45,45 @@ gRDD: Array[(String, Iterable[Int])] = Array((even,CompactBuffer(2)), (odd,Compa
 ```
 
 ## 多個轉換運算
+```scala
+scala> val intRDD1 = sc.parallelize(List(3, 1, 2, 5, 5))
+intRDD1: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[0] at parallelize at <console>:21
+
+scala> val intRDD2 = sc.parallelize(List(5, 6))
+intRDD2: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[1] at parallelize at <console>:21
+
+scala> val intRDD3 = sc.parallelize(List(2, 7))
+intRDD3: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[2] at parallelize at <console>:21
+```
+
+### union 聯集
+```scala
+scala> intRDD1.union(intRDD2).union(intRDD3).collect
+res0: Array[Int] = Array(3, 1, 2, 5, 5, 5, 6, 2, 7)
+
+scala> (intRDD1 ++ intRDD2 ++ intRDD3).collect
+res2: Array[Int] = Array(3, 1, 2, 5, 5, 5, 6, 2, 7)
+```
+
+### intersection 交集
+```scala
+scala> intRDD1.intersection(intRDD2).collect
+res3: Array[Int] = Array(5)
+```
+
+### subtract 差集
+```scala
+scala> intRDD1.subtract(intRDD2).collect
+res4: Array[Int] = Array(1, 2, 3)
+```
+- intRDD1 扣除 intRDD2 重複的部分
+
+### cartesian
+```scala
+scala> intRDD1.cartesian(intRDD2).collect
+res5: Array[(Int, Int)] = Array((3,5), (3,6), (1,5), (1,6), (2,5), (2,6), (5,5), (5,6), (5,5), (5,6))
+```
+- 5*2=10 種組合
 
 ## 基本動作運算
 
