@@ -56,12 +56,46 @@ export PATH=$PATH:$SPARK_HOME/bin
 ```
 
 ## 啟動 spark-shell 互動介面
+```shell
+$ spark-shell
+```
 
 ## 設定 spark-shell 顯示訊息
+```shell
+$ cd /usr/loca/spark/conf
+$ cp $ cp log4j.properties.template log4j.properties
+$ vi log4j.properties
+```
 
+log4j.properties:
+```
+#log4j.rootCategory=INFO, console
+log4j.rootCategory=WARN, console
+```
 ## 啟動 Hadoop
+```shell
+$ start-all.sh
+```
 
 ## spark-shell (Local machine)
+
+### 啟動 spark-shell
+```shell
+$ spark-shell --master local[4]　# 本機執行，N個執行緒
+```
+
+### 讀取本機檔案
+```
+scala> val testFile=sc.textFile("file:/usr/local/spark/README.md")
+testFile: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[1] at textFile at <console>:21
+```
+
+### 讀取 HDFS 檔案
+```
+scala> val textFile=sc.textFile("hdfs://master:9000/user/hduser/test/README.txt")
+textFile: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[3] at textFile at <console>:21
+```
+> `master:9000` 設定在 core-site.xml 中
 
 ## spark-shell (Hadoop YARN)
 
