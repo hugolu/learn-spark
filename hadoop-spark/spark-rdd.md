@@ -160,6 +160,14 @@ res7: Array[(Int, Int)] = Array((1,2), (3,10), (5,6))
 
 ## Key-Value 多個轉換運算
 
+```scala
+scala> val kvRDD1 = sc.parallelize(List((3,4), (3,6), (5,6), (1,2)))
+kvRDD1: org.apache.spark.rdd.RDD[(Int, Int)] = ParallelCollectionRDD[0] at parallelize at <console>:21
+
+scala> val kvRDD2 = sc.parallelize(List(3,8))
+kvRDD2: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[1] at parallelize at <console>:21
+```
+
 ### join
 ```scala
 scala> kvRDD1.join(kvRDD2).foreach(println)
@@ -210,6 +218,44 @@ res7: Array[(Int, Int)] = Array((1,2), (5,6))
 - 移除相同鍵值的資料
 
 ## Key-Value 動作運算
+```scala
+scala> kvRDD1.first
+res0: (Int, Int) = (3,4)
+
+scala> kvRDD1.first._1
+res1: Int = 3
+
+scala> kvRDD1.first._2
+res2: Int = 4
+
+scala> kvRDD1.take(2)
+res3: Array[(Int, Int)] = Array((3,4), (3,6))
+
+scala> kvRDD1.countByKey
+res5: scala.collection.Map[Int,Long] = Map(1 -> 1, 3 -> 2, 5 -> 1)
+```
+
+```scala
+scala> var kv = kvRDD1.collectAsMap()
+kv: scala.collection.Map[Int,Int] = Map(5 -> 6, 1 -> 2, 3 -> 6)
+
+scala> kv(3)
+res6: Int = 6
+
+scala> kv(1)
+res7: Int = 2
+```
+
+```scala
+scala> kvRDD1.lookup(3)
+res9: Seq[Int] = WrappedArray(4, 6)
+
+scala> kvRDD1.lookup(5)
+res10: Seq[Int] = WrappedArray(6)
+
+scala> kvRDD1.lookup(0)
+res11: Seq[Int] = WrappedArray()
+```
 
 ## Broadcast 廣播變數
 
