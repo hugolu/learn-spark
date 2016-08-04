@@ -294,6 +294,34 @@ fruitNames: Array[String] = Array(orange, grape, apple, banana)
 
 ## accumulator 累加器
 
+MapReduce 常用加總，為了方便平行運算，Spark 提供 accumulator 共享變數，規則如下：
+- 使用 SparkContext.accumulator([initial values]) 建立累加器
+- 使用 += 累加
+- foreach 中不能讀取累加器的值
+- 迴圈外才能使用 .value 讀取累加器的值
+
+```scala
+scala> val intRDD = sc.parallelize(List(3,1,2,5,5))
+intRDD: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[0] at parallelize at <console>:21
+
+scala> val total = sc.accumulator(0.0)
+total: org.apache.spark.Accumulator[Double] = 0.0
+
+scala> val num = sc.accumulator(0)
+num: org.apache.spark.Accumulator[Int] = 0
+
+scala> intRDD.foreach{ i =>
+     |   total += i
+     |   num += 1
+     | }
+
+scala> println("total=" + total.value + ", num=" + num.value)
+total=16.0, num=5
+
+scala> val avg = total.value / num.value
+avg: Double = 3.2
+```
+
 ## RDD 持久化
 
 ## Spark WordCount
