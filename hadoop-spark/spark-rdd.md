@@ -360,3 +360,21 @@ res5: intRddMemoryAndDisk.type = ParallelCollectionRDD[1] at parallelize at <con
 ```
 
 ## Spark WordCount
+```scala
+val textFile = sc.textFile("file:/home/hduser/wordcount/input/sample.txt")
+val stringRDD = textFile.flatMap(line => line.split(" "))
+val countsRDD = stringRDD.map(word => (word, 1)).reduceByKey(_+_)
+countsRDD.saveAsTextFile("file:/home/hduser/wordcount/output")
+```
+- `.textFile()` 讀取本地文字檔
+- `.flatMap(line => line.split(" "))` 取出每個文字
+- `.map(word => (word, 1))` 將每個文字轉成 key-value
+- `.reduceByKey.(_+_)` 合併相同 key 的 value，使用 `_+_` 相加
+- `.saveAsTextFile()` 結果寫回本地文件
+
+```shell
+$ cat /home/hduser/wordcount/output/part-00000
+(dog,3)
+(apple,2)
+(cat,4)
+```
