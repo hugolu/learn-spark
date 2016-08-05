@@ -323,5 +323,40 @@ avg: Double = 3.2
 ```
 
 ## RDD 持久化
+RDD 持久化機制，可以把想要重複運算的 RDD 儲存在記憶體中，提升運算效率。
+
+### 持久化操作
+```scala
+scala> val intRddMemory = sc.parallelize(List(3,1,2,5,5))
+intRddMemory: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[0] at parallelize at <console>:21
+
+scala> intRddMemory.persist
+res1: intRddMemory.type = ParallelCollectionRDD[0] at parallelize at <console>:21
+
+scala> intRddMemory.unpersist()
+res2: intRddMemory.type = ParallelCollectionRDD[0] at parallelize at <console>:21
+```
+
+### 儲存等級
+- MEMORY_ONLY
+- MEMORY_AND_DISK
+- MEMORY_ONLY_SER
+- MEMORY_AND_DISK_SER (序列化)
+- DISK_ONLY
+- MEMORY_ONLY_2, MEMORY_ANDK_DISK_2 (複製到兩個節點)
+
+```scala
+scala> import org.apache.spark.storage.StorageLevel
+import org.apache.spark.storage.StorageLevel
+
+scala> val intRddMemoryAndDisk = sc.parallelize(List(3,1,2,5,5))
+intRddMemoryAndDisk: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[1] at parallelize at <console>:22
+
+scala> intRddMemoryAndDisk.persist(StorageLevel.MEMORY_AND_DISK)
+res4: intRddMemoryAndDisk.type = ParallelCollectionRDD[1] at parallelize at <console>:22
+
+scala> intRddMemoryAndDisk.unpersist()
+res5: intRddMemoryAndDisk.type = ParallelCollectionRDD[1] at parallelize at <console>:22
+```
 
 ## Spark WordCount
