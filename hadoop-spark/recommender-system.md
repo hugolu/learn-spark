@@ -122,13 +122,22 @@ rawUserData: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[1] at textFile 
 ```scala
 scala> rawUserData.first
 res0: String = 196	242	3	881250949   # 欄位: user id | item id | rating | timestamp
+```
 
+#### 查看前五筆
+```scala
 scala> rawUserData.take(5).foreach(println)
 196	242	3	881250949
 186	302	3	891717742
 22	377	1	878887116
 244	51	2	880606923
 166	346	1	886397596
+```
+
+#### 評價統計資料
+```scala
+scala> rawUserData.map(_.split("\t")(2).toDouble).stats
+res2: org.apache.spark.util.StatCounter = (count: 100000, mean: 3.529860, stdev: 1.125668, max: 5.000000, min: 1.000000)
 ```
 
 ## ALS.train
