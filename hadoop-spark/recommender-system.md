@@ -68,9 +68,68 @@ user5 | 1     | 1     | 1     | 1     | 1
 為了解決稀疏矩陣問題，採用矩陣分解 (Matrix Factorization)。將原本 RatingMatrix (mxn) 分解成 UserMatrix (m x rank) 與 ItemMatrix (rank x n)，且 RatingMatrix ≈ UserMatrix x ItemMatrix。
 
 ## ml-100k 推薦資料
+[MovieLens](http://grouplens.org/datasets/movielens/) 是一個推薦系統與虛擬社群網站，使用 Colleborative Filtering 向會員推薦電影。
+
+提供不同大小的資料集: [100k](http://files.grouplens.org/datasets/movielens/ml-100k.zip), [1M](http://files.grouplens.org/datasets/movielens/ml-1m.zip), [10M](http://files.grouplens.org/datasets/movielens/ml-10m.zip), [20M](http://files.grouplens.org/datasets/movielens/ml-20m.zip), [Latest-small](http://files.grouplens.org/datasets/movielens/ml-latest-small.zip), [Latest](http://files.grouplens.org/datasets/movielens/ml-latest.zip), [Tag Genome](http://files.grouplens.org/datasets/tag-genome/tag-genome.zip)
+
 ### 下載
-## 匯入資料
-## 查看資料
+```shell
+$ mkdir -p Recommend/data
+$ cd Recommend/data
+$ wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
+$ unzip -j ml-100k.zip
+Archive:  ml-100k.zip
+  inflating: allbut.pl
+  inflating: mku.sh
+  inflating: README
+  inflating: u.data
+  inflating: u.genre
+  inflating: u.info
+  inflating: u.item
+  inflating: u.occupation
+  inflating: u.user
+  inflating: u1.base
+  inflating: u1.test
+  inflating: u2.base
+  inflating: u2.test
+  inflating: u3.base
+  inflating: u3.test
+  inflating: u4.base
+  inflating: u4.test
+  inflating: u5.base
+  inflating: u5.test
+  inflating: ua.base
+  inflating: ua.test
+  inflating: ub.base
+  inflating: ub.test
+```
+- `unzip -j` 解壓到當前目錄
+
+u.data: 使用者評價資料
+- 欄位：user id, item id, rating, timestamp
+
+u.item: 電影資料
+- 欄位：movie id, movie title, release date, video release date, IMDb URL, unknown, Action, Adventure, Animation, Children's, Comedy, Crime, Documentary, Drama, Fantasy, Film-Noir, Horror, Musical, Mystery, Romance, Sci-Fi, Thriller, War, Western
+- 只要使用前2項，ps. 最後19項是 genres
+
+### 匯入資料
+```shell
+$ spark-shell
+scala> val rawUserData = sc.textFile("u.data")
+rawUserData: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[1] at textFile at <console>:21
+```
+### 查看資料
+```scala
+scala> rawUserData.first
+res0: String = 196	242	3	881250949   # 欄位: user id | item id | rating | timestamp
+
+scala> rawUserData.take(5).foreach(println)
+196	242	3	881250949
+186	302	3	891717742
+22	377	1	878887116
+244	51	2	880606923
+166	346	1	886397596
+```
 
 ## ALS.train
 ### 訓練模型
