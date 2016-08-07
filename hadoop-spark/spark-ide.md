@@ -81,30 +81,30 @@ $ mkdir -p src/main/scala
 $ vi src/main/scala/WordCount.scala
 ```
 ```scala
-import org.apache.log4j.Logger
+import org.apache.log4j.Logger                                                                  //#1
 import org.apache.log4j.Level
-import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.{SparkContext, SparkConf}                                               //#2
 import org.apache.spark.rdd.RDD
 
 object WordCount {
   def main(args: Array[String]): Unit = {
-    Logger.getLogger("org").setLevel(Level.OFF)
+    Logger.getLogger("org").setLevel(Level.OFF)                                                 //#3
     System.setProperty("spark.ui.showConsoleProgress", "false")
 
     println("開始執行 WordCount")
-    val sc = new SparkContext(new SparkConf().setAppName("WordCount").setMaster("local[4]"))
+    val sc = new SparkContext(new SparkConf().setAppName("WordCount").setMaster("local[4]"))    //#4
 
     println("開始讀取文字...")
-    val textFile = sc.textFile("input/sample.txt")
+    val textFile = sc.textFile("input/sample.txt")                                              //#5
 
     println("開始建立 RDD...")
-    val countsRDD = textFile.flatMap(line => line.split(" "))
+    val countsRDD = textFile.flatMap(line => line.split(" "))                                   //#6
                       .map(word => (word, 1))
                       .reduceByKey(_ + _)
 
     println("開始儲存至文件...")
     try {
-      countsRDD.saveAsTextFile("output")
+      countsRDD.saveAsTextFile("output")                                                        //#7
       println("已經儲存成功")
     } catch {
       case e: Exception => println("輸出目錄已經存在，請先刪除原有目錄")
@@ -112,6 +112,15 @@ object WordCount {
   }
 }
 ```
+- #1, #3: 設定不要顯示太多資訊
+- #2: 匯入相關程式庫
+- #4: 建立 spark context
+- #5: 讀取文字檔
+- #6: 執行 MapReduce
+  - `.flatMap(line => line.split(" "))` 針對每一行，取出每個字，然後合併成一個集合
+  - `.map(word => (word, 1))` 將集合中每個字轉成 key-value `tuple2[String, Int]`
+  - `.reduceByKey(_ + _)` 合併同樣鍵值，使用 `_ + _` 密名函數
+- #7: 儲存至檔案
 
 ### 建立 build.sbt
 ```shell
