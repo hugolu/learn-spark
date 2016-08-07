@@ -174,3 +174,108 @@ $ cat output/part-00000
 (apple,2)
 (cat,4)
 ```
+
+## spark-submit 
+參考連結: [Submitting Applications](http://spark.apache.org/docs/latest/submitting-applications.html)
+
+### 使用 spark-submit 啟動應用程式
+```shell
+spark-submit \
+  --class <main-class> \
+  --master <master-url> \
+  --deploy-mode <deploy-mode> \
+  --conf <key>=<value> \
+  ... # other options
+  <application-jar> \
+  [application-arguments]
+```
+
+選項 | 說明
+-----|------
+`--class <main-class>`        | 要執行的 application 主要類別名稱
+`--master <master-url>`       | 設定執行環境
+`--deploy-mode <deploy-mode>` | 要部署 driver 到 work node (cluster) 或在本機的一個外部 client 
+`--conf <key>=<value>`        | spark 設定屬性，使用 `"key=value"` 格式
+`--driver-memory MEM`         | driver 程式所使用的記憶體
+`--executor-memory MEM`       | executor 程式所使用的記憶體
+`--jars JARS`                 | 要執行的 application 會引用到的外部程式庫
+`--name NAME`                 | 要執行的 application 名稱
+`<application-jar>`           | 要執行的 application 的 jar 路徑
+`[application-arguments]`     | 要傳遞給主要類別的 main 方法的參數
+
+### Master URLs
+`--master <master-url>` 選項：
+
+Master URL | 說明
+-----------|-----
+`local`             | 本機執行，使用一個執行緒
+`local [K]`         | 本機執行，使用K個執行緒 (使用本機多核心 CPU)
+`local [*]`         | 本機執行，自動盡量利用本機上的多核心 CPU
+`spark://HOST:PORT` | 在 Spark standalone cluster 執行預設 port=7077
+`mesos://HOST:PORT` | 在 Mesos cluster 執行，預設 port=5050
+`yarn-client`       | 在 Yarn cluster 執行
+
+
+### 執行範例
+
+```shell
+# Run application locally on 8 cores
+./bin/spark-submit \
+  --class org.apache.spark.examples.SparkPi \
+  --master local[8] \
+  /path/to/examples.jar \
+  100
+```
+```shell
+# Run on a Spark standalone cluster in client deploy mode
+./bin/spark-submit \
+  --class org.apache.spark.examples.SparkPi \
+  --master spark://207.184.161.138:7077 \
+  --executor-memory 20G \
+  --total-executor-cores 100 \
+  /path/to/examples.jar \
+  1000
+```
+```shell
+# Run on a Spark standalone cluster in cluster deploy mode with supervise
+./bin/spark-submit \
+  --class org.apache.spark.examples.SparkPi \
+  --master spark://207.184.161.138:7077 \
+  --deploy-mode cluster \
+  --supervise \
+  --executor-memory 20G \
+  --total-executor-cores 100 \
+  /path/to/examples.jar \
+  1000
+```
+```shell
+# Run on a YARN cluster
+export HADOOP_CONF_DIR=XXX
+./bin/spark-submit \
+  --class org.apache.spark.examples.SparkPi \
+  --master yarn \
+  --deploy-mode cluster \  # can be client for client mode
+  --executor-memory 20G \
+  --num-executors 50 \
+  /path/to/examples.jar \
+  1000
+```
+```shell
+# Run a Python application on a Spark standalone cluster
+./bin/spark-submit \
+  --master spark://207.184.161.138:7077 \
+  examples/src/main/python/pi.py \
+  1000
+```
+```shell
+# Run on a Mesos cluster in cluster deploy mode with supervise
+./bin/spark-submit \
+  --class org.apache.spark.examples.SparkPi \
+  --master mesos://207.184.161.138:7077 \
+  --deploy-mode cluster \
+  --supervise \
+  --executor-memory 20G \
+  --total-executor-cores 100 \
+  http://path/to/examples.jar \
+  1000
+```
