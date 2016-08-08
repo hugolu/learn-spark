@@ -148,9 +148,50 @@ res2: org.apache.spark.util.StatCounter = (count: 100000, mean: 3.529860, stdev:
 - 使用 ALS.train 進行訓練，建立推薦模型 MatrixFactorizationModel
 
 #### 匯入程式庫
+```scala
+scala> import org.apache.spark.mllib.recommendation.ALS
+scala> import org.apache.spark.mllib.recommendation.Rating
+```
+
 #### 讀取 rawUserData
+```scala
+scala> val rawUserData = sc.textFile("u.data")
+scala> val rawRatings = rawUserData.map(_.split("\t").take(3))
+```
+
 #### 準備訓練資料
+```scala
+scala> val ratingsRDD = rawRatings.map{ case Array(user, movie, rating) => Rating(user.toInt, movie.toInt, rating.toDouble) }
+```
+- 把 rawRatings 的元素 `Array[String, String, String]` 轉換成 `Array[Int, Int, Double]`，以便後續 ALS.train 使用
+
 #### 進行模型訓練
+```scala
+scala> val model = ALS.train(ratingsRDD, 10, 10, 0.01)
+model: org.apache.spark.mllib.recommendation.MatrixFactorizationModel = org.apache.spark.mllib.recommendation.MatrixFactorizationModel@72db43a7
+```
+
+##### 評價方式
+明確評估訓練：
+- `ALS.train(rating: RDD[Rating], rank: Int, iterations: Int, lambda: Double): MatrixFactorizationModel`
+
+隱式評估訓練：
+- `ALS.trainImplicit(rating: RDD[Rating], rank: Int, iterations: Int, lambda: Double): MatrixFactorizationModel`
+
+參數 | 資料型態 | 說明
+-----|----------|------
+`Ratings`     | Int     | 訓練格式為 `Rating(userID, productID, rating)` 的 RDD
+`rank`        | Int     | 執行矩陣分解，將原本 A(m x n)分解成 X(m x rank) 與 Y(rank x n)
+`iterations`  | Int     | ALS 演算法重複計算次數 (建議值 10~20)
+`lambda`      | Double  | 建議值 0.01
+
+#####  訓練結果 MatrixFactorizationModel
+
+成員| 資料型態 | 說明
+----|----------|------
+`rank`            | Int                       | 分解的參數
+`userFeatures`    | RDD[(Int, Array[Double])  | 分解後用戶矩陣 X(m x rank)
+`productFeatures` | RDD[(Int, Array[Double])  | 分解後產品矩陣 Y(rank x n)
 
 ### 進行推薦
 ### 顯示推薦
