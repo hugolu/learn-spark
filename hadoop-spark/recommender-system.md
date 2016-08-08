@@ -178,8 +178,8 @@ model: org.apache.spark.mllib.recommendation.MatrixFactorizationModel = org.apac
 隱式評估訓練：
 - `ALS.trainImplicit(rating: RDD[Rating], rank: Int, iterations: Int, lambda: Double): MatrixFactorizationModel`
 
-參數 | 資料型態 | 說明
------|----------|------
+參數 | 型別 | 說明
+-----|------|------
 `Ratings`     | Int     | 訓練格式為 `Rating(userID, productID, rating)` 的 RDD
 `rank`        | Int     | 執行矩陣分解，將原本 A(m x n)分解成 X(m x rank) 與 Y(rank x n)
 `iterations`  | Int     | ALS 演算法重複計算次數 (建議值 10~20)
@@ -187,14 +187,63 @@ model: org.apache.spark.mllib.recommendation.MatrixFactorizationModel = org.apac
 
 #####  訓練結果 MatrixFactorizationModel
 
-成員| 資料型態 | 說明
-----|----------|------
+成員| 型別 | 說明
+----|------|------
 `rank`            | Int                       | 分解的參數
 `userFeatures`    | RDD[(Int, Array[Double])  | 分解後用戶矩陣 X(m x rank)
 `productFeatures` | RDD[(Int, Array[Double])  | 分解後產品矩陣 Y(rank x n)
 
 ### 進行推薦
+#### 針對使用者推薦電影
+針對使用者 196 推薦前 5 部電影
+```scala
+scala> model.recommendProducts(195, 5).mkString("\n")
+res1: String =
+Rating(195,1643,6.3138021884694435)
+Rating(195,1449,5.725196779932537)
+Rating(195,318,5.114167815408342)
+Rating(195,1463,5.097048078430008)
+Rating(195,1169,5.04607411159459)
+```
+
+`MatrixFactorizationModel.recommendProduct(user: Int, num: Int): Array[Rating]`: 輸入參數 user，針對此 user 推薦有可能興趣的產品
+
+參數 | 型別 | 說明
+-----|------|-------
+`user`  | Int  | 被推薦的 user id
+`num`   | Int  | 推薦筆數
+
+回傳 `Array(user: Int, product: Int, rating: Double)`
+- 每筆記錄都是系統推薦產品，rating 是系統給的評分
+- rating越高，表示系統越推薦此產品
+- 回傳陣列依 rating 排序 (大到小)
+
+#### 查看對使用者推薦產品的評分
+```scala
+scala> model.predict(196, 464)
+res2: Double = 4.2454766877731345
+```
+
+#### 針對電影推薦給使用者
+```scala
+scala> model.recommendUsers(464, 5).mkString("\n")
+res3: String =
+Rating(219,464,9.911530653128569)
+Rating(316,464,8.198440132803974)
+Rating(88,464,8.025521138674367)
+Rating(471,464,7.887180460483838)
+Rating(153,464,7.844976676398668)
+```
+
+`MatrixFactorizationModel.recommendUser(product: Int, num: Int): Array[Rating]`: 輸入參數 product，針對此電影找出可能感興趣的會員
+
+參數 | 型別 | 說明
+-----|------|-------
+`product` | Int  | 被推薦的 product id
+`num`     | Int  | 推薦筆數
+
 ### 顯示推薦
+#### 建立電影 ID 與名稱的對照表
 
 ## 建立專案
 ### 建立 Recommend.scala
