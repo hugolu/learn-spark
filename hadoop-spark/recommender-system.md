@@ -142,6 +142,16 @@ res2: org.apache.spark.util.StatCounter = (count: 100000, mean: 3.529860, stdev:
 
 ## ALS.train
 ### 訓練模型
+訓練步驟：
+- 將 rawUserData 以 map 轉換成 rawRating
+- 將 rawRating 以 map 轉換成 RDD[Rating]
+- 使用 ALS.train 進行訓練，建立推薦模型 MatrixFactorizationModel
+
+#### 匯入程式庫
+#### 讀取 rawUserData
+#### 準備訓練資料
+#### 進行模型訓練
+
 ### 進行推薦
 ### 顯示推薦
 
