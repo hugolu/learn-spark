@@ -279,9 +279,191 @@ scala> model.recommendProducts(196, 5).map(rating => (rating.product, movieTitle
 ```
 - 用 `rating.product` 做 key，查詢 `movieTitle` 的 value
 
-## 建立專案
+## Recommend 專案
+
+#### 建立目錄
+```shel
+$ mkdir Recommend
+$ cd Recommend
+```
+
+#### 準備資料
+```shell
+$ wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
+$ unzip ml-100k.zip
+```
+
+#### 建立 build.sbt
+```shell
+$ vi build.sbt
+```
+
+build.sbt:
+```
+name := "Recommend"
+
+version := "1.0"
+
+scalaVersion := "2.10.4"
+
+libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.0"
+libraryDependencies += "org.apache.spark" %% "spark-mllib" % "1.4.0"
+```
+
+> 在這裏吃了一點苦頭，因為我的 scala 版本是 2.11.7，就天真的把 build.sbt 裡面的 scalaVersion 設定為 2.11.7，結果在運行 Recommand 時發生 NoSuchMethodError 的錯誤。將 scalaVersion 設定為編譯 spark 的 scalaVersion，就能避免問題發生。細節請參考 [scala代码能够在spark-shell运行，但是不能通过spark-submit提交运行，why？](http://www.zhihu.com/question/34099679)
+
 ### 建立 Recommend.scala
+```shell
+$ mkdir -p src/main/scala
+$ vi src/main/scala/Recommand.scala
+```
+
+Recommend.scala
+```scala
+import java.io.File
+import scala.io.Source
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
+import org.apache.spark.rdd._
+import org.apache.spark.mllib.recommendation.{ ALS, Rating, MatrixFactorizationModel }
+import scala.collection.immutable.Map
+
+object Recommend {
+  def main(args: Array[String]) {
+    SetLogger
+
+    println("====== 準備階段 ======")
+    val (ratings, movieTitle) = PrepareData()
+
+    println("====== 訓練階段 ======")
+    val model = ALS.train(ratings, 5, 20, 0.1)
+
+    println("====== 推薦階段 ======")
+    recommand(model, movieTitle)
+
+    println("完成")
+  }
+
+  def SetLogger = {
+    Logger.getLogger("org").setLevel(Level.OFF)
+    Logger.getLogger("com").setLevel(Level.OFF)
+    System.setProperty("spark.ui.showConsoleProgress", "false")
+    Logger.getRootLogger().setLevel(Level.OFF)
+  }
+  
+  def PrepareData(): (RDD[Rating], Map[Int, String]) = {
+    //1. 建議使用者評價資料
+    val sc = new SparkContext(new SparkConf().setAppName("Recommend").setMaster("local[4]"))
+    println("開始讀取使用者評價資料...")
+    val DataDir = "ml-100k"
+    val rawUserData = sc.textFile(new File(DataDir, "u.data").toString)
+    val rawRatings = rawUserData.map(_.split("\t").take(3))
+    val ratingsRDD = rawRatings.map{ case Array(user, movie, rating) =>
+        Rating(user.toInt, movie.toInt, rating.toDouble)
+    }
+    println("共計: " + ratingsRDD.count.toString + "筆 ratings")
+
+    //2. 建立電影ID名稱對照表
+    println("開始讀取電影資料...")
+    val itemRDD = sc.textFile(new File(DataDir, "u.item").toString)
+    val movieTitle = itemRDD.map(line => line.split("\\|").take(2))
+                            .map(array => (array(0).toInt, array(1)))
+                            .collect()
+                            .toMap
+
+    //3. 顯示資料筆數
+    val numRatings = ratingsRDD.count
+    val numUsers = ratingsRDD.map(_.user).distinct.count
+    val numMovies = ratingsRDD.map(_.product).distinct.count
+    println("共計: ratings: " + numRatings + ", users: " + numUsers + ", movies: " + numMovies)
+
+    return (ratingsRDD, movieTitle)
+  }
+
+  def recommand(model: MatrixFactorizationModel, movieTitle: Map[Int, String]) = {
+    var choose = ""
+    while (choose != "3") {
+      println("請選擇要推薦的類型: 1: 針對使用者推薦電影, 2: 針對電影推薦有興趣的使用者, 3: 離開")
+      choose = readLine()
+
+      if (choose == "1") {
+        println("請輸入使用者ID? ")
+        val inputUserID = readLine()
+        RecommendMovies(model, movieTitle, inputUserID.toInt)
+      } else if (choose == "2") {
+        println("請輸入電影ID? ")
+        val inputMovieID = readLine()
+        RecommendUsers(model, movieTitle, inputMovieID.toInt)
+      }
+    }
+  }
+
+  def RecommendMovies(model: MatrixFactorizationModel, movieTitle: Map[Int, String], inputUserID: Int) = {
+    val RecommendMovie = model.recommendProducts(inputUserID, 10)
+    println("針對使用者 id: " + inputUserID + " 推薦以下電影: ")
+    RecommendMovie.foreach{ r => println("電影: " + movieTitle(r.product) + " 評價: " + r.rating.toString) }
+  }
+
+  def RecommendUsers(model: MatrixFactorizationModel, movieTitle: Map[Int, String], inputMovieID: Int) = {
+    val RecommendUser = model.recommendUsers(inputMovieID, 10)
+    println("針對電影 id: " + inputMovieID +
+            " 電影名: " + movieTitle(inputMovieID.toInt) +
+            " 推薦以下使用者: ")
+    RecommendUser.foreach{ r => println("使用者id: " + r.user + " 評價: " + r.rating) }
+  }
+
+}
+```
+
 ### 執行 Recommend.scala
+```shell
+$ sbt compile && sbt package
+$ spark-submit --class Recommend target/scala-2.10/recommend_2.10-1.0.jar
+====== 準備階段 ======
+開始讀取使用者評價資料...
+共計: 100000筆 ratings
+開始讀取電影資料...
+共計: ratings: 100000, users: 943, movies: 1682
+====== 訓練階段 ======
+====== 推薦階段 ======
+請選擇要推薦的類型: 1: 針對使用者推薦電影, 2: 針對電影推薦有興趣的使用者, 3: 離開
+1
+請輸入使用者ID?
+123
+針對使用者 id: 123 推薦以下電影:
+電影: World of Apu, The (Apur Sansar) (1959) 評價: 5.556052947877983
+電影: Angel Baby (1995) 評價: 5.127098381261374
+電影: Aparajito (1956) 評價: 5.079610342576361
+電影: Pather Panchali (1955) 評價: 4.916553841931805
+電影: Boy's Life 2 (1997) 評價: 4.886008733627371
+電影: Four Days in September (1997) 評價: 4.793490221826852
+電影: Anna (1996) 評價: 4.752851885357754
+電影: Year of the Horse (1997) 評價: 4.746332390901659
+電影: Some Mother's Son (1996) 評價: 4.741788651024902
+電影: Duoluo tianshi (1995) 評價: 4.640705096727442
+請選擇要推薦的類型: 1: 針對使用者推薦電影, 2: 針對電影推薦有興趣的使用者, 3: 離開
+2
+請輸入電影ID?
+321
+針對電影 id: 321 電影名: Mother (1996) 推薦以下使用者:
+使用者id: 810 評價: 4.035855629567161
+使用者id: 118 評價: 3.993258517223901
+使用者id: 688 評價: 3.9577293734534376
+使用者id: 173 評價: 3.9410877836307723
+使用者id: 808 評價: 3.9038140669118118
+使用者id: 849 評價: 3.8609216412082983
+使用者id: 4 評價: 3.8385147216028956
+使用者id: 640 評價: 3.794952670205874
+使用者id: 264 評價: 3.7911406767986175
+使用者id: 923 評價: 3.7836875248595283
+請選擇要推薦的類型: 1: 針對使用者推薦電影, 2: 針對電影推薦有興趣的使用者, 3: 離開
+3
+完成
+```
+
 ### 建立 AlsEvaluation.scala - 調校訓練參數
 ### 執行 AlsEvaluation.scala
 ### 設定最佳參數組合
