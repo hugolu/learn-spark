@@ -244,6 +244,40 @@ Rating(153,464,7.844976676398668)
 
 ### 顯示推薦
 #### 建立電影 ID 與名稱的對照表
+```scala
+scala> val itemRDD = sc.textFile("u.item")
+scala> val movieTitle = itemRDD.map(line => line.split("\\|").take(2)).map(array => (array(0).toInt, array(1))).collectAsMap()
+movieTitle: scala.collection.Map[Int,String] = Map(137 -> Big Night (1996), 891 -> Bent (1997), 550 -> Die Hard: With a Vengeance (1995), 1205 -> Secret Agent, The (1996), 146 -> Unhook the Stars (1996), 864 -> My Fellow Americans (1996), 559 -> Interview with the Vampire (1994), 218 -> Cape Fear (1991), 568 -> Speed (1994), 227 -> Star Trek VI: The Undiscovered Country (1991), 765 -> Boomerang (1992), 1115 -> Twelfth Night (1996), 774 -> Prophecy, The (1995), 433 -> Heathers (1989), 92 -> True Romance (1993), 1528 -> Nowhere (1997), 846 -> To Gillian on Her 37th Birthday (1996), 1187 -> Switchblade Sisters (1975), 1501 -> Prisoner of the Mountains (Kavkazsky Plennik) (1996), 442 -> Amityville Curse, The (1990), 1160 -> Love! Valour! Compassion! (1997), 101 -> Heavy Metal (1981), 1196 -...
+```
+> 如果用“|”作为分隔的话,必须是如下写法,String.split("\\|"),这样才能正确的分隔开,不能用String.split("|")
+
+#### 顯示對照表前 5 筆
+```scala
+scala> movieTitle.take(5).foreach(println)
+(146,Unhook the Stars (1996))
+(1205,Secret Agent, The (1996))
+(550,Die Hard: With a Vengeance (1995))
+(891,Bent (1997))
+(137,Big Night (1996))
+```
+
+#### 查詢電影名稱
+```scala
+scala> movieTitle(146)
+res6: String = Unhook the Stars (1996)
+```
+- 查詢 movie id = 146 的電影名稱
+
+#### 顯示前五筆推薦電影名稱
+```scala
+scala> model.recommendProducts(196, 5).map(rating => (rating.product, movieTitle(rating.product), rating.rating)).foreach(println)
+(1643,Angel Baby (1995),12.124441061944287)
+(998,Cabin Boy (1994),9.17632698426916)
+(1242,Old Lady Who Walked in the Sea, The (Vieille qui marchait dans la mer, La) (1991),8.623231721127286)
+(1160,Love! Valour! Compassion! (1997),8.553355395361205)
+(634,Microcosmos: Le peuple de l'herbe (1996),8.23342220368146)
+```
+- 用 `rating.product` 做 key，查詢 `movieTitle` 的 value
 
 ## 建立專案
 ### 建立 Recommend.scala
