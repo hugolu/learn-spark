@@ -469,6 +469,7 @@ $ spark-submit --class Recommend target/scala-2.10/recommend_2.10-1.0.jar
 ```
 
 ### 建立 AlsEvaluation.scala - 調校訓練參數
+修改書本範例，不產生 BarChart 圖表，只把分析過程顯示在畫面上
 ```scala
 import java.io.File
 import scala.io.Source
@@ -619,6 +620,17 @@ object AlsEvaluation {
 
 }
 ```
+
+函式 | 說明
+-----|------
+`main`            | 主流程，包含準備資料、訓練模型、進行推薦
+`SetLogger`       | 關閉 log & console 資訊
+`PrepareData`     | 讀取、分析 ml-100k 資料，建立電影ID與名稱對照表，顯示資料筆數，將資料分成三份 train, validation, test 
+`trainValidation` | 個別評估調整 rank, numIterations, lambda 的效果，與找出三者最佳組合
+`evaluateParameter`			| 個別評估 rank, numIterations, lambda 其中一個參數的效果
+`evaluateAllParameter`  | 所有參數交叉評估找出最好的參數組合
+`trainModel`			| 根據特定的 rank, numIterations, lambda 訓練模型，並記錄所需時間
+`computeRMSE`			| 計算預測 rating 與真實 rating 的誤差 (越小越好)
 
 ### 執行 AlsEvaluation.scala
 ```shell
