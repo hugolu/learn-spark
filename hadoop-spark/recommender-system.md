@@ -469,6 +469,365 @@ $ spark-submit --class Recommend target/scala-2.10/recommend_2.10-1.0.jar
 ```
 
 ### 建立 AlsEvaluation.scala - 調校訓練參數
-### 執行 AlsEvaluation.scala
-### 設定最佳參數組合
+```scala
+import java.io.File
+import scala.io.Source
+import org.apache.log4j.Logger
+import org.apache.log4j.Level
+import org.apache.spark.SparkConf
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
+import org.apache.spark.rdd._
+import org.apache.spark.mllib.recommendation.{ ALS, Rating, MatrixFactorizationModel }
+import org.joda.time.format._
+import org.joda.time._
+import org.joda.time.ReadableInstant
+import org.joda.time.Duration
 
+object AlsEvaluation {
+  def main(args: Array[String]) {
+    SetLogger
+
+    println("====== 資料準備階段 ======")
+    val (trainData, validationData, testData) = PrepareData()
+    trainData.persist()
+    validationData.persist()
+    testData.persist()
+
+    println("====== 訓練驗證階段 ======")
+    val bestModel = trainValidation(trainData, validationData)
+
+    println("====== 測試階段 =====")
+    val testRmse = computeRMSE(bestModel, testData)
+
+    println("使用 testData 測試 bestModel, 結果 RMSE = " + testRmse)
+
+    trainData.unpersist()
+    validationData.unpersist()
+    testData.unpersist()
+  }
+
+  def SetLogger = {
+    Logger.getLogger("org").setLevel(Level.OFF)
+    Logger.getLogger("com").setLevel(Level.OFF)
+    System.setProperty("spark.ui.showConsoleProgress", "false")
+    Logger.getRootLogger().setLevel(Level.OFF)
+  }
+
+  def PrepareData(): (RDD[Rating], RDD[Rating], RDD[Rating]) = {
+    // 1. 建立用戶評價資料
+    val sc = new SparkContext(new SparkConf().setAppName("Recommend").setMaster("local[4]"))
+    println("開始讀取用戶評價資料...")
+    val DataDir = "ml-100k"
+    val rawUserData = sc.textFile(new File(DataDir, "u.data").toString)
+    val rawRatings = rawUserData.map(_.split("\t").take(3))
+    val ratingsRDD = rawRatings.map{ case Array(user, movie, rating) =>
+                                      Rating(user.toInt, movie.toInt, rating.toDouble) }
+    println("共計: " + ratingsRDD.count.toString + "筆 ratings")
+
+    //2. 建立電影ID與名稱對照表
+    println("開始讀取電影資料...")
+    val itemRDD = sc.textFile(new File(DataDir, "u.item").toString)
+    val movieTitle = itemRDD.map(line => line.split("\\|").take(2))
+                            .map(array => (array(0).toInt, array(1)))
+                            .collect()
+                            .toMap
+
+    //3. 顯示資料數
+    val numRatings = ratingsRDD.count
+    val numUsers = ratingsRDD.map(_.user).distinct.count
+    val numMovies = ratingsRDD.map(_.product).distinct.count
+    println("共計: ratings: " + numRatings + ", users: " + numUsers + ", movies: " + numMovies)
+
+    //4. 以隨機方式將資料分成三份並回傳 train : validation : test = 8 : 1 : 1
+    val Array(trainData, validationData, testData) = ratingsRDD.randomSplit(Array(0.8, 0.1, 0.1))
+    println(s"train: ${trainData.count}, validation: ${validationData.count}, test: ${testData.count}")
+
+    (trainData, validationData, testData)
+  }
+
+  def trainValidation(trainData: RDD[Rating], validationData: RDD[Rating]): MatrixFactorizationModel = {
+    println("---- 評估 rank 參數 ----")
+    evaluateParameter(trainData, validationData, "rank", Array(5, 10, 15, 20, 50, 100), Array(10), Array(0.1))
+
+    println("---- 評估 numIterations 參數 ----")
+    evaluateParameter(trainData, validationData, "numIterations", Array(10), Array(5, 10, 15, 20, 25), Array(0.1))
+
+    println("---- 評估 lambda 參數 ----")
+    evaluateParameter(trainData, validationData, "lambda", Array(10), Array(10), Array(0.05, 0.1, 1, 5, 10.0))
+
+    println("---- 所有參數交叉評估找出最好的參數組合 ----")
+    val bestModel = evaluateAllParameter(trainData, validationData,
+                      Array(5, 10, 15, 20, 25),
+                      Array(5, 10, 15, 20, 25),
+                      Array(0.05, 0.1, 1, 5, 10.0))
+
+    bestModel
+  }
+
+  def evaluateParameter(trainData: RDD[Rating], validationData: RDD[Rating], evaluationParameter: String,
+                        rankArray: Array[Int], numIterationsArray: Array[Int], lambdaArray: Array[Double]) = {
+    for (
+      rank <- rankArray;
+      numIterations <- numIterationsArray;
+      lambda <- lambdaArray
+    ) {
+      trainModel(trainData, validationData, rank, numIterations, lambda)
+    }
+  }
+
+  def evaluateAllParameter(trainData: RDD[Rating], validationData: RDD[Rating],
+   rankArray: Array[Int], numIterationsArray: Array[Int], lambdaArray: Array[Double]): MatrixFactorizationModel = {
+     val Evaluations = for (
+        rank <- rankArray;
+        numIterations <- numIterationsArray;
+        lambda <- lambdaArray
+      ) yield {
+        val (rmse, time) = trainModel(trainData, validationData, rank, numIterations, lambda)
+        (rank, numIterations, lambda, rmse)
+      }
+    val eval = Evaluations.sortBy(_._4)
+    val bestEval = eval(0)
+
+    println(f"最佳model: rank=${bestEval._1}, iterations=${bestEval._2}, lambda=${bestEval._3}%.2f, rmse=${bestEval._4}%.2f")
+    val bestModel = ALS.train(trainData, bestEval._1, bestEval._2, bestEval._3)
+
+    bestModel
+  }
+
+  def trainModel(trainData: RDD[Rating], validationData: RDD[Rating],
+                 rank: Int, iterations: Int, lambda: Double): (Double, Double) = {
+    val startTime = new DateTime()
+    val model = ALS.train(trainData, rank, iterations, lambda)
+    val endTime = new DateTime()
+    val rmse = computeRMSE(model, validationData)
+    val duration = new Duration(startTime, endTime)
+    val time = duration.getStandardSeconds
+
+    println(f"訓練參數: rank=${rank}, iterations=${iterations}, lambda=${lambda}%.2f, rmse=${rmse}%.2f, time=${time}%.2fms")
+    (rmse, time)
+  }
+
+  def computeRMSE(model: MatrixFactorizationModel, ratingRDD: RDD[Rating]): Double = {
+    val num = ratingRDD.count
+    val predicatedRDD = model.predict(ratingRDD.map(r => (r.user, r.product)))
+    val predictedAndRatings = predicatedRDD.map(p => ((p.user, p.product), p.rating)).join(
+      ratingRDD.map(r => ((r.user, r.product), r.rating))).values
+
+    math.sqrt(predictedAndRatings.map(x => (x._1 - x._2) * (x._1 - x._2)).reduce(_+_) / num)
+  }
+
+}
+```
+
+### 執行 AlsEvaluation.scala
+```shell
+$ sbt package
+$ spark-submit --class AlsEvaluation target/scala-2.10/recommend_2.10-1.0.jar
+Exception in thread "main" java.lang.NoClassDefFoundError: org/joda/time/ReadableInstant
+	at AlsEvaluation.main(AlsEvaluation.scala)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:606)
+	at org.apache.spark.deploy.SparkSubmit$.org$apache$spark$deploy$SparkSubmit$$runMain(SparkSubmit.scala:664)
+	at org.apache.spark.deploy.SparkSubmit$.doRunMain$1(SparkSubmit.scala:169)
+	at org.apache.spark.deploy.SparkSubmit$.submit(SparkSubmit.scala:192)
+	at org.apache.spark.deploy.SparkSubmit$.main(SparkSubmit.scala:111)
+	at org.apache.spark.deploy.SparkSubmit.main(SparkSubmit.scala)
+Caused by: java.lang.ClassNotFoundException: org.joda.time.ReadableInstant
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:366)
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:355)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:354)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:425)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:358)
+	... 10 more
+```
+
+下載 joda jar
+```shell
+$ wget https://github.com/JodaOrg/joda-time/releases/download/v2.9.4/joda-time-2.9.4-dist.tar.gz
+$ tar zxf joda-time-2.9.4-dist.tar.gz
+```
+
+額外指定 joda-time jar
+```shell
+$ spark-submit --jars joda-time-2.9.4/joda-time-2.9.4.jar --class AlsEvaluation target/scala-2.10/recommend_2.10-1.0.jar
+====== 資料準備階段 ======
+開始讀取用戶評價資料...
+共計: 100000筆 ratings
+開始讀取電影資料...
+共計: ratings: 100000, users: 943, movies: 1682
+train: 80116, validation: 9975, test: 9909
+====== 訓練驗證階段 ======
+---- 評估 rank 參數 ----
+訓練參數: rank=5, iterations=10, lambda=0.10, rmse=0.93, time=9.00ms
+訓練參數: rank=10, iterations=10, lambda=0.10, rmse=0.93, time=3.00ms
+訓練參數: rank=15, iterations=10, lambda=0.10, rmse=0.93, time=3.00ms
+訓練參數: rank=20, iterations=10, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=50, iterations=10, lambda=0.10, rmse=0.93, time=5.00ms
+訓練參數: rank=100, iterations=10, lambda=0.10, rmse=0.93, time=16.00ms
+---- 評估 numIterations 參數 ----
+訓練參數: rank=10, iterations=5, lambda=0.10, rmse=0.94, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=0.10, rmse=0.93, time=1.00ms
+訓練參數: rank=10, iterations=15, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=10, iterations=20, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=10, iterations=25, lambda=0.10, rmse=0.92, time=3.00ms
+---- 評估 lambda 參數 ----
+訓練參數: rank=10, iterations=10, lambda=0.05, rmse=0.97, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=0.10, rmse=0.93, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=10.00, rmse=3.70, time=1.00ms
+---- 所有參數交叉評估找出最好的參數組合 ----
+訓練參數: rank=5, iterations=5, lambda=0.05, rmse=0.95, time=0.00ms
+訓練參數: rank=5, iterations=5, lambda=0.10, rmse=0.94, time=0.00ms
+訓練參數: rank=5, iterations=5, lambda=1.00, rmse=1.38, time=0.00ms
+訓練參數: rank=5, iterations=5, lambda=5.00, rmse=3.70, time=0.00ms
+訓練參數: rank=5, iterations=5, lambda=10.00, rmse=3.70, time=0.00ms
+訓練參數: rank=5, iterations=10, lambda=0.05, rmse=0.95, time=1.00ms
+訓練參數: rank=5, iterations=10, lambda=0.10, rmse=0.93, time=1.00ms
+訓練參數: rank=5, iterations=10, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=5, iterations=10, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=5, iterations=10, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=5, iterations=15, lambda=0.05, rmse=0.95, time=1.00ms
+訓練參數: rank=5, iterations=15, lambda=0.10, rmse=0.93, time=1.00ms
+訓練參數: rank=5, iterations=15, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=5, iterations=15, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=5, iterations=15, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=5, iterations=20, lambda=0.05, rmse=0.95, time=2.00ms
+訓練參數: rank=5, iterations=20, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=5, iterations=20, lambda=1.00, rmse=1.38, time=2.00ms
+訓練參數: rank=5, iterations=20, lambda=5.00, rmse=3.70, time=2.00ms
+訓練參數: rank=5, iterations=20, lambda=10.00, rmse=3.70, time=2.00ms
+訓練參數: rank=5, iterations=25, lambda=0.05, rmse=0.94, time=2.00ms
+訓練參數: rank=5, iterations=25, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=5, iterations=25, lambda=1.00, rmse=1.38, time=2.00ms
+訓練參數: rank=5, iterations=25, lambda=5.00, rmse=3.70, time=2.00ms
+訓練參數: rank=5, iterations=25, lambda=10.00, rmse=3.70, time=2.00ms
+訓練參數: rank=10, iterations=5, lambda=0.05, rmse=0.97, time=0.00ms
+訓練參數: rank=10, iterations=5, lambda=0.10, rmse=0.94, time=1.00ms
+訓練參數: rank=10, iterations=5, lambda=1.00, rmse=1.38, time=0.00ms
+訓練參數: rank=10, iterations=5, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=10, iterations=5, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=0.05, rmse=0.97, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=0.10, rmse=0.93, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=10, iterations=10, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=10, iterations=15, lambda=0.05, rmse=0.97, time=1.00ms
+訓練參數: rank=10, iterations=15, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=10, iterations=15, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=10, iterations=15, lambda=5.00, rmse=3.70, time=2.00ms
+訓練參數: rank=10, iterations=15, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=10, iterations=20, lambda=0.05, rmse=0.97, time=2.00ms
+訓練參數: rank=10, iterations=20, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=10, iterations=20, lambda=1.00, rmse=1.38, time=2.00ms
+訓練參數: rank=10, iterations=20, lambda=5.00, rmse=3.70, time=3.00ms
+訓練參數: rank=10, iterations=20, lambda=10.00, rmse=3.70, time=2.00ms
+訓練參數: rank=10, iterations=25, lambda=0.05, rmse=0.97, time=2.00ms
+訓練參數: rank=10, iterations=25, lambda=0.10, rmse=0.93, time=3.00ms
+訓練參數: rank=10, iterations=25, lambda=1.00, rmse=1.38, time=3.00ms
+訓練參數: rank=10, iterations=25, lambda=5.00, rmse=3.70, time=4.00ms
+訓練參數: rank=10, iterations=25, lambda=10.00, rmse=3.70, time=4.00ms
+訓練參數: rank=15, iterations=5, lambda=0.05, rmse=0.97, time=1.00ms
+訓練參數: rank=15, iterations=5, lambda=0.10, rmse=0.93, time=1.00ms
+訓練參數: rank=15, iterations=5, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=15, iterations=5, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=15, iterations=5, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=15, iterations=10, lambda=0.05, rmse=0.98, time=2.00ms
+訓練參數: rank=15, iterations=10, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=15, iterations=10, lambda=1.00, rmse=1.38, time=2.00ms
+訓練參數: rank=15, iterations=10, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=15, iterations=10, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=15, iterations=15, lambda=0.05, rmse=0.98, time=2.00ms
+訓練參數: rank=15, iterations=15, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=15, iterations=15, lambda=1.00, rmse=1.38, time=2.00ms
+訓練參數: rank=15, iterations=15, lambda=5.00, rmse=3.70, time=2.00ms
+訓練參數: rank=15, iterations=15, lambda=10.00, rmse=3.70, time=2.00ms
+訓練參數: rank=15, iterations=20, lambda=0.05, rmse=0.98, time=2.00ms
+訓練參數: rank=15, iterations=20, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=15, iterations=20, lambda=1.00, rmse=1.38, time=2.00ms
+訓練參數: rank=15, iterations=20, lambda=5.00, rmse=3.70, time=2.00ms
+訓練參數: rank=15, iterations=20, lambda=10.00, rmse=3.70, time=2.00ms
+訓練參數: rank=15, iterations=25, lambda=0.05, rmse=0.99, time=3.00ms
+訓練參數: rank=15, iterations=25, lambda=0.10, rmse=0.93, time=3.00ms
+訓練參數: rank=15, iterations=25, lambda=1.00, rmse=1.38, time=3.00ms
+訓練參數: rank=15, iterations=25, lambda=5.00, rmse=3.70, time=3.00ms
+訓練參數: rank=15, iterations=25, lambda=10.00, rmse=3.70, time=3.00ms
+訓練參數: rank=20, iterations=5, lambda=0.05, rmse=0.98, time=1.00ms
+訓練參數: rank=20, iterations=5, lambda=0.10, rmse=0.93, time=1.00ms
+訓練參數: rank=20, iterations=5, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=20, iterations=5, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=20, iterations=5, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=20, iterations=10, lambda=0.05, rmse=0.98, time=1.00ms
+訓練參數: rank=20, iterations=10, lambda=0.10, rmse=0.93, time=1.00ms
+訓練參數: rank=20, iterations=10, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=20, iterations=10, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=20, iterations=10, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=20, iterations=15, lambda=0.05, rmse=0.99, time=2.00ms
+訓練參數: rank=20, iterations=15, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=20, iterations=15, lambda=1.00, rmse=1.38, time=2.00ms
+訓練參數: rank=20, iterations=15, lambda=5.00, rmse=3.70, time=2.00ms
+訓練參數: rank=20, iterations=15, lambda=10.00, rmse=3.70, time=2.00ms
+訓練參數: rank=20, iterations=20, lambda=0.05, rmse=0.99, time=3.00ms
+訓練參數: rank=20, iterations=20, lambda=0.10, rmse=0.93, time=3.00ms
+訓練參數: rank=20, iterations=20, lambda=1.00, rmse=1.38, time=3.00ms
+訓練參數: rank=20, iterations=20, lambda=5.00, rmse=3.70, time=3.00ms
+訓練參數: rank=20, iterations=20, lambda=10.00, rmse=3.70, time=3.00ms
+訓練參數: rank=20, iterations=25, lambda=0.05, rmse=0.98, time=4.00ms
+訓練參數: rank=20, iterations=25, lambda=0.10, rmse=0.93, time=4.00ms
+訓練參數: rank=20, iterations=25, lambda=1.00, rmse=1.38, time=4.00ms
+訓練參數: rank=20, iterations=25, lambda=5.00, rmse=3.70, time=4.00ms
+訓練參數: rank=20, iterations=25, lambda=10.00, rmse=3.70, time=3.00ms
+訓練參數: rank=25, iterations=5, lambda=0.05, rmse=0.98, time=1.00ms
+訓練參數: rank=25, iterations=5, lambda=0.10, rmse=0.94, time=1.00ms
+訓練參數: rank=25, iterations=5, lambda=1.00, rmse=1.38, time=1.00ms
+訓練參數: rank=25, iterations=5, lambda=5.00, rmse=3.70, time=1.00ms
+訓練參數: rank=25, iterations=5, lambda=10.00, rmse=3.70, time=1.00ms
+訓練參數: rank=25, iterations=10, lambda=0.05, rmse=0.98, time=2.00ms
+訓練參數: rank=25, iterations=10, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=25, iterations=10, lambda=1.00, rmse=1.38, time=2.00ms
+訓練參數: rank=25, iterations=10, lambda=5.00, rmse=3.70, time=2.00ms
+訓練參數: rank=25, iterations=10, lambda=10.00, rmse=3.70, time=2.00ms
+訓練參數: rank=25, iterations=15, lambda=0.05, rmse=0.99, time=2.00ms
+訓練參數: rank=25, iterations=15, lambda=0.10, rmse=0.93, time=2.00ms
+訓練參數: rank=25, iterations=15, lambda=1.00, rmse=1.38, time=3.00ms
+訓練參數: rank=25, iterations=15, lambda=5.00, rmse=3.70, time=2.00ms
+訓練參數: rank=25, iterations=15, lambda=10.00, rmse=3.70, time=2.00ms
+訓練參數: rank=25, iterations=20, lambda=0.05, rmse=0.99, time=3.00ms
+訓練參數: rank=25, iterations=20, lambda=0.10, rmse=0.93, time=3.00ms
+訓練參數: rank=25, iterations=20, lambda=1.00, rmse=1.38, time=3.00ms
+訓練參數: rank=25, iterations=20, lambda=5.00, rmse=3.70, time=3.00ms
+訓練參數: rank=25, iterations=20, lambda=10.00, rmse=3.70, time=3.00ms
+訓練參數: rank=25, iterations=25, lambda=0.05, rmse=0.98, time=5.00ms
+訓練參數: rank=25, iterations=25, lambda=0.10, rmse=0.93, time=4.00ms
+訓練參數: rank=25, iterations=25, lambda=1.00, rmse=1.38, time=5.00ms
+訓練參數: rank=25, iterations=25, lambda=5.00, rmse=3.70, time=4.00ms
+訓練參數: rank=25, iterations=25, lambda=10.00, rmse=3.70, time=4.00ms
+最佳model: rank=10, iterations=25, lambda=0.10, rmse=0.93
+====== 測試階段 =====
+使用 testData 測試 bestModel, 結果 RMSE = 0.9148917187331619
+```
+- 最佳模型參數組合，rank=10, iterations=25, lambda=0.1, 結果 RMSE=0.93
+- 使用測試資料檢驗最佳模型，MRSE=0.9148917187331619，與訓練評估階段RMSE差異不大，沒有overfitting問題
+
+### 設定最佳參數組合
+使用最佳模型參數組合訓練模型，rank=10, iterations=25, lambda=0.1
+```scala
+  def main(args: Array[String]) {
+    SetLogger
+
+    println("====== 準備階段 ======")
+    val (ratings, movieTitle) = PrepareData()
+
+    println("====== 訓練階段 ======")
+    val model = ALS.train(ratings, 10, 25, 0.1)
+
+    println("====== 推薦階段 ======")
+    recommand(model, movieTitle)
+
+    println("完成")
+  }
+```
