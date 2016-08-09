@@ -353,17 +353,16 @@ object Recommend {
     System.setProperty("spark.ui.showConsoleProgress", "false")
     Logger.getRootLogger().setLevel(Level.OFF)
   }
-  
+
   def PrepareData(): (RDD[Rating], Map[Int, String]) = {
-    //1. 建議使用者評價資料
+    //1. 建議用戶評價資料
     val sc = new SparkContext(new SparkConf().setAppName("Recommend").setMaster("local[4]"))
-    println("開始讀取使用者評價資料...")
+    println("開始讀取用戶評價資料...")
     val DataDir = "ml-100k"
     val rawUserData = sc.textFile(new File(DataDir, "u.data").toString)
     val rawRatings = rawUserData.map(_.split("\t").take(3))
     val ratingsRDD = rawRatings.map{ case Array(user, movie, rating) =>
-        Rating(user.toInt, movie.toInt, rating.toDouble)
-    }
+                                      Rating(user.toInt, movie.toInt, rating.toDouble) }
     println("共計: " + ratingsRDD.count.toString + "筆 ratings")
 
     //2. 建立電影ID名稱對照表
@@ -386,15 +385,15 @@ object Recommend {
   def recommand(model: MatrixFactorizationModel, movieTitle: Map[Int, String]) = {
     var choose = ""
     while (choose != "3") {
-      println("請選擇要推薦的類型: 1: 針對使用者推薦電影, 2: 針對電影推薦有興趣的使用者, 3: 離開")
+      println("請選擇要推薦的類型: 1: 針對用戶推薦電影, 2: 針對電影推薦有興趣的用戶, 3: 離開")
       choose = readLine()
 
       if (choose == "1") {
-        println("請輸入使用者ID? ")
+        print("請輸入用戶ID? ")
         val inputUserID = readLine()
         RecommendMovies(model, movieTitle, inputUserID.toInt)
       } else if (choose == "2") {
-        println("請輸入電影ID? ")
+        print("請輸入電影ID? ")
         val inputMovieID = readLine()
         RecommendUsers(model, movieTitle, inputMovieID.toInt)
       }
@@ -403,63 +402,68 @@ object Recommend {
 
   def RecommendMovies(model: MatrixFactorizationModel, movieTitle: Map[Int, String], inputUserID: Int) = {
     val RecommendMovie = model.recommendProducts(inputUserID, 10)
-    println("針對使用者 id: " + inputUserID + " 推薦以下電影: ")
-    RecommendMovie.foreach{ r => println("電影: " + movieTitle(r.product) + " 評價: " + r.rating.toString) }
+    println("針對用戶: " + inputUserID + " 推薦以下電影:")
+    RecommendMovie.foreach{ r => println("電影: " + movieTitle(r.product) + ", 評價: " + r.rating.toString) }
   }
 
   def RecommendUsers(model: MatrixFactorizationModel, movieTitle: Map[Int, String], inputMovieID: Int) = {
     val RecommendUser = model.recommendUsers(inputMovieID, 10)
-    println("針對電影 id: " + inputMovieID +
-            " 電影名: " + movieTitle(inputMovieID.toInt) +
-            " 推薦以下使用者: ")
-    RecommendUser.foreach{ r => println("使用者id: " + r.user + " 評價: " + r.rating) }
+    println("針對電影: " + movieTitle(inputMovieID.toInt) + ", 推薦以下用戶:")
+    RecommendUser.foreach{ r => println("用戶: " + r.user + ", 評價: " + r.rating) }
   }
 
-}
+} 
 ```
+
+函式 | 說明
+-----|------
+`main`            | 主流程，包含準備資料、訓練模型、進行推薦
+`SetLogger`       | 關閉 log & console 資訊
+`PrepareData`     | 讀取、分析 ml-100k 資料，建立電影ID與名稱對照表，顯示資料筆數
+`recommand`       | 推薦主流程: 推薦用戶電影、推薦電影給有興趣的用戶
+`RecommendMovies` | 推薦用戶電影
+`RecommendUsers`  | 推薦電影給有興趣的用戶
 
 ### 執行 Recommend.scala
 ```shell
 $ sbt compile && sbt package
 $ spark-submit --class Recommend target/scala-2.10/recommend_2.10-1.0.jar
 ====== 準備階段 ======
-開始讀取使用者評價資料...
+開始讀取用戶評價資料...
 共計: 100000筆 ratings
 開始讀取電影資料...
 共計: ratings: 100000, users: 943, movies: 1682
 ====== 訓練階段 ======
 ====== 推薦階段 ======
-請選擇要推薦的類型: 1: 針對使用者推薦電影, 2: 針對電影推薦有興趣的使用者, 3: 離開
+請選擇要推薦的類型: 1: 針對用戶推薦電影, 2: 針對電影推薦有興趣的用戶, 3: 離開
 1
-請輸入使用者ID?
-123
-針對使用者 id: 123 推薦以下電影:
-電影: World of Apu, The (Apur Sansar) (1959) 評價: 5.556052947877983
-電影: Angel Baby (1995) 評價: 5.127098381261374
-電影: Aparajito (1956) 評價: 5.079610342576361
-電影: Pather Panchali (1955) 評價: 4.916553841931805
-電影: Boy's Life 2 (1997) 評價: 4.886008733627371
-電影: Four Days in September (1997) 評價: 4.793490221826852
-電影: Anna (1996) 評價: 4.752851885357754
-電影: Year of the Horse (1997) 評價: 4.746332390901659
-電影: Some Mother's Son (1996) 評價: 4.741788651024902
-電影: Duoluo tianshi (1995) 評價: 4.640705096727442
-請選擇要推薦的類型: 1: 針對使用者推薦電影, 2: 針對電影推薦有興趣的使用者, 3: 離開
+請輸入用戶ID? 123
+針對用戶: 123 推薦以下電影:
+電影: World of Apu, The (Apur Sansar) (1959), 評價: 5.377772108106955
+電影: Boy's Life 2 (1997), 評價: 5.060697010930745
+電影: Aparajito (1956), 評價: 5.035422410155741
+電影: Angel Baby (1995), 評價: 5.034419833281095
+電影: Boys, Les (1997), 評價: 4.91623207943767
+電影: Pather Panchali (1955), 評價: 4.858722578508513
+電影: Aiqing wansui (1994), 評價: 4.786641598268988
+電影: Anna (1996), 評價: 4.7346614949817765
+電影: The Deadly Cure (1996), 評價: 4.679141639367238
+電影: Some Mother's Son (1996), 評價: 4.669613077521147
+請選擇要推薦的類型: 1: 針對用戶推薦電影, 2: 針對電影推薦有興趣的用戶, 3: 離開
 2
-請輸入電影ID?
-321
-針對電影 id: 321 電影名: Mother (1996) 推薦以下使用者:
-使用者id: 810 評價: 4.035855629567161
-使用者id: 118 評價: 3.993258517223901
-使用者id: 688 評價: 3.9577293734534376
-使用者id: 173 評價: 3.9410877836307723
-使用者id: 808 評價: 3.9038140669118118
-使用者id: 849 評價: 3.8609216412082983
-使用者id: 4 評價: 3.8385147216028956
-使用者id: 640 評價: 3.794952670205874
-使用者id: 264 評價: 3.7911406767986175
-使用者id: 923 評價: 3.7836875248595283
-請選擇要推薦的類型: 1: 針對使用者推薦電影, 2: 針對電影推薦有興趣的使用者, 3: 離開
+請輸入電影ID? 321
+針對電影: Mother (1996), 推薦以下用戶:
+用戶: 252, 評價: 3.95371364523988
+用戶: 118, 評價: 3.927088466299569
+用戶: 592, 評價: 3.899087235034477
+用戶: 810, 評價: 3.867388861372387
+用戶: 173, 評價: 3.8608321335302023
+用戶: 366, 評價: 3.845314771980446
+用戶: 923, 評價: 3.8342164099830036
+用戶: 16, 評價: 3.827473253784422
+用戶: 808, 評價: 3.825115441218599
+用戶: 688, 評價: 3.8209388865595297
+請選擇要推薦的類型: 1: 針對用戶推薦電影, 2: 針對電影推薦有興趣的用戶, 3: 離開
 3
 完成
 ```
