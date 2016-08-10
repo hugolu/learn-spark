@@ -632,6 +632,26 @@ object AlsEvaluation {
 `trainModel`			| 根據特定的 rank, numIterations, lambda 訓練模型，並記錄所需時間
 `computeRMSE`			| 計算預測 rating 與真實 rating 的誤差 (越小越好)
 
+![](https://wikimedia.org/api/rest_v1/media/math/render/svg/fc187c3557d633423444d4c80a4a50cd6ecc3dd4)
+
+RMSE (Root Mean Square Error) 用來計算推薦系統對使用用戶喜好預測，與真實喜好的誤差平均值。RMSE 越小表示誤差愈小，表示預測值與真實值越接近、準確度越高。
+
+```scala
+def computeRMSE(model: MatrixFactorizationModel, ratingRDD: RDD[Rating]): Double = {
+	val num = ratingRDD.count
+	val predicatedRDD = model.predict(ratingRDD.map(r => (r.user, r.product)))
+	val predictedAndRatings = predicatedRDD.map(p => ((p.user, p.product), p.rating)).join(
+	ratingRDD.map(r => ((r.user, r.product), r.rating))).values
+	
+	math.sqrt(predictedAndRatings.map(x => (x._1 - x._2) * (x._1 - x._2)).reduce(_+_) / num)
+}
+```
+- `predictedAndRatings` 將 (user, produce) 當成鍵，rating 當成值，合併預測與實際的兩張表，最後取出合併後的值得到 (預測.rating, 真實.rating)
+- RMSE 對 `predictedAndRatings` 內的每個元素 (預測.rating, 真實.rating)
+	- 計算誤差平方: `(x._1 - x._2) * (x._1 - x._2)`
+	- 對總和做平均: `(...).reduce(_ + _) / num`
+	- 最後計算方跟: `math.sqrt(...)`
+
 ### 執行 AlsEvaluation.scala
 ```shell
 $ sbt package
