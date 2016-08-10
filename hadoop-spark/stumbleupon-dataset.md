@@ -17,5 +17,28 @@ Kaggle 上面有個 “StumbleUpon Evergreen Classification Challeng” 的問�
 - 欄位 alchemy_category, alchemy_category_score, avglinksize, commonLinkRatio_1, commonLinkRatio_2, commonLinkRatio_3, commonLinkRatio_4, compression_ratio, embed_ratio, frameBased, frameTagRatio, hasDomainLink, html_ratio, image_ratio, is_news, lengthyLinkDomain, linkwordscore, news_front_page, non_markup_alphanum_characters, numberOfLinks integer, numwords_in_url, parametrizedLinkRatio, spelling_errors_ratio 有網頁相關資訊，如分類、連結數目、影像比例。
 - 欄位 lebel 有兩個值，1 表示長青 (evengreen)、0 表示暫時 (non-evengreen)
 
-## 下載檢視資料
+## 下載資料
+註冊，下載 train.tsv, test.tsv
+
+檔案 | 說明
+-----|------
+train.tsv | 訓練資料，包含 7395 個 URL，資料含有 evergreen level 欄位，用於訓練模型
+test.tsv  | 測試資料，包含 3171 個 URL，資料沒有 evergreen level 欄位，用於預測資料
+ 
 ## 二元分類演算法
+
+### 決策數二元分類 (Decision tree)
+![](https://upload.wikimedia.org/wikipedia/commons/a/ad/Decision-Tree-Elements.png)
+- [Decision Trees](http://spark.apache.org/docs/latest/mllib-decision-tree.html)
+
+### 羅輯回歸二元分類 (Logistic Regression)
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Linear_regression.svg/440px-Linear_regression.svg.png)
+- [Logistic regression](http://spark.apache.org/docs/latest/mllib-linear-methods.html#logistic-regression)
+
+### 支持向量機器二元分類 (Support Vector Machine)
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Svm_max_sep_hyperplane_with_margin.png/445px-Svm_max_sep_hyperplane_with_margin.png)
+- [Linear Support Vector Machines](http://spark.apache.org/docs/latest/mllib-linear-methods.html#linear-support-vector-machines-svms)
+
+### 單純貝式二元分類
+![](https://wikimedia.org/api/rest_v1/media/math/render/svg/f2c8595ffd1c98706f679d2586ccb73c95336d71)
+- [Naive Bayes](http://spark.apache.org/docs/latest/mllib-naive-bayes.html)
