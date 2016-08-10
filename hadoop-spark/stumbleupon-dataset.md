@@ -14,7 +14,8 @@ Kaggle 上面有個 “StumbleUpon Evergreen Classification Challeng” 的問�
 
 ## StumbleUpon 資料內容
 - 欄位 url, urlid, boilerplate 跟判斷網頁是否暫時或長青關係不大，忽略。
-- 欄位 alchemy_category, alchemy_category_score, avglinksize, commonLinkRatio_1, commonLinkRatio_2, commonLinkRatio_3, commonLinkRatio_4, compression_ratio, embed_ratio, frameBased, frameTagRatio, hasDomainLink, html_ratio, image_ratio, is_news, lengthyLinkDomain, linkwordscore, news_front_page, non_markup_alphanum_characters, numberOfLinks integer, numwords_in_url, parametrizedLinkRatio, spelling_errors_ratio 有網頁相關資訊，如分類、連結數目、影像比例。
+- 欄位 alchemy_category 是分類特徵欄位 (Categorical Features)。
+- 欄位 alchemy_category_score, avglinksize, commonLinkRatio_1, commonLinkRatio_2, commonLinkRatio_3, commonLinkRatio_4, compression_ratio, embed_ratio, frameBased, frameTagRatio, hasDomainLink, html_ratio, image_ratio, is_news, lengthyLinkDomain, linkwordscore, news_front_page, non_markup_alphanum_characters, numberOfLinks integer, numwords_in_url, parametrizedLinkRatio, spelling_errors_ratio 是數值特徵欄位 (Numerical Features)，紀錄有網頁相關資訊，如分類、連結數目、影像比例。
 - 欄位 lebel 有兩個值，1 表示長青 (evengreen)、0 表示暫時 (non-evengreen)
 
 ## 下載資料
