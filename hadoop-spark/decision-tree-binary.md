@@ -185,6 +185,49 @@ object RunDecisionTreeBinary {
 `evaluateModel` | 評估模型
 `PredictData`   | 使用模型預測資料
 
+#### AUC (Area Under the Curve of ROC) 評估資料模型
+
+二元分類運算法使用 AUC 評估模型好壞。
+
+              | 實際 Positive       | 實際 Negative
+--------------|---------------------|-------------------
+預測 Positive | True Positive (TP)  | False Positive (FP)
+預測 Negative | False Negative (FN) | True Negative (TN)
+
+- 真陽性 TP: 預測為 1，實際為 1
+- 偽陽性 FP: 預測為 1，實際為 0
+- 偽陰性 FN: 預測為 0，實際為 1
+- 真陰性 TN: 預測為 0，實際為 0
+
+TPR (True Positive Rate): 所有實際為 1 的樣本中，被正確的判斷為 1 的比率
+- TPR = TP / (TP + FN)
+
+FPR (False Positive Rate): 所有實際為 0 的樣本中，被錯誤的判斷為 1 的比率
+- FPR = FP / (FP + TN)
+
+![](http://gim.unmc.edu/dxtests/roccomp.jpg)
+
+有了 TPR 與 FPR 就可以畫出 ROC 曲線，AUC 就是 ROC 曲線下的面積，從 AUC 判斷二元分類的優缺。
+
+條件 | 說明
+-----|-----
+AUC = 1       | 最完美的情況，預測率 100%
+0.5 < AUC < 1 | 優於隨機猜測，有預測價值
+AUC = 0.5     | 與隨機猜測一樣，沒有預測價值
+AUC < 0.5     | 比隨機猜測差，但反向預測就優於隨機猜測
+
+MLlib 提供 BinaryClassificationMetrics 計算 AUC，過程如下
+```scala
+def evaluateModel(model: DecisionTreeModel, validationData: RDD[LabeledPoint]): Double = {
+  val scoreAndLabels = validationData.map { data => (model.predict(data.features), data.label) }
+  val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+  metrics.areaUnderROC
+}
+```
+- `scoreAndLabels` 建立 (predict結果, 真實label)
+- `BinaryClassificationMetrics(scoreAndLabels)` 得到評估 matrics
+- 回傳 `metrics.areaUnderROC`
+
 ### 執行 RunDecisionTreeBinary
 ```shell
 $ sbt package
