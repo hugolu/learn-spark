@@ -207,7 +207,9 @@ FPR (False Positive Rate): 所有實際為 0 的樣本中，被錯誤的判斷�
 
 ![](http://gim.unmc.edu/dxtests/roccomp.jpg)
 
-有了 TPR 與 FPR 就可以畫出 ROC 曲線，AUC 就是 ROC 曲線下的面積，從 AUC 判斷二元分類的優缺。
+有了 TPR 與 FPR 就可以畫出 ROC 曲線，AUC 就是 ROC (Receiver Operating Characteristic) 曲線下的面積，從 AUC 判斷二元分類的優缺。
+
+> 延伸閱讀 [AUC(Area Under roc Curve )计算及其与ROC的关系](http://blog.csdn.net/chjjunking/article/details/5933105)
 
 條件 | 說明
 -----|-----
