@@ -63,7 +63,7 @@ object RunDecisionTreeBinary {
     println("====== 訓練評估 ======")
     val model = trainEvaluate(trainData, validationData)
 
-    println("====== 測試階段 ======")
+    println("====== 測試模型 ======")
     val auc = evaluateModel(model, testData)
     println(s"測試最佳模型，結果 AUC=${auc}")
 
@@ -173,8 +173,17 @@ object RunDecisionTreeBinary {
   }
 
 }
-
 ```
+
+函數 | 說明
+-----|-----
+`main`          | 主程式，包含準備資料、訓練模型、測試模型、預測資料
+`SetLogger`     | 關閉 log & console 訊息
+`PrepareData`   | 匯入資料，建立 LabeledPoint、講資料分成 train, evaluation, test 三份
+`trainEvaluate` | 訓練評估流程，包含訓練模型、評估模型
+`trainModel`    | 訓練模型
+`evaluateModel` | 評估模型
+`PredictData`   | 使用模型預測資料
 
 ### 執行 RunDecisionTreeBinary
 ```shell
