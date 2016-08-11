@@ -205,6 +205,18 @@ object RunLogisticRegerssionWithSGDBinary {
 
 }
 ```
+- 因為數值特徵值欄位單位不同，數字差異大，無法相比較。所以使用標準化，讓特徵值有共同的標準
+  - `stdScaler = new StandardScaler(withMean = true, withStd = true).fit(featuresData)` 用 features 得到適合的 scaler
+  - `stdScaler.transform(labelpoint.features)` 再用這個 scaler 把所有 features 標準化
+- `LogisticRegerssionWithSGD` 使用 Stochastic gradient decent (SGD) 低度下降方法求得最佳解
+  - `train` 方法參數 (input, numIterations, stepSize, miniBatchFraction)
+
+參數 | 型態 | 說明
+-----|------|------
+`input`             | `RDD[LabeledPoint]` | 輸入的訓練資料
+`numIterations`     | `Int`               | 使用 SGD 迭代次數，預設為 100
+`stepSize`          | `Double`            | 每次迭代步伐大小，預設為 1
+`miniBatchFraction` | `Double`            | 每次迭代參與計算的樣本比例，數值為 0~1，預設為 1
 
 ```shell
 $ spark-submit --class RunLogisticRegerssionWithSGDBinary --jars lib/joda-time-2.9.4.jar target/scala-2.10/logisticregerssion_2.10-1.0.0.jar
