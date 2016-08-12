@@ -21,7 +21,7 @@
 $ mkdir Classification
 $ cd Classification/
 $ mkdir -p src/main/scala
-$ mkdir data
+$ mkdir data lib
 $ cp /vagrant/train.tsv /vagrant/test.tsv data/   # 複製訓練與測試資料
 $ cp /vagrant/joda-time-2.9.4.jar lib/            # 複製相依套件
 ```
