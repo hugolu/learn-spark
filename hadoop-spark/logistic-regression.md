@@ -21,19 +21,10 @@
 
 轉換成 Sigmoid 函數，t = b<sub>0</sub> + b<sub>1</sub>x<sub>1</sub> + b<sub>2</sub>x<sub>2</sub> + ... + b<sub>n</sub>x<sub>n</sub>
 
-## LogisticRegression 專案
-```shell
-$ mkdir LogisticRegression
-$ cd cd LogisticRegression/
-$ mkdir data
-$ cp /vagrant/train.tsv /vagrant/test.tsv data/   # 複製訓練、評估資料
-$ mkdir lib
-$ cp /vagrant/joda-time-2.9.4.jar lib/            # 複製相依套件
-```
+## Classification 專案
 
 ### RunLogisticRegressionWithSGDBinary.scala
 ```shell
-$ mkdir -p src/main/scala/
 $ vi src/main/scala/RunLogisticRegressionWithSGDBinary.scala
 ```
 
@@ -76,7 +67,6 @@ object RunLogisticRegerssionWithSGDBinary {
 
     println("===== 完成 ======")
   }
-
 
   def SetLogger = {
     Logger.getLogger("org").setLevel(Level.OFF)
@@ -228,63 +218,7 @@ $ spark-submit --class RunLogisticRegerssionWithSGDBinary --jars lib/joda-time-2
 參數 numIterations=5, stepSize=10, miniBatchFraction=0.5, AUC=0.6545084521744354, time=2752.0
 參數 numIterations=5, stepSize=10, miniBatchFraction=0.8, AUC=0.6530478142999827, time=552.0
 參數 numIterations=5, stepSize=10, miniBatchFraction=1.0, AUC=0.6572494949722516, time=412.0
-參數 numIterations=5, stepSize=50, miniBatchFraction=0.5, AUC=0.6500063832503511, time=426.0
-參數 numIterations=5, stepSize=50, miniBatchFraction=0.8, AUC=0.6350808419882699, time=417.0
-參數 numIterations=5, stepSize=50, miniBatchFraction=1.0, AUC=0.6363011692612702, time=422.0
-參數 numIterations=5, stepSize=100, miniBatchFraction=0.5, AUC=0.6499463055999881, time=328.0
-參數 numIterations=5, stepSize=100, miniBatchFraction=0.8, AUC=0.6296588340430007, time=325.0
-參數 numIterations=5, stepSize=100, miniBatchFraction=1.0, AUC=0.6347804537364543, time=309.0
-參數 numIterations=5, stepSize=200, miniBatchFraction=0.5, AUC=0.6486058230262615, time=605.0
-參數 numIterations=5, stepSize=200, miniBatchFraction=0.8, AUC=0.6310593942670902, time=312.0
-參數 numIterations=5, stepSize=200, miniBatchFraction=1.0, AUC=0.6347203760860913, time=248.0
-參數 numIterations=15, stepSize=10, miniBatchFraction=0.5, AUC=0.6658330892678788, time=427.0
-參數 numIterations=15, stepSize=10, miniBatchFraction=0.8, AUC=0.6643123737430628, time=457.0
-參數 numIterations=15, stepSize=10, miniBatchFraction=1.0, AUC=0.6654726233657001, time=405.0
-參數 numIterations=15, stepSize=50, miniBatchFraction=0.5, AUC=0.5765389265625821, time=449.0
-參數 numIterations=15, stepSize=50, miniBatchFraction=0.8, AUC=0.5751383663384925, time=428.0
-參數 numIterations=15, stepSize=50, miniBatchFraction=1.0, AUC=0.5750782886881294, time=405.0
-參數 numIterations=15, stepSize=100, miniBatchFraction=0.5, AUC=0.5792799693603983, time=418.0
-參數 numIterations=15, stepSize=100, miniBatchFraction=0.8, AUC=0.5764187712618559, time=404.0
-參數 numIterations=15, stepSize=100, miniBatchFraction=1.0, AUC=0.5765389265625821, time=451.0
-參數 numIterations=15, stepSize=200, miniBatchFraction=0.5, AUC=0.5793400470107614, time=371.0
-參數 numIterations=15, stepSize=200, miniBatchFraction=0.8, AUC=0.5763586936114928, time=393.0
-參數 numIterations=15, stepSize=200, miniBatchFraction=1.0, AUC=0.5792198917100352, time=408.0
-參數 numIterations=20, stepSize=10, miniBatchFraction=0.5, AUC=0.6845397676496874, time=573.0
-參數 numIterations=20, stepSize=10, miniBatchFraction=0.8, AUC=0.6779575100817807, time=503.0
-參數 numIterations=20, stepSize=10, miniBatchFraction=1.0, AUC=0.6888015259723193, time=469.0
-參數 numIterations=20, stepSize=50, miniBatchFraction=0.5, AUC=0.6517073317262562, time=477.0
-參數 numIterations=20, stepSize=50, miniBatchFraction=0.8, AUC=0.6547487627758878, time=467.0
-參數 numIterations=20, stepSize=50, miniBatchFraction=1.0, AUC=0.6504870044532558, time=558.0
-參數 numIterations=20, stepSize=100, miniBatchFraction=0.5, AUC=0.6571894173218885, time=539.0
-參數 numIterations=20, stepSize=100, miniBatchFraction=0.8, AUC=0.6588302881474306, time=406.0
-參數 numIterations=20, stepSize=100, miniBatchFraction=1.0, AUC=0.6492065995298923, time=440.0
-參數 numIterations=20, stepSize=200, miniBatchFraction=0.5, AUC=0.6612709426934312, time=381.0
-參數 numIterations=20, stepSize=200, miniBatchFraction=0.8, AUC=0.6560291676992512, time=401.0
-參數 numIterations=20, stepSize=200, miniBatchFraction=1.0, AUC=0.6505470821036189, time=419.0
-參數 numIterations=60, stepSize=10, miniBatchFraction=0.5, AUC=0.6844796899993242, time=1192.0
-參數 numIterations=60, stepSize=10, miniBatchFraction=0.8, AUC=0.68862129302123, time=1282.0
-參數 numIterations=60, stepSize=10, miniBatchFraction=1.0, AUC=0.6858201725730507, time=1206.0
-參數 numIterations=60, stepSize=50, miniBatchFraction=0.5, AUC=0.6439047468853493, time=1173.0
-參數 numIterations=60, stepSize=50, miniBatchFraction=0.8, AUC=0.6410435487868069, time=1270.0
-參數 numIterations=60, stepSize=50, miniBatchFraction=1.0, AUC=0.6453053071094389, time=1011.0
-參數 numIterations=60, stepSize=100, miniBatchFraction=0.5, AUC=0.6504870044532558, time=914.0
-參數 numIterations=60, stepSize=100, miniBatchFraction=0.8, AUC=0.6504870044532558, time=936.0
-參數 numIterations=60, stepSize=100, miniBatchFraction=1.0, AUC=0.6560291676992512, time=1081.0
-參數 numIterations=60, stepSize=200, miniBatchFraction=0.5, AUC=0.6490263665788031, time=938.0
-參數 numIterations=60, stepSize=200, miniBatchFraction=0.8, AUC=0.6478060393058027, time=1037.0
-參數 numIterations=60, stepSize=200, miniBatchFraction=1.0, AUC=0.6546286074751616, time=1123.0
-參數 numIterations=100, stepSize=10, miniBatchFraction=0.5, AUC=0.6870404998460511, time=1446.0
-參數 numIterations=100, stepSize=10, miniBatchFraction=0.8, AUC=0.688561215370867, time=1437.0
-參數 numIterations=100, stepSize=10, miniBatchFraction=1.0, AUC=0.6858201725730507, time=1562.0
-參數 numIterations=100, stepSize=50, miniBatchFraction=0.5, AUC=0.6249577579020884, time=1348.0
-參數 numIterations=100, stepSize=50, miniBatchFraction=0.8, AUC=0.6180751120823664, time=1901.0
-參數 numIterations=100, stepSize=50, miniBatchFraction=1.0, AUC=0.6233769647269095, time=1518.0
-參數 numIterations=100, stepSize=100, miniBatchFraction=0.5, AUC=0.6509075480057975, time=1276.0
-參數 numIterations=100, stepSize=100, miniBatchFraction=0.8, AUC=0.6504269268028927, time=1404.0
-參數 numIterations=100, stepSize=100, miniBatchFraction=1.0, AUC=0.653228047251072, time=1354.0
-參數 numIterations=100, stepSize=200, miniBatchFraction=0.5, AUC=0.6604110813226096, time=1421.0
-參數 numIterations=100, stepSize=200, miniBatchFraction=0.8, AUC=0.6518875646773454, time=1337.0
-參數 numIterations=100, stepSize=200, miniBatchFraction=1.0, AUC=0.653228047251072, time=1342.0
+...
 最佳參數 numIterations=20, stepSize=10, miniBatchFraction=1.0, AUC=0.6888015259723193
 ====== 測試模型 ======
 測試最佳模型，結果 AUC=0.6536332528180353
