@@ -21,9 +21,7 @@
 
 轉換成 Sigmoid 函數，t = b<sub>0</sub> + b<sub>1</sub>x<sub>1</sub> + b<sub>2</sub>x<sub>2</sub> + ... + b<sub>n</sub>x<sub>n</sub>
 
-## Classification 專案
-
-### RunLogisticRegressionWithSGDBinary.scala
+## RunLogisticRegressionWithSGDBinary.scala
 ```shell
 $ vi src/main/scala/RunLogisticRegressionWithSGDBinary.scala
 ```
@@ -43,11 +41,11 @@ import org.apache.spark.mllib.classification.LogisticRegressionWithSGD
 import org.apache.spark.mllib.classification.LogisticRegressionModel
 import org.joda.time._
 
-object RunLogisticRegerssionWithSGDBinary {
+object RunLogisticRegressionWithSGDBinary {
   def main(args: Array[String]) {
     SetLogger
 
-    val sc = new SparkContext(new SparkConf().setAppName("LogisticRegerssion").setMaster("local[4]"))
+    val sc = new SparkContext(new SparkConf().setAppName("LogisticRegression").setMaster("local[4]"))
 
     println("====== 準備階段 ======")
     val (trainData, validationData, testData, categoriesMap) = PrepareData(sc)
@@ -198,7 +196,7 @@ object RunLogisticRegerssionWithSGDBinary {
 - 因為數值特徵值欄位單位不同，數字差異大，無法相比較。所以使用標準化，讓特徵值有共同的標準
   - `stdScaler = new StandardScaler(withMean = true, withStd = true).fit(featuresData)` 用 features 得到適合的 scaler
   - `stdScaler.transform(labelpoint.features)` 再用這個 scaler 把所有 features 標準化
-- `LogisticRegerssionWithSGD` 使用 Stochastic gradient decent (SGD) 低度下降方法求得最佳解
+- `LogisticRegressionWithSGD` 使用 Stochastic gradient decent (SGD) 低度下降方法求得最佳解
   - `train` 方法參數 (input, numIterations, stepSize, miniBatchFraction)
 
 參數 | 型態 | 說明
@@ -209,7 +207,8 @@ object RunLogisticRegerssionWithSGDBinary {
 `miniBatchFraction` | `Double`            | 每次迭代參與計算的樣本比例，數值為 0~1，預設為 1
 
 ```shell
-$ spark-submit --class RunLogisticRegerssionWithSGDBinary --jars lib/joda-time-2.9.4.jar target/scala-2.10/logisticregerssion_2.10-1.0.0.jar
+$ sbt package
+$ spark-submit --class RunLogisticRegressionWithSGDBinary --jars lib/joda-time-2.9.4.jar target/scala-2.10/classification_2.10-1.0.0.jar
 ====== 準備階段 ======
 開始匯入資料
 共計 7395 筆
