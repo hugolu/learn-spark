@@ -43,3 +43,29 @@ test.tsv  | 測試資料，包含 3171 個 URL，資料沒有 evergreen level �
 ### 單純貝式二元分類
 ![](https://wikimedia.org/api/rest_v1/media/math/render/svg/f2c8595ffd1c98706f679d2586ccb73c95336d71)
 - [Naive Bayes](http://spark.apache.org/docs/latest/mllib-naive-bayes.html)
+
+---
+## Classification 專案
+
+```shell
+$ mkdir Classification
+$ cd Classification/
+$ mkdir -p src/main/scala
+$ mkdir data lib
+$ cp /vagrant/train.tsv /vagrant/test.tsv data/   # 複製訓練與測試資料
+$ cp /vagrant/joda-time-2.9.4.jar lib/            # 複製相依套件
+$ vi build.sbt
+```
+
+build.sbt:
+```scala
+name := "Classification"
+
+version := "1.0.0"
+
+scalaVersion := "2.10.4"
+
+libraryDependencies += "org.apache.spark" %% "spark-core" % "1.4.0"
+libraryDependencies += "org.apache.spark" %% "spark-mllib" % "1.4.0"
+libraryDependencies += "joda-time" % "joda-time" % "2.9.4"
+```
