@@ -16,17 +16,7 @@
   - Gini - 對每種特徵欄位分隔點計算評估，選擇分裂最小的 Gini 指數方式
   - Entropy - 對每種特徵欄位分隔點計算評估，選擇分裂最小的 Entropy 方式
 
-## Classification 專案
-```shell
-$ mkdir Classification
-$ cd Classification/
-$ mkdir -p src/main/scala
-$ mkdir data lib
-$ cp /vagrant/train.tsv /vagrant/test.tsv data/   # 複製訓練與測試資料
-$ cp /vagrant/joda-time-2.9.4.jar lib/            # 複製相依套件
-```
-
-### 建立 RunDecisionTreeBinary.scala
+## 建立 RunDecisionTreeBinary.scala
 ```shell
 $ vi src/main/scala/RunDecisionTreeBinary.scala
 ```
@@ -185,7 +175,7 @@ object RunDecisionTreeBinary {
 `evaluateModel` | 評估模型
 `PredictData`   | 使用模型預測資料
 
-#### AUC (Area Under the Curve of ROC) 評估資料模型
+### AUC (Area Under the Curve of ROC) 評估資料模型
 
 二元分類運算法使用 AUC 評估模型好壞。
 
@@ -233,7 +223,7 @@ def evaluateModel(model: DecisionTreeModel, validationData: RDD[LabeledPoint]): 
 ### 執行 RunDecisionTreeBinary
 ```shell
 $ sbt package
-$ spark-submit --class RunDecisionTreeBinary --jars lib/joda-time-2.9.4.jar target/scala-2.10/decisiontree_2.10-1.0.0.jar
+$ spark-submit --class RunDecisionTreeBinary --jars lib/joda-time-2.9.4.jar target/scala-2.10/classification_2.10-1.0.0.jar
 ====== 準備階段 ======
 開始匯入資料
 共計 7395 筆
@@ -422,53 +412,7 @@ $ spark-submit --class RunDecisionTreeBinary --jars lib/joda-time-2.9.4.jar targ
 參數 impurity=gini, maxDepth=3, maxBins=3, AUC=0.5512290879259323, time=3306.0
 參數 impurity=gini, maxDepth=3, maxBins=5, AUC=0.57700477571709, time=1358.0
 參數 impurity=gini, maxDepth=3, maxBins=10, AUC=0.5744081626673698, time=714.0
-參數 impurity=gini, maxDepth=3, maxBins=50, AUC=0.5717932378189915, time=696.0
-參數 impurity=gini, maxDepth=3, maxBins=100, AUC=0.5757339368902172, time=927.0
-參數 impurity=gini, maxDepth=5, maxBins=3, AUC=0.6077685974627172, time=637.0
-參數 impurity=gini, maxDepth=5, maxBins=5, AUC=0.6199129823327766, time=563.0
-參數 impurity=gini, maxDepth=5, maxBins=10, AUC=0.6167670153233131, time=556.0
-參數 impurity=gini, maxDepth=5, maxBins=50, AUC=0.6152581231138847, time=586.0
-參數 impurity=gini, maxDepth=5, maxBins=100, AUC=0.6141704022735929, time=630.0
-參數 impurity=gini, maxDepth=10, maxBins=3, AUC=0.616931821511236, time=948.0
-參數 impurity=gini, maxDepth=10, maxBins=5, AUC=0.6411253698983328, time=821.0
-參數 impurity=gini, maxDepth=10, maxBins=10, AUC=0.6307389176994521, time=792.0
-參數 impurity=gini, maxDepth=10, maxBins=50, AUC=0.6251977674255077, time=991.0
-參數 impurity=gini, maxDepth=10, maxBins=100, AUC=0.6169501333098942, time=1162.0
-參數 impurity=gini, maxDepth=15, maxBins=3, AUC=0.5873253054408016, time=1099.0
-參數 impurity=gini, maxDepth=15, maxBins=5, AUC=0.5911561337200785, time=1240.0
-參數 impurity=gini, maxDepth=15, maxBins=10, AUC=0.6467763909642261, time=1477.0
-參數 impurity=gini, maxDepth=15, maxBins=50, AUC=0.6249963376402683, time=1635.0
-參數 impurity=gini, maxDepth=15, maxBins=100, AUC=0.6020186926840702, time=2023.0
-參數 impurity=gini, maxDepth=20, maxBins=3, AUC=0.606179133339193, time=1367.0
-參數 impurity=gini, maxDepth=20, maxBins=5, AUC=0.5925551551375582, time=1355.0
-參數 impurity=gini, maxDepth=20, maxBins=10, AUC=0.6454323049427206, time=1653.0
-參數 impurity=gini, maxDepth=20, maxBins=50, AUC=0.6210373267703847, time=2434.0
-參數 impurity=gini, maxDepth=20, maxBins=100, AUC=0.6006562948639067, time=3168.0
-參數 impurity=entropy, maxDepth=3, maxBins=3, AUC=0.5512290879259323, time=324.0
-參數 impurity=entropy, maxDepth=3, maxBins=5, AUC=0.5784037971345697, time=369.0
-參數 impurity=entropy, maxDepth=3, maxBins=10, AUC=0.5744081626673698, time=326.0
-參數 impurity=entropy, maxDepth=3, maxBins=50, AUC=0.5730457648472064, time=527.0
-參數 impurity=entropy, maxDepth=3, maxBins=100, AUC=0.5744081626673698, time=420.0
-參數 impurity=entropy, maxDepth=5, maxBins=3, AUC=0.6092408660748293, time=348.0
-參數 impurity=entropy, maxDepth=5, maxBins=5, AUC=0.6185322727139551, time=321.0
-參數 impurity=entropy, maxDepth=5, maxBins=10, AUC=0.616730391725997, time=471.0
-參數 impurity=entropy, maxDepth=5, maxBins=50, AUC=0.5923354135536609, time=408.0
-參數 impurity=entropy, maxDepth=5, maxBins=100, AUC=0.6208542087838036, time=450.0
-參數 impurity=entropy, maxDepth=10, maxBins=3, AUC=0.6168402625179455, time=552.0
-參數 impurity=entropy, maxDepth=10, maxBins=5, AUC=0.6165289619407577, time=616.0
-參數 impurity=entropy, maxDepth=10, maxBins=10, AUC=0.6443079605051127, time=665.0
-參數 impurity=entropy, maxDepth=10, maxBins=50, AUC=0.6101564560077348, time=1020.0
-參數 impurity=entropy, maxDepth=10, maxBins=100, AUC=0.6318815739357182, time=1286.0
-參數 impurity=entropy, maxDepth=15, maxBins=3, AUC=0.579041047727872, time=1341.0
-參數 impurity=entropy, maxDepth=15, maxBins=5, AUC=0.5924269725469515, time=1006.0
-參數 impurity=entropy, maxDepth=15, maxBins=10, AUC=0.6307938530954265, time=1037.0
-參數 impurity=entropy, maxDepth=15, maxBins=50, AUC=0.612881251648062, time=1883.0
-參數 impurity=entropy, maxDepth=15, maxBins=100, AUC=0.6198580469368024, time=2235.0
-參數 impurity=entropy, maxDepth=20, maxBins=3, AUC=0.6033627787055756, time=1358.0
-參數 impurity=entropy, maxDepth=20, maxBins=5, AUC=0.5777152735050247, time=1171.0
-參數 impurity=entropy, maxDepth=20, maxBins=10, AUC=0.6240551111892414, time=1472.0
-參數 impurity=entropy, maxDepth=20, maxBins=50, AUC=0.6222532302012833, time=1819.0
-參數 impurity=entropy, maxDepth=20, maxBins=100, AUC=0.6183674665260321, time=2905.0
+...
 最佳參數 impurity=gini, maxDepth=15, maxBins=10, AUC=0.6467763909642261
 ====== 測試模型 ======
 測試最佳模型，結果 AUC=0.6133830419738646
