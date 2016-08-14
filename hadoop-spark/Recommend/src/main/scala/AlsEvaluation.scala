@@ -1,23 +1,18 @@
-import java.io.File
-import scala.io.Source
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
-import org.apache.spark.SparkContext._
+import org.apache.spark.{ SparkConf, SparkContext }
 import org.apache.spark.rdd._
 import org.apache.spark.mllib.recommendation.{ ALS, Rating, MatrixFactorizationModel }
-import org.joda.time.format._
 import org.joda.time._
-import org.joda.time.ReadableInstant
-import org.joda.time.Duration
 
 object AlsEvaluation {
   def main(args: Array[String]) {
-    SetLogger
+    setLogger
+
+    val sc = new SparkContext(new SparkConf().setAppName("Recommend").setMaster("local[4]"))
 
     println("====== 資料準備階段 ======")
-    val (trainData, validationData, testData) = PrepareData()
+    val (trainData, validationData, testData) = prepareData(sc)
     trainData.persist()
     validationData.persist()
     testData.persist()
@@ -27,35 +22,32 @@ object AlsEvaluation {
 
     println("====== 測試階段 =====")
     val testRmse = computeRMSE(bestModel, testData)
-
     println("使用 testData 測試 bestModel, 結果 RMSE = " + testRmse)
 
+    println("====== 完成 ======")
     trainData.unpersist()
     validationData.unpersist()
     testData.unpersist()
   }
 
-  def SetLogger = {
+  def setLogger = {
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("com").setLevel(Level.OFF)
     System.setProperty("spark.ui.showConsoleProgress", "false")
     Logger.getRootLogger().setLevel(Level.OFF)
   }
 
-  def PrepareData(): (RDD[Rating], RDD[Rating], RDD[Rating]) = {
+  def prepareData(sc: SparkContext): (RDD[Rating], RDD[Rating], RDD[Rating]) = {
     // 1. 建立用戶評價資料
-    val sc = new SparkContext(new SparkConf().setAppName("Recommend").setMaster("local[4]"))
     println("開始讀取用戶評價資料...")
-    val DataDir = "ml-100k"
-    val rawUserData = sc.textFile(new File(DataDir, "u.data").toString)
+    val rawUserData = sc.textFile("ml-100k/u.data")
     val rawRatings = rawUserData.map(_.split("\t").take(3))
-    val ratingsRDD = rawRatings.map{ case Array(user, movie, rating) =>
-                                      Rating(user.toInt, movie.toInt, rating.toDouble) }
+    val ratingsRDD = rawRatings.map{ case Array(user, movie, rating) => Rating(user.toInt, movie.toInt, rating.toDouble) }
     println("共計: " + ratingsRDD.count.toString + "筆 ratings")
 
     //2. 建立電影ID與名稱對照表
     println("開始讀取電影資料...")
-    val itemRDD = sc.textFile(new File(DataDir, "u.item").toString)
+    val itemRDD = sc.textFile("ml-100k/u.item")
     val movieTitle = itemRDD.map(line => line.split("\\|").take(2))
                             .map(array => (array(0).toInt, array(1)))
                             .collect()
@@ -76,13 +68,13 @@ object AlsEvaluation {
 
   def trainValidation(trainData: RDD[Rating], validationData: RDD[Rating]): MatrixFactorizationModel = {
     println("---- 評估 rank 參數 ----")
-    evaluateParameter(trainData, validationData, "rank", Array(5, 10, 15, 20, 50, 100), Array(10), Array(0.1))
+    evaluateParameter(trainData, validationData, Array(5, 10, 15, 20, 50, 99), Array(10), Array(0.1))
 
     println("---- 評估 numIterations 參數 ----")
-    evaluateParameter(trainData, validationData, "numIterations", Array(10), Array(5, 10, 15, 20, 25), Array(0.1))
+    evaluateParameter(trainData, validationData, Array(10), Array(5, 10, 15, 20, 25), Array(0.1))
 
     println("---- 評估 lambda 參數 ----")
-    evaluateParameter(trainData, validationData, "lambda", Array(10), Array(10), Array(0.05, 0.1, 1, 5, 10.0))
+    evaluateParameter(trainData, validationData, Array(10), Array(10), Array(0.05, 0.1, 1, 5, 10.0))
 
     println("---- 所有參數交叉評估找出最好的參數組合 ----")
     val bestModel = evaluateAllParameter(trainData, validationData,
@@ -93,46 +85,44 @@ object AlsEvaluation {
     bestModel
   }
 
-  def evaluateParameter(trainData: RDD[Rating], validationData: RDD[Rating], evaluationParameter: String,
-                        rankArray: Array[Int], numIterationsArray: Array[Int], lambdaArray: Array[Double]) = {
-    for (
-      rank <- rankArray;
-      numIterations <- numIterationsArray;
+  def evaluateParameter(trainData: RDD[Rating], validationData: RDD[Rating], rankArray: Array[Int], numIterationsArray: Array[Int], lambdaArray: Array[Double]) = {
+    for {
+      rank <- rankArray
+      numIterations <- numIterationsArray
       lambda <- lambdaArray
-    ) {
+    } {
       trainModel(trainData, validationData, rank, numIterations, lambda)
     }
   }
 
-  def evaluateAllParameter(trainData: RDD[Rating], validationData: RDD[Rating],
-   rankArray: Array[Int], numIterationsArray: Array[Int], lambdaArray: Array[Double]): MatrixFactorizationModel = {
-     val Evaluations = for (
-        rank <- rankArray;
-        numIterations <- numIterationsArray;
-        lambda <- lambdaArray
-      ) yield {
-        val (rmse, time) = trainModel(trainData, validationData, rank, numIterations, lambda)
-        (rank, numIterations, lambda, rmse)
-      }
-    val eval = Evaluations.sortBy(_._4)
-    val bestEval = eval(0)
+  def evaluateAllParameter(trainData: RDD[Rating], validationData: RDD[Rating], rankArray: Array[Int], numIterationsArray: Array[Int], lambdaArray: Array[Double]): MatrixFactorizationModel = {
+    val evaluations = for {
+      rank <- rankArray
+      numIterations <- numIterationsArray
+      lambda <- lambdaArray
+    } yield {
+      val (rmse, time) = trainModel(trainData, validationData, rank, numIterations, lambda)
+      (rank, numIterations, lambda, rmse)
+    }
 
-    println(f"最佳model: rank=${bestEval._1}, iterations=${bestEval._2}, lambda=${bestEval._3}%.2f, rmse=${bestEval._4}%.2f")
+    val evaluationsAsc = evaluations.sortBy(_._4)
+    val bestEval = evaluationsAsc(0)
     val bestModel = ALS.train(trainData, bestEval._1, bestEval._2, bestEval._3)
 
+    println(f"最佳model: rank=${bestEval._1}, iterations=${bestEval._2}, lambda=${bestEval._3}%.2f, rmse=${bestEval._4}%.2f")
     bestModel
   }
 
-  def trainModel(trainData: RDD[Rating], validationData: RDD[Rating],
-                 rank: Int, iterations: Int, lambda: Double): (Double, Double) = {
+  def trainModel(trainData: RDD[Rating], validationData: RDD[Rating], rank: Int, iterations: Int, lambda: Double): (Double, Double) = {
     val startTime = new DateTime()
     val model = ALS.train(trainData, rank, iterations, lambda)
     val endTime = new DateTime()
+    
     val rmse = computeRMSE(model, validationData)
     val duration = new Duration(startTime, endTime)
-    val time = duration.getStandardSeconds
+    val time = duration.getMillis
 
-    println(f"訓練參數: rank=${rank}, iterations=${iterations}, lambda=${lambda}%.2f, rmse=${rmse}%.2f, time=${time}%.2fms")
+    println(f"rank=${rank}%2d, iterations=${iterations}%2d, lambda=${lambda}%5.2f ==> rmse=${rmse}%.2f, time=${time}%.2fms")
     (rmse, time)
   }
 
