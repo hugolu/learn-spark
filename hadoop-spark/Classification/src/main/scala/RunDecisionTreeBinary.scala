@@ -26,11 +26,18 @@ object RunDecisionTreeBinary {
     testData.persist()
 
     println("====== 訓練評估 ======")
-    val model = trainEvaluateTunning(trainData, validationData, Array("gini", "entropy"), Array(3,5,10,15,20), Array(3,5,10,50,100))
+    val model = if (args.size == 0) {
+      trainEvaluateTunning(trainData, validationData, Array("gini", "entropy"), Array(3,5,10,15,20), Array(3,5,10,50,100))
+    } else {
+      val impurity = args(0)
+      val maxDepth = args(1).toInt
+      val maxBins = args(2).toInt
+      trainEvaluate(trainData, validationData, impurity, maxDepth, maxBins)
+    }
 
-    println("====== 測試模型 ======")
+    println("====== 測試階段 ======")
     val auc = evaluateModel(model, testData)
-    println(s"測試最佳模型，結果 AUC=${auc}")
+    println(s"測試模型 AUC=${auc}")
 
     println("====== 預測資料 ======")
     PredictData(sc, model, categoriesMap)
@@ -85,32 +92,27 @@ object RunDecisionTreeBinary {
     } yield {
       val (model, time) = trainModel(trainData, impurity, maxDepth, maxBins)
       val auc = evaluateModel(model, validationData)
-      println(s"參數 impurity=$impurity, maxDepth=$maxDepth, maxBins=$maxBins, AUC=$auc, time=$time")
+      println(f"impurity=$impurity%7s, maxDepth=$maxDepth%2d, maxBins=$maxBins%3d ==> AUC=$auc%.2f, time=$time%7.2fms")
 
       (impurity, maxDepth, maxBins, auc)
     }
 
     val bestEval = (evaluationsArray.sortBy(_._4).reverse)(0)
-    println(s"最佳參數 impurity=${bestEval._1}, maxDepth=${bestEval._2}, maxBins=${bestEval._3}, AUC=${bestEval._4}")
-
     val (model, time) = trainModel(trainData.union(validationData), bestEval._1, bestEval._2, bestEval._3)
 
+    println(s"最佳參數 impurity=${bestEval._1}, maxDepth=${bestEval._2}, maxBins=${bestEval._3}, AUC=${bestEval._4}")
     model
   }
 
-  /*
-  def trainEvaluate(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint]): DecisionTreeModel = {
+  def trainEvaluate(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): DecisionTreeModel = {
     println("開始訓練...")
 
-    val (model, time) = trainModel(trainData, "entropy", 10, 10)
+    val (model, time) = trainModel(trainData, impurity, maxDepth, maxBins)
     println(s"訓練完成 所需時間:${time}ms")
-
-    val auc = evaluateModel(model, validationData)
-    println(s"評估結果 AUC=${auc}")
     
     model
   }
-*/
+
   def trainModel(trainData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): (DecisionTreeModel, Double) = {
     val startTime = new DateTime()
     val model = DecisionTree.trainClassifier(trainData, 2, Map[Int, Int](), impurity, maxDepth, maxBins)

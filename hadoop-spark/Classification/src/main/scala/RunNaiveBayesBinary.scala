@@ -1,6 +1,5 @@
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-import org.apache.spark.storage.StorageLevel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{ SparkConf, SparkContext }
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -24,7 +23,13 @@ object RunNaiveBayesBinary {
     testData.persist()
 
     println("====== 訓練評估 ======")
-    val model = trainEvaluateTunning(trainData, validationData, Array(1,3,5,15,25))
+    val model = if (args.size == 0) {
+      trainEvaluateTunning(trainData, validationData,
+        Array(1, 3, 5, 15, 25))
+    } else {
+      val lambda = args(0).toInt
+      trainEvaluate(trainData, validationData, lambda)
+    }
 
     println("====== 測試模型 ======")
     val auc = evaluateModel(model, testData)
@@ -34,6 +39,9 @@ object RunNaiveBayesBinary {
     PredictData(sc, model, categoriesMap)
 
     println("===== 完成 ======")
+    trainData.unpersist()
+    validationData.unpersist()
+    testData.unpersist()
   }
 
   def SetLogger = {
@@ -84,19 +92,27 @@ object RunNaiveBayesBinary {
     } yield {
       val (model, time) = trainModel(trainData, lambda)
       val auc = evaluateModel(model, validationData)
-      println(s"參數 lambda=$lambda, AUC=$auc, time=$time")
+      println(f"lambda=${lambda}%2d ==> AUC=${auc}%.2f, time=${time}ms")
 
       (lambda, auc)
     }
 
     val bestEval = (evaluationsArray.sortBy(_._2).reverse)(0)
-    println(s"最佳參數 lambea=${bestEval._1}, AUC=${bestEval._2}")
+    println(s"最佳參數 lambda=${bestEval._1}, AUC=${bestEval._2}")
 
     val (model, time) = trainModel(trainData.union(validationData), bestEval._1)
 
     model
   }
 
+  def trainEvaluate(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], lambda: Int): NaiveBayesModel = {
+    println("開始訓練...")
+
+    val (model, time) = trainModel(trainData.union(validationData), lambda)
+    println(s"訓練完成 所需時間:${time}ms")
+    
+    model
+  }
   def trainModel(trainData: RDD[LabeledPoint], lambda: Int): (NaiveBayesModel, Double) = {
     val startTime = new DateTime()
     val model = NaiveBayes.train(trainData, lambda)

@@ -1,6 +1,5 @@
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-import org.apache.spark.storage.StorageLevel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{ SparkConf, SparkContext }
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -24,16 +23,29 @@ object RunLogisticRegressionWithSGDBinary {
     testData.persist()
 
     println("====== 訓練評估 ======")
-    val model = trainEvaluateTunning(trainData, validationData, Array(5,15,20,60,100), Array(10,50,100,200), Array(0.5, 0.8, 1))
+    val model = if (args.size == 0) {
+      trainEvaluateTunning(trainData, validationData,
+        Array(5, 15, 20, 60, 100),
+        Array(10, 50, 100, 200),
+        Array(0.5, 0.8, 1))
+    } else {
+      val numIterations = args(0).toInt
+      val stepSize = args(1).toInt
+      val miniBatchFraction = args(2).toDouble
+      trainEvaluate(trainData, validationData, numIterations, stepSize, miniBatchFraction)
+    }
 
     println("====== 測試模型 ======")
     val auc = evaluateModel(model, testData)
-    println(s"測試最佳模型，結果 AUC=${auc}")
+    println(s"測試結果 AUC=${auc}")
 
     println("====== 預測資料 ======")
     PredictData(sc, model, categoriesMap)
 
     println("===== 完成 ======")
+    trainData.unpersist()
+    validationData.unpersist()
+    testData.unpersist()
   }
 
   def SetLogger = {
@@ -86,7 +98,7 @@ object RunLogisticRegressionWithSGDBinary {
     } yield {
       val (model, time) = trainModel(trainData, numIterations, stepSize, miniBatchFraction)
       val auc = evaluateModel(model, validationData)
-      println(s"參數 numIterations=$numIterations, stepSize=$stepSize, miniBatchFraction=$miniBatchFraction, AUC=$auc, time=$time")
+      println(f"numIterations=$numIterations%3d, stepSize=$stepSize%3d, miniBatchFraction=$miniBatchFraction%.1f, AUC=$auc%.2f, time=$time%.2fms")
 
       (numIterations, stepSize, miniBatchFraction, auc)
     }
@@ -95,6 +107,15 @@ object RunLogisticRegressionWithSGDBinary {
     println(s"最佳參數 numIterations=${bestEval._1}, stepSize=${bestEval._2}, miniBatchFraction=${bestEval._3}, AUC=${bestEval._4}")
 
     val (model, time) = trainModel(trainData.union(validationData), bestEval._1, bestEval._2, bestEval._3)
+
+    model
+  }
+
+  def trainEvaluate(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], numIterations: Int, stepSize: Int, miniBatchFraction: Double): LogisticRegressionModel = {
+    println("開始訓練...")
+
+    val (model, time) = trainModel(trainData.union(validationData), numIterations, stepSize, miniBatchFraction)
+    println(s"訓練完成 所需時間:${time}ms")
 
     model
   }

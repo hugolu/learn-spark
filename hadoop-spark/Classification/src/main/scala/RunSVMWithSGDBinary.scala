@@ -1,6 +1,5 @@
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-import org.apache.spark.storage.StorageLevel
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{ SparkConf, SparkContext }
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -24,14 +23,21 @@ object RunSVMWithSGDBinary {
     testData.persist()
 
     println("====== 訓練評估 ======")
-    val model = trainEvaluateTunning(trainData, validationData,
-      Array(1, 3, 5, 15, 25),
-      Array(10, 50, 100, 200),
-      Array(0.01, 0.1, 1))
+    val model = if (args.size == 0) {
+      trainEvaluateTunning(trainData, validationData,
+        Array(1, 3, 5, 15, 25),
+        Array(10, 50, 100, 200),
+        Array(0.01, 0.1, 1))
+    } else {
+      val numIterations = args(0).toInt
+      val stepSize = args(1).toDouble
+      val regParam = args(2).toDouble
+      trainEvaluate(trainData, validationData, numIterations, stepSize, regParam)
+    }
 
     println("====== 測試模型 ======")
     val auc = evaluateModel(model, testData)
-    println(s"測試最佳模型，結果 AUC=${auc}")
+    println(s"測試結果 AUC=${auc}")
 
     println("====== 預測資料 ======")
     PredictData(sc, model, categoriesMap)
@@ -76,14 +82,13 @@ object RunSVMWithSGDBinary {
     val scaledRDD = labelpointRDD.map(labelpoint => LabeledPoint(labelpoint.label, stdScaler.transform(labelpoint.features)))
 
     //-- 3. 以隨機方式將資料份成三份
-    val Array(trainData, validationData, testData) = labelpointRDD.randomSplit(Array(0.8, 0.1, 0.1))
-
+    val Array(trainData, validationData, testData) = scaledRDD.randomSplit(Array(0.8, 0.1, 0.1))
     println(s"資料分成 trainData: ${trainData.count}, validationData: ${validationData.count}, testData = ${testData.count}")
 
     (trainData, validationData, testData, categoriesMap)
   }
 
-  def trainEvaluateTunning(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], numIterationsArray: Array[Int], stepSizeArray: Array[Int], regParamArray: Array[Double]): SVMModel= {
+  def trainEvaluateTunning(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], numIterationsArray: Array[Int], stepSizeArray: Array[Double], regParamArray: Array[Double]): SVMModel= {
     val evaluationsArray = for {
       numIterations <- numIterationsArray
       stepSize <- stepSizeArray
@@ -91,7 +96,7 @@ object RunSVMWithSGDBinary {
     } yield {
       val (model, time) = trainModel(trainData, numIterations, stepSize, regParam)
       val auc = evaluateModel(model, validationData)
-      println(s"參數 numIterations=$numIterations, stepSize=$stepSize, regParam=$regParam, AUC=$auc, time=$time")
+      println(f"numIterations=${numIterations}%2d, stepSize=${stepSize}%3.0f, regParam=${regParam}%.2f ==> AUC=${auc}%.3f, time=${time}ms")
 
       (numIterations, stepSize, regParam, auc)
     }
@@ -100,6 +105,15 @@ object RunSVMWithSGDBinary {
     println(s"最佳參數 numIterations=${bestEval._1}, stepSize=${bestEval._2}, regParam=${bestEval._3}, AUC=${bestEval._4}")
 
     val (model, time) = trainModel(trainData.union(validationData), bestEval._1, bestEval._2, bestEval._3)
+
+    model
+  }
+
+  def trainEvaluate(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], numIterations: Int, stepSize: Double, regParam: Double): SVMModel= {
+    println("開始訓練...")
+
+    val (model, time) = trainModel(trainData.union(validationData), numIterations, stepSize, regParam)
+    println(s"訓練完成 所需時間:${time}ms")
 
     model
   }
