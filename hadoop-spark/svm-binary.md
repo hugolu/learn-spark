@@ -92,7 +92,7 @@ object RunSVMWithSGDBinary {
     val scaledRDD = labelpointRDD.map(labelpoint => LabeledPoint(labelpoint.label, stdScaler.transform(labelpoint.features)))
 
     //-- 3. 以隨機方式將資料份成三份
-    val Array(trainData, validationData, testData) = labelpointRDD.randomSplit(Array(0.8, 0.1, 0.1))
+    val Array(trainData, validationData, testData) = scaledRDD.randomSplit(Array(0.8, 0.1, 0.1))
 
     println(s"資料分成 trainData: ${trainData.count}, validationData: ${validationData.count}, testData = ${testData.count}")
 
@@ -178,15 +178,15 @@ $ spark-submit --class RunSVMWithSGDBinary --jars lib/joda-time-2.9.4.jar target
 ====== 準備階段 ======
 開始匯入資料
 共計 7395 筆
-資料分成 trainData: 5935, validationData: 785, testData = 675
+資料分成 trainData: 5875, validationData: 781, testData = 739
 ====== 訓練評估 ======
-參數 numIterations=1, stepSize=10, regParam=0.01, AUC=0.5013089005235603, time=1682.0
-參數 numIterations=1, stepSize=10, regParam=0.1, AUC=0.5013089005235603, time=261.0
-參數 numIterations=1, stepSize=10, regParam=1.0, AUC=0.5013089005235603, time=181.0
+numIterations= 1, stepSize= 10, regParam=0.01 ==> AUC=0.661, time=1702.0ms
+numIterations= 1, stepSize= 10, regParam=0.10 ==> AUC=0.661, time=260.0ms
+numIterations= 1, stepSize= 10, regParam=1.00 ==> AUC=0.661, time=261.0ms
 ...
-最佳參數 numIterations=15, stepSize=10, regParam=0.01, AUC=0.5026178010471204
+最佳參數 numIterations=25, stepSize=200.0, regParam=1.0, AUC=0.6605725716534401
 ====== 測試模型 ======
-測試最佳模型，結果 AUC=0.5030581039755352
+測試結果 AUC=0.6361397404275311
 ====== 預測資料 ======
 共計 3171 筆
 網址 http://www.lynnskitchenadventures.com/2009/04/homemade-enchilada-sauce.html ==> 預測: 長青網頁
@@ -201,4 +201,6 @@ $ spark-submit --class RunSVMWithSGDBinary --jars lib/joda-time-2.9.4.jar target
 網址 http://youfellasleepwatchingadvd.com/ ==> 預測: 長青網頁
 ===== 完成 ======
 ```
-- 糟糕！最佳模型 AUC 只有 0.50，差不多是隨機預測 :(
+- 最佳模型 AUC = 0.66
+
+> 先前 PrepareData() 最後將資料份成三份，用錯 RDD，修改後 AUC 比較正常了
