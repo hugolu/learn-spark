@@ -18,6 +18,9 @@ Kaggle 上面有個 “StumbleUpon Evergreen Classification Challeng” 的問�
 - 欄位 4~25: 是數值特徵欄位 (Numerical Features)，紀錄有網頁相關資訊，如分類、連結數目、影像比例。
 - 欄位 26: lebel 有兩個值，1 表示長青 (evengreen)、0 表示暫時 (non-evengreen)
 
+> Features：資料的特徵，就是 Machine Learning 演算法的 input。
+> Label： 標籤就是 training data 所對應的 output。
+
 ### 下載資料
 註冊，下載 train.tsv, test.tsv
 
