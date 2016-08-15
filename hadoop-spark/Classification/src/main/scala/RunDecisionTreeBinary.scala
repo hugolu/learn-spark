@@ -1,21 +1,17 @@
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-import org.apache.spark.storage.StorageLevel
-import org.apache.spark.rdd._
+import org.apache.spark.rdd.RDD
 import org.apache.spark.{ SparkConf, SparkContext }
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.evaluation._
 import org.apache.spark.mllib.linalg.Vectors
-import org.apache.spark.mllib.feature.StandardScaler
 import org.apache.spark.mllib.tree.DecisionTree
 import org.apache.spark.mllib.tree.model.DecisionTreeModel
-import org.joda.time.format._
 import org.joda.time._
-import org.joda.time.Duration
 
 object RunDecisionTreeBinary {
   def main(args: Array[String]) {
-    SetLogger
+    setLogger
 
     val sc = new SparkContext(new SparkConf().setAppName("DecisionTreeBinary").setMaster("local[4]"))
 
@@ -27,7 +23,10 @@ object RunDecisionTreeBinary {
 
     println("====== 訓練評估 ======")
     val model = if (args.size == 0) {
-      trainEvaluateTunning(trainData, validationData, Array("gini", "entropy"), Array(3,5,10,15,20), Array(3,5,10,50,100))
+      trainEvaluateTunning(trainData, validationData,
+        Array("gini", "entropy"),
+        Array(3,5,10,15,20),
+        Array(3,5,10,50,100))
     } else {
       val impurity = args(0)
       val maxDepth = args(1).toInt
@@ -40,7 +39,7 @@ object RunDecisionTreeBinary {
     println(s"測試模型 AUC=${auc}")
 
     println("====== 預測資料 ======")
-    PredictData(sc, model, categoriesMap)
+    predictData(sc, model, categoriesMap)
 
     println("===== 完成 ======")
     trainData.unpersist()
@@ -48,7 +47,7 @@ object RunDecisionTreeBinary {
     testData.unpersist()
   }
 
-  def SetLogger = {
+  def setLogger = {
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("com").setLevel(Level.OFF)
     System.setProperty("spark.ui.showConsoleProgress", "false")
@@ -78,7 +77,6 @@ object RunDecisionTreeBinary {
 
     //-- 3. 以隨機方式將資料份成三份
     val Array(trainData, validationData, testData) = labelpointRDD.randomSplit(Array(0.8, 0.1, 0.1))
-
     println(s"資料分成 trainData: ${trainData.count}, validationData: ${validationData.count}, testData = ${testData.count}")
 
     (trainData, validationData, testData, categoriesMap)
@@ -92,28 +90,28 @@ object RunDecisionTreeBinary {
     } yield {
       val (model, time) = trainModel(trainData, impurity, maxDepth, maxBins)
       val auc = evaluateModel(model, validationData)
-      println(f"impurity=$impurity%7s, maxDepth=$maxDepth%2d, maxBins=$maxBins%3d ==> AUC=$auc%.2f, time=$time%7.2fms")
+      println(f"impurity=${impurity}%7s, maxDepth=${maxDepth}%2d, maxBins=${maxBins}%3d ==> AUC=${auc}%.2f, time=${time}ms")
 
       (impurity, maxDepth, maxBins, auc)
     }
 
     val bestEval = (evaluationsArray.sortBy(_._4).reverse)(0)
     val (model, time) = trainModel(trainData.union(validationData), bestEval._1, bestEval._2, bestEval._3)
+    println(f"最佳參數 impurity=${bestEval._1}, maxDepth=${bestEval._2}, maxBins=${bestEval._3}, AUC=${bestEval._4}%.2f")
 
-    println(s"最佳參數 impurity=${bestEval._1}, maxDepth=${bestEval._2}, maxBins=${bestEval._3}, AUC=${bestEval._4}")
     model
   }
 
   def trainEvaluate(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): DecisionTreeModel = {
     println("開始訓練...")
 
-    val (model, time) = trainModel(trainData, impurity, maxDepth, maxBins)
+    val (model, time) = trainModel(trainData.union(validationData), impurity, maxDepth, maxBins)
     println(s"訓練完成 所需時間:${time}ms")
     
     model
   }
 
-  def trainModel(trainData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): (DecisionTreeModel, Double) = {
+  def trainModel(trainData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): (DecisionTreeModel, Long) = {
     val startTime = new DateTime()
     val model = DecisionTree.trainClassifier(trainData, 2, Map[Int, Int](), impurity, maxDepth, maxBins)
     val endTime = new DateTime()
@@ -132,7 +130,7 @@ object RunDecisionTreeBinary {
     auc
   }
 
-  def PredictData(sc: SparkContext, model: DecisionTreeModel, categoriesMap: Map[String, Int]) = {
+  def predictData(sc: SparkContext, model: DecisionTreeModel, categoriesMap: Map[String, Int]) = {
     //-- 1. 匯入並轉換資料
     val rawDataWithHeader = sc.textFile("data/test.tsv")
     val rawData = rawDataWithHeader.mapPartitionsWithIndex{ (idx, iter) => if (idx == 0) iter.drop(1) else iter }
