@@ -41,9 +41,9 @@ export PATH=$PATH:$SCALA_HOME/bin
 
 ## Spark 安裝
 ```shell
-$ wget http://archive.apache.org/dist/spark/spark-1.4.0/spark-1.4.0-bin-hadoop2.6.tgz
-$ tar zxf spark-1.4.0-bin-hadoop2.6.tgz
-$ sudo mv spark-1.4.0-bin-hadoop2.6 /usr/local/spark
+$ wget http://apache.fayea.com/spark/spark-2.0.0/spark-2.0.0-bin-hadoop2.6.tgz
+$ tar zxf spark-2.0.0-bin-hadoop2.6.tgz
+$ sudo mv spark-2.0.0-bin-hadoop2.6 /usr/local/spark
 $ vi ~/.bashrc
 $ source ~/.bashrc
 ```
@@ -55,15 +55,10 @@ export SPARK_HOME=/usr/local/spark
 export PATH=$PATH:$SPARK_HOME/bin
 ```
 
-## 啟動 spark-shell 互動介面
-```shell
-$ spark-shell
-```
-
 ## 設定 spark-shell 顯示訊息
 ```shell
 $ cd /usr/loca/spark/conf
-$ cp $ cp log4j.properties.template log4j.properties
+$ cp log4j.properties.template log4j.properties
 $ vi log4j.properties
 ```
 
@@ -72,6 +67,7 @@ log4j.properties:
 #log4j.rootCategory=INFO, console
 log4j.rootCategory=WARN, console
 ```
+
 ## 啟動 Hadoop
 ```shell
 $ start-all.sh
@@ -82,7 +78,18 @@ $ start-all.sh
 ### 啟動 spark-shell
 ```shell
 $ spark-shell --master local[4]　# 本機執行，N個執行緒
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /___/ .__/\_,_/_/ /_/\_\   version 2.0.0
+      /_/
+
+Using Scala version 2.11.8 (OpenJDK 64-Bit Server VM, Java 1.7.0_101)
+Type in expressions to have them evaluated.
+Type :help for more information.
 ```
+> 注意：這版 Spark-2.0.0 使用 Scala-2.11.8，之後使用 sbt 編譯程式時 scalaVersion 要設定為 2.11.8。
 
 ### 讀取本機檔案
 ```
