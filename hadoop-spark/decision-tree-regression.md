@@ -23,6 +23,8 @@ bike sharing 系統 (類似u-bike) 可在某處租借，另一處歸還。他們
 ### 分析資料
 大數據分析師決定使用「決策樹回歸分析」(Decision Regression) 來建立模型、訓練、評估、預測資料。
 
+> 與 DecisionTreeMulti 不同的是，DecisionTreeRegression 預測數值 (連續資料)，而 DecisionTreeMulti 預測特定範圍的 label 可能性 (離散資料)
+
 ### 其他應用
 根據天氣預測的應用很廣泛。例如超商可以根據天氣預測煮關東煮、茶葉蛋、雨衣的銷售量。如果可以預測銷售量，就可以事先準備足夠的數量，增加營業額。也可減少準備太多數量導致浪費食材。
 
@@ -63,120 +65,21 @@ registered  | 已註冊會員：此時租借的數目 | 忽略
 cnt         | 此時租借總數量 cnt = casual + registered | 標籤欄位 (預測目標)
 
 ## 建立 RunDecisionTreeRegression.scala
-```shell
-$ vi src/main/scala/RunDecisionTreeRegression.scala
-```
+source: [Classification/src/main/scala/RunDecisionTreeRegression.scala](Classification/src/main/scala/RunDecisionTreeRegression.scala)
 
-RunDecisionTreeRegression.scala:
+函數 | 說明
+-----|-----
+`main`          | 主程式，包含準備資料、訓練模型、測試模型、預測資料
+`setLogger`     | 關閉 log & console 訊息
+`prepareData`   | 匯入資料，建立 LabeledPoint、講資料分成 train, evaluation, test 三份
+`trainEvaluateTunning` | 交差訓練各種參數組合的模型
+`trainEvaluate` | 訓練評估流程，包含訓練模型、評估模型
+`trainModel`    | 訓練模型
+`evaluateModel` | 評估模型
+`predictData`   | 使用模型預測資料
+
+### evaluateMode
 ```scala
-import org.apache.log4j.Logger
-import org.apache.log4j.Level
-import org.apache.spark.storage.StorageLevel
-import org.apache.spark.rdd._
-import org.apache.spark.{ SparkConf, SparkContext }
-import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.mllib.evaluation._
-import org.apache.spark.mllib.linalg.Vectors
-import org.apache.spark.mllib.feature.StandardScaler
-import org.apache.spark.mllib.tree.DecisionTree
-import org.apache.spark.mllib.tree.model.DecisionTreeModel
-import org.joda.time.format._
-import org.joda.time._
-import org.joda.time.Duration
-
-object RunDecisionTreeRegression {
-  def main(args: Array[String]) {
-    SetLogger
-
-    val sc = new SparkContext(new SparkConf().setAppName("DecisionTreeRegression").setMaster("local[4]"))
-
-    println("====== 準備階段 ======")
-    val (trainData, validationData, testData) = PrepareData(sc)
-    trainData.persist()
-    validationData.persist()
-    testData.persist()
-
-    println("====== 訓練評估 ======")
-    val model = trainEvaluateTunning(trainData, validationData,
-      Array("variance"),
-      Array(3, 5, 10, 15, 20),
-      Array(3, 5, 10, 50, 100))
-
-    println("====== 測試模型 ======")
-    val auc = evaluateModel(model, testData)
-    println(s"測試最佳模型，結果 AUC=${auc}")
-
-    println("====== 預測資料 ======")
-    PredictData(sc, model)
-
-    println("===== 完成 ======")
-    trainData.unpersist()
-    validationData.unpersist()
-    testData.unpersist()
-  }
-
-  def SetLogger = {
-    Logger.getLogger("org").setLevel(Level.OFF)
-    Logger.getLogger("com").setLevel(Level.OFF)
-    System.setProperty("spark.ui.showConsoleProgress", "false")
-    Logger.getRootLogger().setLevel(Level.OFF)
-  }
-
-  def PrepareData(sc: SparkContext): (RDD[LabeledPoint], RDD[LabeledPoint], RDD[LabeledPoint]) = {
-    //-- 1. 匯入、轉換資料
-    println("開始匯入資料")
-    val rawDataWithHeader = sc.textFile("data/hour.csv")
-    val rawData = rawDataWithHeader.mapPartitionsWithIndex{ (idx, iter) => if (idx == 0) iter.drop(1) else iter }
-    println(s"共計 ${rawData.count} 筆")
-
-    //-- 2. 建立 RDD[LabeledPoint]
-    val records = rawData.map(line => line.split(","))
-    val data = records.map{ fields =>
-      val label = fields(fields.size - 1).toInt
-      val featureSeason = fields.slice(2,3).map(d => d.toDouble)
-      val features = fields.slice(4,fields.size-3).map(d => d.toDouble)
-      LabeledPoint(label, Vectors.dense(featureSeason ++ features))
-    }
-
-    //-- 3. 以隨機方式將資料份成三份
-    val Array(trainData, validationData, testData) = data.randomSplit(Array(0.8, 0.1, 0.1))
-
-    println(s"資料分成 trainData: ${trainData.count}, validationData: ${validationData.count}, testData = ${testData.count}")
-
-    (trainData, validationData, testData)
-  }
-
-  def trainEvaluateTunning(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], impurityArray: Array[String], maxDepthArray: Array[Int], maxBinsArray: Array[Int]): DecisionTreeModel = {
-    val evaluationsArray = for {
-      impurity <- impurityArray
-      maxDepth <- maxDepthArray
-      maxBins <- maxBinsArray
-    } yield {
-      val (model, time) = trainModel(trainData, impurity, maxDepth, maxBins)
-      val rmse = evaluateModel(model, validationData)
-      println(s"參數 impurity=$impurity, maxDepth=$maxDepth, maxBins=$maxBins, RMSE=$rmse, time=$time")
-
-      (impurity, maxDepth, maxBins, rmse)
-    }
-
-    val evaluationsArraySortedAsc = (evaluationsArray.sortBy(_._4))
-    val bestEval = evaluationsArraySortedAsc(0)
-    println(s"最佳參數 impurity=${bestEval._1}, maxDepth=${bestEval._2}, maxBins=${bestEval._3}, AUC=${bestEval._4}")
-
-    val (model, time) = trainModel(trainData.union(validationData), bestEval._1, bestEval._2, bestEval._3)
-
-    model
-  }
-
-  def trainModel(trainData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): (DecisionTreeModel, Double) = {
-    val startTime = new DateTime()
-    val model = DecisionTree.trainRegressor(trainData, Map[Int, Int](), impurity, maxDepth, maxBins)
-    val endTime = new DateTime()
-    val duration = new Duration(startTime, endTime)
-
-    (model, duration.getMillis)
-  }
-
   def evaluateModel(model: DecisionTreeModel, validationData: RDD[LabeledPoint]): Double = {
     val scoreAndLabels = validationData.map { data =>
       var predict = model.predict(data.features)
@@ -186,89 +89,76 @@ object RunDecisionTreeRegression {
     val rmse = metrics.rootMeanSquaredError
     rmse
   }
-
-  def PredictData(sc: SparkContext, model: DecisionTreeModel) = {
-    //-- 1. 匯入並轉換資料
-    val rawDataWithHeader = sc.textFile("data/hour.csv")
-    val rawData = rawDataWithHeader.mapPartitionsWithIndex{ (idx, iter) => if (idx == 0) iter.drop(1) else iter }
-    println(s"共計 ${rawData.count} 筆")
-
-    //-- 2. 建立預測所需資料
-    val Array(pData, oData) = rawData.randomSplit(Array(0.1, 0.9))
-    val records = pData.map(line => line.split(","))
-    val data = records.take(10).map { fields =>
-      val label = fields(fields.size-1).toInt
-      val featureSeason = fields.slice(2,3).map(d => d.toDouble)
-      val features = fields.slice(4,fields.size-3).map(d => d.toDouble)
-      val featuresVectors = Vectors.dense(featureSeason ++ features)
-      val dataDesc = (
-        {featuresVectors(0) match {
-          case 1 => "春"
-          case 2 => "夏"
-          case 3 => "秋"
-          case 4 => "冬" }} + "天, " +
-        featuresVectors(1).toInt + "月, " +
-        featuresVectors(2).toInt + "時, " +
-        {featuresVectors(3) match {
-          case 0 => "非假日"
-          case 1 => "假日" }} + ", " +
-        {featuresVectors(4) match {
-          case 0 => "日"
-          case 1 => "一"
-          case 2 => "二"
-          case 3 => "三"
-          case 4 => "四"
-          case 5 => "五"
-          case 6 => "六" }} + ", " +
-        {featuresVectors(5) match {
-          case 1 => "工作日"
-          case 0 => "非工作日" }} + ", " + 
-        {featuresVectors(6) match {
-          case 1 => "晴"
-          case 2 => "陰"
-          case 3 => "小雨"
-          case 4 => "大雨" }} + ", " +
-        "溫度:" + (featuresVectors(7) * 41).toInt + "度, " +
-        "體感:" + (featuresVectors(8) * 50).toInt + "度, " +
-        "濕度:" + (featuresVectors(9) * 100).toInt + ", " +
-        "風速:" + (featuresVectors(10) * 67).toInt + "")
-      val predict = model.predict(featuresVectors)
-      val result = if (label == predict) "正確" else "錯誤"
-      val error = math.abs(label - predict).toString
-      println(s"特徵 ${dataDesc} => 預測:${predict.toInt}, 實際:${label.toInt}, 誤差:${error}")
-      }
-  }
-
-}
 ```
 
-### 執行 RunDecisionRegression
+#### 決策樹二元分類以 AUC 做為評估
+```scala
+val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+val auc = metrics.areaUnderROC
+```
+- auc 越高越好
+
+#### 決策樹回歸分析以 RMSE (root mean square error) 計算誤差平均值
+```scala
+val metrics = new RegressionMetrics(scoreAndLabels)
+val rmse = metrics.rootMeanSquaredError
+```
+- rmse 越低越好
+
+### 調校最佳模型
 ```shell
 $ sbt package
-$ spark-submit --class RunDecisionTreeRegression --jars lib/joda-time-2.9.4.jar --driver-memory 1024M target/scala-2.10/classification_2.10-1.0.0.jar
+$ spark-submit --class RunDecisionTreeRegression --jars lib/joda-time-2.9.4.jar target/scala-2.11/classification_2.11-1.0.0.jar
 ====== 準備階段 ======
 開始匯入資料
 共計 17379 筆
-資料分成 trainData: 13827, validationData: 1795, testData = 1757
+資料分成 trainData: 13791, validationData: 1810, testData = 1778
 ====== 訓練評估 ======
-參數 impurity=variance, maxDepth=3, maxBins=3, RMSE=135.3054133904627, time=3686.0
-參數 impurity=variance, maxDepth=3, maxBins=5, RMSE=139.610859313469, time=890.0
-參數 impurity=variance, maxDepth=3, maxBins=10, RMSE=127.33837245350315, time=517.0
-...
-最佳參數 impurity=variance, maxDepth=10, maxBins=50, AUC=80.72422988170608
+參數 impurity=variance, maxDepth= 3, maxBins=  3 ==> RMSE=134.55, time=4994ms
+參數 impurity=variance, maxDepth= 3, maxBins=  5 ==> RMSE=138.88, time=1415ms
+參數 impurity=variance, maxDepth= 3, maxBins= 10 ==> RMSE=126.97, time=758ms
+參數 impurity=variance, maxDepth= 3, maxBins= 50 ==> RMSE=124.19, time=712ms
+參數 impurity=variance, maxDepth= 3, maxBins=100 ==> RMSE=124.19, time=689ms
+參數 impurity=variance, maxDepth= 5, maxBins=  3 ==> RMSE=128.78, time=690ms
+參數 impurity=variance, maxDepth= 5, maxBins=  5 ==> RMSE=127.48, time=944ms
+參數 impurity=variance, maxDepth= 5, maxBins= 10 ==> RMSE=114.80, time=634ms
+參數 impurity=variance, maxDepth= 5, maxBins= 50 ==> RMSE=111.84, time=656ms
+參數 impurity=variance, maxDepth= 5, maxBins=100 ==> RMSE=111.84, time=580ms
+參數 impurity=variance, maxDepth=10, maxBins=  3 ==> RMSE=124.34, time=1260ms
+參數 impurity=variance, maxDepth=10, maxBins=  5 ==> RMSE=116.35, time=1106ms
+參數 impurity=variance, maxDepth=10, maxBins= 10 ==> RMSE=90.78, time=1053ms
+參數 impurity=variance, maxDepth=10, maxBins= 50 ==> RMSE=81.58, time=1081ms
+參數 impurity=variance, maxDepth=10, maxBins=100 ==> RMSE=81.06, time=1286ms
+參數 impurity=variance, maxDepth=15, maxBins=  3 ==> RMSE=128.14, time=1866ms
+參數 impurity=variance, maxDepth=15, maxBins=  5 ==> RMSE=133.74, time=2240ms
+參數 impurity=variance, maxDepth=15, maxBins= 10 ==> RMSE=97.02, time=2575ms
+參數 impurity=variance, maxDepth=15, maxBins= 50 ==> RMSE=86.73, time=3043ms
+參數 impurity=variance, maxDepth=15, maxBins=100 ==> RMSE=86.88, time=2769ms
+參數 impurity=variance, maxDepth=20, maxBins=  3 ==> RMSE=128.67, time=1984ms
+參數 impurity=variance, maxDepth=20, maxBins=  5 ==> RMSE=143.14, time=2987ms
+參數 impurity=variance, maxDepth=20, maxBins= 10 ==> RMSE=106.78, time=3562ms
+參數 impurity=variance, maxDepth=20, maxBins= 50 ==> RMSE=92.97, time=4721ms
+參數 impurity=variance, maxDepth=20, maxBins=100 ==> RMSE=91.31, time=5164ms
+最佳參數 impurity=variance, maxDepth=10, maxBins=100, RMSE=81.0578983484941
 ====== 測試模型 ======
-測試最佳模型，結果 AUC=78.66417037243221
+測試最佳模型，結果 RMSE=77.55708308061058
 ====== 預測資料 ======
 共計 17379 筆
-特徵 春天, 1月, 12時, 非假日, 六, 非工作日, 晴, 溫度:17度, 體感:21度, 濕度:77, 風速:19 => 預測:230, 實際:84, 誤差:146.52272727272728
-特徵 春天, 1月, 23時, 非假日, 六, 非工作日, 陰, 溫度:18度, 體感:22度, 濕度:88, 風速:19 => 預測:67, 實際:39, 誤差:28.200000000000003
-特徵 春天, 1月, 7時, 非假日, 日, 非工作日, 陰, 溫度:16度, 體感:20度, 濕度:76, 風速:12 => 預測:26, 實際:1, 誤差:25.153846153846153
-特徵 春天, 1月, 15時, 非假日, 日, 非工作日, 小雨, 溫度:13度, 體感:16度, 濕度:81, 風速:11 => 預測:72, 實際:74, 誤差:1.2727272727272663
-特徵 春天, 1月, 11時, 非假日, 一, 工作日, 晴, 溫度:8度, 體感:9度, 濕度:40, 風速:22 => 預測:67, 實際:51, 誤差:16.087248322147644
-特徵 春天, 1月, 22時, 非假日, 一, 工作日, 晴, 溫度:5度, 體感:7度, 濕度:69, 風速:8 => 預測:42, 實際:20, 誤差:22.886792452830186
-特徵 春天, 1月, 7時, 非假日, 二, 工作日, 晴, 溫度:4度, 體感:7度, 濕度:74, 風速:8 => 預測:127, 實際:94, 誤差:33.875
-特徵 春天, 1月, 20時, 非假日, 三, 工作日, 晴, 溫度:9度, 體感:11度, 濕度:47, 風速:11 => 預測:81, 實際:89, 誤差:7.769230769230774
-特徵 春天, 1月, 23時, 非假日, 三, 工作日, 晴, 溫度:8度, 體感:12度, 濕度:47, 風速:0 => 預測:21, 實際:19, 誤差:2.7142857142857153
-特徵 春天, 1月, 8時, 非假日, 五, 工作日, 晴, 溫度:8度, 體感:9度, 濕度:51, 風速:16 => 預測:261, 實際:210, 誤差:51.1521739130435
+特徵 春天, 1月, 4時, 非假日, 六, 非工作日,  晴, 溫度:9度, 體感:14度, 濕度:75, 風速:0 => 預測:4, 實際:1, 誤差:3.7391304347826084
+特徵 春天, 1月, 13時, 非假日, 日, 非工作日,  陰, 溫度:14度, 體感:17度, 濕度:66, 風速:8 => 預測:100, 實際:75, 誤差:25.34042553191489
+特徵 春天, 1月, 22時, 非假日, 日, 非工作日,  晴, 溫度:9度, 體感:10度, 濕度:44, 風速:19 => 預測:38, 實際:9, 誤差:29.833333333333336
+特徵 春天, 1月, 23時, 非假日, 日, 非工作日,  晴, 溫度:9度, 體感:11度, 濕度:47, 風速:11 => 預測:38, 實際:8, 誤差:30.833333333333336
+特徵 春天, 1月, 1時, 非假日, 一, 工作日,  晴, 溫度:8度, 體感:8度, 濕度:44, 風速:27 => 預測:4, 實際:2, 誤差:2.333333333333333
+特徵 春天, 1月, 14時, 非假日, 一, 工作日,  晴, 溫度:10度, 體感:12度, 濕度:30, 風速:19 => 預測:152, 實際:77, 誤差:75.51298701298703
+特徵 春天, 1月, 5時, 非假日, 三, 工作日,  晴, 溫度:9度, 體感:11度, 濕度:47, 風速:11 => 預測:21, 實際:3, 誤差:18.75
+特徵 春天, 1月, 17時, 非假日, 三, 工作日,  晴, 溫度:9度, 體感:11度, 濕度:38, 風速:12 => 預測:152, 實際:190, 誤差:37.487012987012974
+特徵 春天, 1月, 12時, 非假日, 四, 工作日,  晴, 溫度:10度, 體感:14度, 濕度:35, 風速:0 => 預測:152, 實際:84, 誤差:68.51298701298703
+特徵 春天, 1月, 0時, 非假日, 六, 非工作日,  陰, 溫度:7度, 體感:9度, 濕度:51, 風速:11 => 預測:25, 實際:25, 誤差:0.4499999999999993
 ===== 完成 ======
+```
+- 最佳模型參數 impurity=variance, maxDepth=10, maxBins=100, 訓練 RMSE=81.0578983484941 與評估 RMSE=77.55708308061058 相差不大，無 overfitting
+
+### 測試最佳模型
+```shell
+$ spark-submit --class RunDecisionTreeRegression --jars lib/joda-time-2.9.4.jar target/scala-2.11/classification_2.11-1.0.0.jar variance 10 100
 ```
