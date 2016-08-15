@@ -12,12 +12,12 @@ import org.joda.time._
 
 object RunSVMWithSGDBinary {
   def main(args: Array[String]) {
-    SetLogger
+    setLogger
 
     val sc = new SparkContext(new SparkConf().setAppName("DecisionTreeBinary").setMaster("local[4]"))
 
     println("====== 準備階段 ======")
-    val (trainData, validationData, testData, categoriesMap) = PrepareData(sc)
+    val (trainData, validationData, testData, categoriesMap) = prepareData(sc)
     trainData.persist()
     validationData.persist()
     testData.persist()
@@ -40,7 +40,7 @@ object RunSVMWithSGDBinary {
     println(s"測試結果 AUC=${auc}")
 
     println("====== 預測資料 ======")
-    PredictData(sc, model, categoriesMap)
+    predictData(sc, model, categoriesMap)
 
     println("===== 完成 ======")
     trainData.unpersist()
@@ -48,14 +48,14 @@ object RunSVMWithSGDBinary {
     testData.unpersist()
   }
 
-  def SetLogger = {
+  def setLogger = {
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("com").setLevel(Level.OFF)
     System.setProperty("spark.ui.showConsoleProgress", "false")
     Logger.getRootLogger().setLevel(Level.OFF)
   }
 
-  def PrepareData(sc: SparkContext): (RDD[LabeledPoint], RDD[LabeledPoint], RDD[LabeledPoint], Map[String, Int]) = {
+  def prepareData(sc: SparkContext): (RDD[LabeledPoint], RDD[LabeledPoint], RDD[LabeledPoint], Map[String, Int]) = {
     //-- 1. 匯入、轉換資料
     println("開始匯入資料")
 
@@ -102,9 +102,8 @@ object RunSVMWithSGDBinary {
     }
 
     val bestEval = (evaluationsArray.sortBy(_._4).reverse)(0)
-    println(s"最佳參數 numIterations=${bestEval._1}, stepSize=${bestEval._2}, regParam=${bestEval._3}, AUC=${bestEval._4}")
-
     val (model, time) = trainModel(trainData.union(validationData), bestEval._1, bestEval._2, bestEval._3)
+    println(s"最佳參數 numIterations=${bestEval._1}, stepSize=${bestEval._2}, regParam=${bestEval._3}, AUC=${bestEval._4}")
 
     model
   }
@@ -118,7 +117,7 @@ object RunSVMWithSGDBinary {
     model
   }
 
-  def trainModel(trainData: RDD[LabeledPoint], numIterations: Int, stepSize: Double, regParam: Double): (SVMModel, Double) = {
+  def trainModel(trainData: RDD[LabeledPoint], numIterations: Int, stepSize: Double, regParam: Double): (SVMModel, Long) = {
     val startTime = new DateTime()
     val model = SVMWithSGD.train(trainData, numIterations, stepSize, regParam)
     val endTime = new DateTime()
@@ -137,7 +136,7 @@ object RunSVMWithSGDBinary {
     auc
   }
 
-  def PredictData(sc: SparkContext, model: SVMModel, categoriesMap: Map[String, Int]) = {
+  def predictData(sc: SparkContext, model: SVMModel, categoriesMap: Map[String, Int]) = {
     //-- 1. 匯入並轉換資料
     val rawDataWithHeader = sc.textFile("data/test.tsv")
     val rawData = rawDataWithHeader.mapPartitionsWithIndex{ (idx, iter) => if (idx == 0) iter.drop(1) else iter }

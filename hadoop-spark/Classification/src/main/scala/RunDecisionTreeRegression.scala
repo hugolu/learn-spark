@@ -1,6 +1,5 @@
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-import org.apache.spark.storage.StorageLevel
 import org.apache.spark.rdd._
 import org.apache.spark.{ SparkConf, SparkContext }
 import org.apache.spark.mllib.regression.LabeledPoint
@@ -9,34 +8,39 @@ import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.feature.StandardScaler
 import org.apache.spark.mllib.tree.DecisionTree
 import org.apache.spark.mllib.tree.model.DecisionTreeModel
-import org.joda.time.format._
 import org.joda.time._
-import org.joda.time.Duration
 
 object RunDecisionTreeRegression {
   def main(args: Array[String]) {
-    SetLogger
+    setLogger
 
     val sc = new SparkContext(new SparkConf().setAppName("DecisionTreeRegression").setMaster("local[4]"))
 
     println("====== 準備階段 ======")
-    val (trainData, validationData, testData) = PrepareData(sc)
+    val (trainData, validationData, testData) = prepareData(sc)
     trainData.persist()
     validationData.persist()
     testData.persist()
 
     println("====== 訓練評估 ======")
-    val model = trainEvaluateTunning(trainData, validationData,
-      Array("variance"),
-      Array(3, 5, 10, 15, 20),
-      Array(3, 5, 10, 50, 100))
+    val model = if (args.size == 0) {
+      trainEvaluateTunning(trainData, validationData,
+        Array("variance"),
+        Array(3, 5, 10, 15, 20),
+        Array(3, 5, 10, 50, 100))
+    } else {
+      val impurity = args(0)
+      val maxDepth = args(1).toInt
+      val maxBins = args(2).toInt
+      trainEvaluate(trainData, validationData, impurity, maxDepth, maxBins)
+    }
 
     println("====== 測試模型 ======")
-    val auc = evaluateModel(model, testData)
-    println(s"測試最佳模型，結果 AUC=${auc}")
+    val rmse = evaluateModel(model, testData)
+    println(s"測試最佳模型，結果 RMSE=${rmse}")
 
     println("====== 預測資料 ======")
-    PredictData(sc, model)
+    predictData(sc, model)
 
     println("===== 完成 ======")
     trainData.unpersist()
@@ -44,14 +48,14 @@ object RunDecisionTreeRegression {
     testData.unpersist()
   }
 
-  def SetLogger = {
+  def setLogger = {
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("com").setLevel(Level.OFF)
     System.setProperty("spark.ui.showConsoleProgress", "false")
     Logger.getRootLogger().setLevel(Level.OFF)
   }
 
-  def PrepareData(sc: SparkContext): (RDD[LabeledPoint], RDD[LabeledPoint], RDD[LabeledPoint]) = {
+  def prepareData(sc: SparkContext): (RDD[LabeledPoint], RDD[LabeledPoint], RDD[LabeledPoint]) = {
     //-- 1. 匯入、轉換資料
     println("開始匯入資料")
     val rawDataWithHeader = sc.textFile("data/hour.csv")
@@ -83,21 +87,29 @@ object RunDecisionTreeRegression {
     } yield {
       val (model, time) = trainModel(trainData, impurity, maxDepth, maxBins)
       val rmse = evaluateModel(model, validationData)
-      println(s"參數 impurity=$impurity, maxDepth=$maxDepth, maxBins=$maxBins, RMSE=$rmse, time=$time")
+      println(f"impurity=${impurity}, maxDepth=${maxDepth}%2d, maxBins=${maxBins}%3d ==> RMSE=${rmse}%6.2f, time=${time}ms")
 
       (impurity, maxDepth, maxBins, rmse)
     }
 
     val evaluationsArraySortedAsc = (evaluationsArray.sortBy(_._4))
     val bestEval = evaluationsArraySortedAsc(0)
-    println(s"最佳參數 impurity=${bestEval._1}, maxDepth=${bestEval._2}, maxBins=${bestEval._3}, AUC=${bestEval._4}")
-
     val (model, time) = trainModel(trainData.union(validationData), bestEval._1, bestEval._2, bestEval._3)
+    println(f"最佳參數 impurity=${bestEval._1}, maxDepth=${bestEval._2}, maxBins=${bestEval._3}, RMSE=${bestEval._4}")
 
     model
   }
 
-  def trainModel(trainData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): (DecisionTreeModel, Double) = {
+  def trainEvaluate(trainData: RDD[LabeledPoint], validationData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): DecisionTreeModel = {
+    println("開始訓練...")
+
+    val (model, time) = trainModel(trainData.union(validationData), impurity, maxDepth, maxBins)
+    println(s"訓練完成 所需時間:${time}ms")
+    
+    model
+  }
+
+  def trainModel(trainData: RDD[LabeledPoint], impurity: String, maxDepth: Int, maxBins: Int): (DecisionTreeModel, Long) = {
     val startTime = new DateTime()
     val model = DecisionTree.trainRegressor(trainData, Map[Int, Int](), impurity, maxDepth, maxBins)
     val endTime = new DateTime()
@@ -116,7 +128,7 @@ object RunDecisionTreeRegression {
     rmse
   }
 
-  def PredictData(sc: SparkContext, model: DecisionTreeModel) = {
+  def predictData(sc: SparkContext, model: DecisionTreeModel) = {
     //-- 1. 匯入並轉換資料
     val rawDataWithHeader = sc.textFile("data/hour.csv")
     val rawData = rawDataWithHeader.mapPartitionsWithIndex{ (idx, iter) => if (idx == 0) iter.drop(1) else iter }
@@ -153,8 +165,8 @@ object RunDecisionTreeRegression {
           case 1 => "工作日"
           case 0 => "非工作日" }} + ", " + 
         {featuresVectors(6) match {
-          case 1 => "晴"
-          case 2 => "陰"
+          case 1 => " 晴"
+          case 2 => " 陰"
           case 3 => "小雨"
           case 4 => "大雨" }} + ", " +
         "溫度:" + (featuresVectors(7) * 41).toInt + "度, " +
