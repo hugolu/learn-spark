@@ -110,6 +110,7 @@ def evaluateModel(model: DecisionTreeModel, validationData: RDD[LabeledPoint]): 
 
 ### 調校最佳模型
 ```shell
+$ sbt package
 $ spark-submit --class RunDecisionTreeBinary --jars lib/joda-time-2.9.4.jar target/scala-2.11/classification_2.11-1.0.0.jar
 ====== 準備階段 ======
 開始匯入資料
@@ -119,53 +120,7 @@ $ spark-submit --class RunDecisionTreeBinary --jars lib/joda-time-2.9.4.jar targ
 impurity=   gini, maxDepth= 3, maxBins=  3 ==> AUC=0.60, time=8007ms
 impurity=   gini, maxDepth= 3, maxBins=  5 ==> AUC=0.62, time=2227ms
 impurity=   gini, maxDepth= 3, maxBins= 10 ==> AUC=0.60, time=2515ms
-impurity=   gini, maxDepth= 3, maxBins= 50 ==> AUC=0.63, time=3209ms
-impurity=   gini, maxDepth= 3, maxBins=100 ==> AUC=0.63, time=2926ms
-impurity=   gini, maxDepth= 5, maxBins=  3 ==> AUC=0.64, time=3034ms
-impurity=   gini, maxDepth= 5, maxBins=  5 ==> AUC=0.68, time=2286ms
-impurity=   gini, maxDepth= 5, maxBins= 10 ==> AUC=0.65, time=3222ms
-impurity=   gini, maxDepth= 5, maxBins= 50 ==> AUC=0.66, time=1548ms
-impurity=   gini, maxDepth= 5, maxBins=100 ==> AUC=0.66, time=1376ms
-impurity=   gini, maxDepth=10, maxBins=  3 ==> AUC=0.63, time=1871ms
-impurity=   gini, maxDepth=10, maxBins=  5 ==> AUC=0.67, time=1734ms
-impurity=   gini, maxDepth=10, maxBins= 10 ==> AUC=0.66, time=1770ms
-impurity=   gini, maxDepth=10, maxBins= 50 ==> AUC=0.66, time=2171ms
-impurity=   gini, maxDepth=10, maxBins=100 ==> AUC=0.67, time=2201ms
-impurity=   gini, maxDepth=15, maxBins=  3 ==> AUC=0.60, time=2937ms
-impurity=   gini, maxDepth=15, maxBins=  5 ==> AUC=0.64, time=2481ms
-impurity=   gini, maxDepth=15, maxBins= 10 ==> AUC=0.64, time=2721ms
-impurity=   gini, maxDepth=15, maxBins= 50 ==> AUC=0.64, time=4149ms
-impurity=   gini, maxDepth=15, maxBins=100 ==> AUC=0.62, time=4087ms
-impurity=   gini, maxDepth=20, maxBins=  3 ==> AUC=0.58, time=3127ms
-impurity=   gini, maxDepth=20, maxBins=  5 ==> AUC=0.63, time=3114ms
-impurity=   gini, maxDepth=20, maxBins= 10 ==> AUC=0.63, time=3299ms
-impurity=   gini, maxDepth=20, maxBins= 50 ==> AUC=0.63, time=3471ms
-impurity=   gini, maxDepth=20, maxBins=100 ==> AUC=0.60, time=4766ms
-impurity=entropy, maxDepth= 3, maxBins=  3 ==> AUC=0.60, time=1108ms
-impurity=entropy, maxDepth= 3, maxBins=  5 ==> AUC=0.62, time=1032ms
-impurity=entropy, maxDepth= 3, maxBins= 10 ==> AUC=0.61, time=903ms
-impurity=entropy, maxDepth= 3, maxBins= 50 ==> AUC=0.63, time=910ms
-impurity=entropy, maxDepth= 3, maxBins=100 ==> AUC=0.63, time=1226ms
-impurity=entropy, maxDepth= 5, maxBins=  3 ==> AUC=0.64, time=1497ms
-impurity=entropy, maxDepth= 5, maxBins=  5 ==> AUC=0.68, time=1291ms
-impurity=entropy, maxDepth= 5, maxBins= 10 ==> AUC=0.65, time=874ms
-impurity=entropy, maxDepth= 5, maxBins= 50 ==> AUC=0.66, time=947ms
-impurity=entropy, maxDepth= 5, maxBins=100 ==> AUC=0.66, time=925ms
-impurity=entropy, maxDepth=10, maxBins=  3 ==> AUC=0.63, time=1565ms
-impurity=entropy, maxDepth=10, maxBins=  5 ==> AUC=0.66, time=1318ms
-impurity=entropy, maxDepth=10, maxBins= 10 ==> AUC=0.63, time=1592ms
-impurity=entropy, maxDepth=10, maxBins= 50 ==> AUC=0.64, time=1551ms
-impurity=entropy, maxDepth=10, maxBins=100 ==> AUC=0.66, time=1777ms
-impurity=entropy, maxDepth=15, maxBins=  3 ==> AUC=0.60, time=2295ms
-impurity=entropy, maxDepth=15, maxBins=  5 ==> AUC=0.63, time=1979ms
-impurity=entropy, maxDepth=15, maxBins= 10 ==> AUC=0.63, time=2049ms
-impurity=entropy, maxDepth=15, maxBins= 50 ==> AUC=0.63, time=2546ms
-impurity=entropy, maxDepth=15, maxBins=100 ==> AUC=0.65, time=4340ms
-impurity=entropy, maxDepth=20, maxBins=  3 ==> AUC=0.59, time=4368ms
-impurity=entropy, maxDepth=20, maxBins=  5 ==> AUC=0.63, time=2742ms
-impurity=entropy, maxDepth=20, maxBins= 10 ==> AUC=0.62, time=2825ms
-impurity=entropy, maxDepth=20, maxBins= 50 ==> AUC=0.62, time=3269ms
-impurity=entropy, maxDepth=20, maxBins=100 ==> AUC=0.61, time=4077ms
+...
 最佳參數 impurity=entropy, maxDepth=5, maxBins=5, AUC=0.68
 ====== 測試階段 ======
 測試模型 AUC=0.6808752072054126
@@ -188,26 +143,4 @@ impurity=entropy, maxDepth=20, maxBins=100 ==> AUC=0.61, time=4077ms
 ### 測試最佳模型
 ```shell
 $ spark-submit --class RunDecisionTreeBinary --jars lib/joda-time-2.9.4.jar target/scala-2.11/classification_2.11-1.0.0.jar entropy 5 5
-====== 準備階段 ======
-開始匯入資料
-共計 7395 筆
-資料分成 trainData: 5875, validationData: 775, testData = 745
-====== 訓練評估 ======
-開始訓練...
-訓練完成 所需時間:13014ms
-====== 測試階段 ======
-測試模型 AUC=0.6436524889228858
-====== 預測資料 ======
-共計 3171 筆
-網址 http://www.lynnskitchenadventures.com/2009/04/homemade-enchilada-sauce.html ==> 預測: 長青網頁
-網址 http://lolpics.se/18552-stun-grenade-ar ==> 預測: 暫時性網頁
-網址 http://www.xcelerationfitness.com/treadmills.html ==> 預測: 暫時性網頁
-網址 http://www.bloomberg.com/news/2012-02-06/syria-s-assad-deploys-tactics-of-father-to-crush-revolt-threatening-reign.html ==> 預測: 暫時性網頁
-網址 http://www.wired.com/gadgetlab/2011/12/stem-turns-lemons-and-limes-into-juicy-atomizers/ ==> 預測: 暫時性網頁
-網址 http://www.latimes.com/health/boostershots/la-heb-fat-tax-denmark-20111013,0,2603132.story ==> 預測: 暫時性網頁
-網址 http://www.howlifeworks.com/a/a?AG_ID=1186&cid=7340ci ==> 預測: 長青網頁
-網址 http://romancingthestoveblog.wordpress.com/2010/01/13/sweet-potato-ravioli-with-lemon-sage-brown-butter-sauce/ ==> 預測: 長青網頁
-網址 http://www.funniez.net/Funny-Pictures/turn-men-down.html ==> 預測: 暫時性網頁
-網址 http://youfellasleepwatchingadvd.com/ ==> 預測: 暫時性網頁
-===== 完成 ======
 ```
