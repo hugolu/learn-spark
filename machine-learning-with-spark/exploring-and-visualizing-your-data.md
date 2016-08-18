@@ -36,6 +36,32 @@ $ pyspark
 ```
 
 ### 牛刀小試
+```shell
+$ pyspark
+```
+
+- 打開瀏覽器，輸入 URL `http://192.168.33.10:8888/`
+- 變更工作目錄到 `~/learn-spark/machine-learning-with-spark/src/ex-1.6`
+- 開啟 IPython Notebook，`New` >> `Python[Root]`
+- 貼上以下內容，執行 `Run` >> `Run Cells`
+
+```python
+data = sc.textFile("data/UserPurchaseHistory.csv").map(lambda line: line.split(",")).map(lambda record: (record[0], record[1], record[2]))
+
+numPurchases = data.count()
+uniqueUsers = data.map(lambda record: record[0]).distinct().count()
+totalRevenue = data.map(lambda record: float(record[2])).sum()
+products = data.map(lambda record: (record[0], 1.0)).reduceByKey(lambda a, b: a+b).collect()
+mostPopular = sorted(products, key=lambda x: x[1], reverse=True)[0]
+
+print "Total pruchase: %d" % numPurchases
+print "Unique users: %d" % uniqueUsers
+print "Total revenue: %2.2f" % totalRevenue
+print "Most popular product: %s with %d purchases" % (mostPopular[0], mostPopular[1])
+```
+- 因為是 spark shell，不需要產生 sc (SparkContext)
+
+![](pictures/ipython-notebook.png)
 
 ### 停止 PySpark with IPython Notebook
 - 在 terminal 按下 `q`，出現提示 `Do you want to exit w3m? (y/n)`，回答 `y`
