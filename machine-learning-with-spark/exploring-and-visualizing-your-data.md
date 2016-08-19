@@ -67,3 +67,8 @@ print "Most popular product: %s with %d purchases" % (mostPopular[0], mostPopula
 - 在 terminal 按下 `q`，出現提示 `Do you want to exit w3m? (y/n)`，回答 `y`
 - 然後按下 `Ctrl-C` 停止伺服器，出現提示 `Shutdown this notebook server (y/[n])?`，回答 `y`
 
+## 透過圖形探索數據
+
+source: [src/ex-3.2.ipynb](src/ex-3.2.ipynb)
+
+![](pictures/visualizing-data.png)
