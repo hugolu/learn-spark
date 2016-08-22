@@ -135,9 +135,16 @@ val sims = model.productFeatures.map{ case (id, factor) =>
   val sim = cosineSimilarity(factorVector, itemVector)
   (id, sim)
 }
+```
+- 計算 productFeatures “每個物品向量” 與 “物品#567向量” 的餘弦相似度
+
+```scala
 val sortedSims = sims.top(10)(Ordering.by[(Int, Double), Double] { case (id, similarity) => similarity })
 ```
 - 找出與物品#567最相似的前10個物品
+  - 找 `sims` 前10個
+  - 比較方法 `Ordering.by`，輸入 (id, similarity)，比較 similarity (降冪排序)
+- 等同於 `sims.top(10)(Ordering.by[(Int, Double), Double](_._2))`
 
 > `Ordering.by` 參考 [Scala 比较器：Ordered与Ordering](http://www.doc00.com/doc/10010048t)
 
