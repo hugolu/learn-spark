@@ -88,8 +88,58 @@ val model = ALS.train(ratings, 50, 10, 0.01)
 - iterations: 對應運行時的迭代次數。ALS 確保每次迭代都能降低評級矩陣的重建誤差，但一般經少數次迭代便能收斂為一個比較合理的好模型。
 - lambda: 控制模型的正則化過程。越高正則化越嚴厲。
 
+```scala
+model.userFeatures.count      //> 943
+model.productFeatures.count   //> 1682
+```
+- `userFeatures`: 用戶因子矩陣 (user-factor matrix)
+- `productFreatures`: 物品因子矩陣 (item-factor matrix)
+
 ## 使用模型為用戶進行推薦、找出指定物品的類似物品
 source: [src/ex-4](src/ex-4)
+
+### 用戶推薦
+用戶推薦是指向給定用戶推薦物品。
+
+```scala
+model.predict(798, 123)
+```
+- `MatrixFactorizationModel` 提供 `predict` 函數，計算給定用戶對給定物品的預期評分
+
+```scala
+model.recommendProducts(789, 10)
+```
+- `MatrixFactorizationModel` 提供 `recommendProducts` 函數，為給定用戶生成前 K 個推薦物品
+
+### 物品推薦
+```scala
+def cosineSimilarity(vec1: DoubleMatrix, vec2: DoubleMatrix): Double = {
+  vec1.dot(vec2) / (vec1.norm2() * vec2.norm2())
+}
+```
+- 計算兩個向量之間的餘弦相似度。餘弦相似度指兩個向量在 n 為空間裡，兩者夾角的角度。
+- 相似度介於 -1 ~ 1。1: 完全相同；0 互不相干；-1 完全不同
+
+```scala
+val itemId = 567
+val itemFactor = model.productFeatures.lookup(itemId).head
+val itemVector = new DoubleMatrix(itemFactor)
+println("cosineSimilarity=" + cosineSimilarity(itemVector, itemVector))
+```
+- 採用 jblas 線性代數庫，創建 DoubleMatrix (提供向量點積、像量範數的函數)
+- `cosineSimilarity` 計算向量跟自己的餘弦相似度
+
+```scala
+val sims = model.productFeatures.map{ case (id, factor) =>
+  val factorVector = new DoubleMatrix(factor)
+  val sim = cosineSimilarity(factorVector, itemVector)
+  (id, sim)
+}
+val sortedSims = sims.top(10)(Ordering.by[(Int, Double), Double] { case (id, similarity) => similarity })
+```
+- 找出與物品#567最相似的前10個物品
+
+> `Ordering.by` 參考 [Scala 比较器：Ordered与Ordering](http://www.doc00.com/doc/10010048t)
 
 ## 應用標準的評估指標來評估該模型的預測能力
 source: [src/ex-4](src/ex-4)
