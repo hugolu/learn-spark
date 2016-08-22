@@ -150,3 +150,22 @@ val sortedSims = sims.top(10)(Ordering.by[(Int, Double), Double] { case (id, sim
 
 ## 應用標準的評估指標來評估該模型的預測能力
 source: [src/ex-4](src/ex-4)
+
+### 均方差 (Mean Squared Error, MSE)
+- 用於衡量 "用戶-物品" 憑藉矩陣的重建誤差
+- 適合評估顯式數據集的評級
+
+#### 推薦平方誤差 (Squared Error)
+```scala
+val moviesForUser = ratings.keyBy(_.user).lookup(789)
+val actualRating = moviesForUser.take(1)(0)
+val predictedRating = model.predict(789, actualRating.product)
+val squaredError = math.pow(predictedRating - actualRating.rating, 2.0)
+```
+- 找出使用者#789平價過的電影，取一個
+- 使用同一部電影預測評分
+- 計算兩者平方誤差
+
+### K值平均準確率 (Average Percision at K metric, APK)
+- 用於衡量針對某個查詢所返回的 “前K個” 物件的相關性
+- 適合評估隱式數據集的推薦
