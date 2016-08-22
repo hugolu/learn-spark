@@ -71,5 +71,25 @@
 是一種求解矩陣分解問題的優化方法。實現原理：每一次迭代，固定用戶因子矩陣或是物品因子矩陣的一個，然後用固定的這個矩陣以及評級數據來更新另一個矩陣。之後被更新的矩陣固定住，在更新另一個矩陣。迭代直到模型收斂。
 
 ## 使用用戶偏好資料來建立推薦模型
+source: [src/ex-4](src/ex-4)
+
+### 從 MovieLens 100K 提取特徵
+```scala
+val rawData = sc.textFile("../ml-100k/u.data")
+val rawRatings = rawData.map(_.split("\t").take(3))
+val ratings = rawRatings.map{ case Array(user, product, rating) => Rating(user.toInt, product.toInt, rating.toDouble) }
+```
+
+### 訓練推薦模型
+```scala
+val model = ALS.train(ratings, 50, 10, 0.01)
+```
+- rank: 對應 ALS 模型中的因子個數，在低價近似矩陣中的隱含特徵個數
+- iterations: 對應運行時的迭代次數。ALS 確保每次迭代都能降低評級矩陣的重建誤差，但一般經少數次迭代便能收斂為一個比較合理的好模型。
+- lambda: 控制模型的正則化過程。越高正則化越嚴厲。
+
 ## 使用模型為用戶進行推薦、找出指定物品的類似物品
+source: [src/ex-4](src/ex-4)
+
 ## 應用標準的評估指標來評估該模型的預測能力
+source: [src/ex-4](src/ex-4)
