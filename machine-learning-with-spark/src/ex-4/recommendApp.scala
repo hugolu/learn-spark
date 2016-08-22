@@ -8,9 +8,12 @@ object RecommendationApp {
   def main(args: Array[String]) {
     val sc = new SparkContext(new SparkConf().setAppName("RecommendationApp").setMaster("local[4]"))
 
+    // Extracting features
     val rawData = sc.textFile("../ml-100k/u.data")
     val rawRatings = rawData.map(_.split("\t").take(3))
     val ratings = rawRatings.map{ case Array(user, product, rating) => Rating(user.toInt, product.toInt, rating.toDouble) }
+
+    // Training the recommendation model
     val model = ALS.train(ratings, 50, 10, 0.01)
 
     // User recommendations
