@@ -255,8 +255,7 @@ val MAPK2000 = allRecs.join(userMovies).map{ case (userId, (predicted, actual)) 
 
 #### 透過 MLlib 提供的方法評估 MAPK
 ```scala
-val predictedAndTrueForRanking = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
-  val actual = actualWithIds.map(_._2)
+val predictedAndTrueForRanking = allRecs.join(userMovies).map{ case (userId, (predicted, actual)) =>
   (predicted.toArray, actual.toArray)
 }
 val rankingMetrics = new RankingMetrics(predictedAndTrueForRanking)
