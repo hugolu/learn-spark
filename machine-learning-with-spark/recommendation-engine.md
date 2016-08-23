@@ -239,18 +239,19 @@ val allRecs = model.userFeatures.map{ case (userId, array) =>
   val recommendedIds = sortedWithId.map(_._2 + 1).toSeq
   (userId, recommendedIds)
 }
-val userMovies = ratings.map{ case Rating(user, product, rating) => (user, product) }.groupBy(_._1)
+val userMovies = ratings.map{ case Rating(user, product, rating) => (user, product) }.groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).toSeq) }
 
-val MAPK10 = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
-  val actual = actualWithIds.map(_._2).toSeq
+val MAPK10 = allRecs.join(userMovies).map{ case (userId, (predicted, actual)) =>
   avgPrecisionK(actual, predicted, 10)
 }.reduce(_ + _) / allRecs.count       //> 0.06676980760490839
 
-val MAPK2000 = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
-  val actual = actualWithIds.map(_._2).toSeq
+val MAPK2000 = allRecs.join(userMovies).map{ case (userId, (predicted, actual)) =>
   avgPrecisionK(actual, predicted, 2000)
 }.reduce(_ + _) / allRecs.count       //> 0.19051800057432963
 ```
+- `allRecs: org.apache.spark.rdd.RDD[(Int, Seq[Int])]`
+- `userMovies: org.apache.spark.rdd.RDD[(Int, Seq[Int])]`
+- `MAPK#` 加總所有用戶選擇與推薦物品的預測平均精準度，然後除以用戶數目
 
 #### 透過 MLlib 提供的方法評估 MAPK
 ```scala
@@ -262,3 +263,4 @@ val rankingMetrics = new RankingMetrics(predictedAndTrueForRanking)
 
 rankingMetrics.meanAveragePrecision   //> 0.1905180005743294
 ```
+- `predictedAndTrueForRanking: org.apache.spark.rdd.RDD[(Array[Int], Array[Int])]`
