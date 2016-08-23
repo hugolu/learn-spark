@@ -180,7 +180,7 @@ val RMSE = math.sqrt(MSE)
 - `MSE` 計算均方誤差 (Mean Squared Error)
 - `RMSE` 計算均方根誤差 (Root Mean Squared Error)
 
-#### 透過 MLlib 提供的方法評估 MSE, RMSE
+#### 使用 MLlib 提供的方法評估 MSE, RMSE
 ```scala
 val predictedAndTrue = ratingsAndPredictions.map { case ((user, product), (actual, predicted)) => (actual, predicted) }
 val regressionMetrics = new RegressionMetrics(predictedAndTrue)
@@ -191,3 +191,74 @@ regressionMetrics.rootMeanSquaredError  //> 0.2890329538669606
 ### K值平均準確率 (Average Percision at K metric, APK)
 - 用於衡量針對某個查詢所返回的 “前K個” 物件的相關性
 - 適合評估隱式數據集的推薦
+
+```scala
+def avgPrecisionK(actual: Seq[Int], predicted: Seq[Int], k: Int): Double = {
+  val predK = predicted.take(k)
+  var score = 0.0
+  var numHits = 0.0
+  for ((p, i) <- predK.zipWithIndex) {
+    if (actual.contains(p)) {
+      numHits += 1.0
+      score += numHits / (i.toDouble + 1.0)
+    }
+  }
+
+  if (actual.isEmpty) {
+    1.0
+  } else {
+    score / scala.math.min(actual.size, k).toDouble
+  }
+}
+```
+- 計算猜中的準確度
+
+#### 評估 APK
+試圖衡量模型對用戶感興趣和會去接觸的物品的預測能力
+```scala
+val topKRecs = model.recommendProducts(798, 10)
+val actualMovies = moviesForUser.map(_.product)
+val predictedMovies = topKRecs.map(_.product)
+val apk10 = avgPrecisionK(actualMovies, predictedMovies, 10)  //> 0 (通常很低)
+```
+- 找出對用戶#789推薦的前十部電影
+- 找出用戶#789看過的電影
+- 計算推薦與實際看過的前十部電影的預測平均精準度
+
+#### 評估 MAPK
+計算對每一個用戶的APK得分，在求平均
+
+```scala
+val itemFactors = model.productFeatures.map{ case (id, factor) => factor }.collect()
+val itemMatrix = new DoubleMatrix(itemFactors)
+val imBroadcast = sc.broadcast(itemMatrix)
+val allRecs = model.userFeatures.map{ case (userId, array) =>
+  val userVector = new DoubleMatrix(array)
+  val scores = imBroadcast.value.mmul(userVector)
+  val sortedWithId = scores.data.zipWithIndex.sortBy(-_._1)
+  val recommendedIds = sortedWithId.map(_._2 + 1).toSeq
+  (userId, recommendedIds)
+}
+val userMovies = ratings.map{ case Rating(user, product, rating) => (user, product) }.groupBy(_._1)
+
+val MAPK10 = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
+  val actual = actualWithIds.map(_._2).toSeq
+  avgPrecisionK(actual, predicted, 10)
+}.reduce(_ + _) / allRecs.count       //> 0.06676980760490839
+
+val MAPK2000 = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
+  val actual = actualWithIds.map(_._2).toSeq
+  avgPrecisionK(actual, predicted, 2000)
+}.reduce(_ + _) / allRecs.count       //> 0.19051800057432963
+```
+
+#### 透過 MLlib 提供的方法評估 MAPK
+```scala
+val predictedAndTrueForRanking = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
+  val actual = actualWithIds.map(_._2)
+  (predicted.toArray, actual.toArray)
+}
+val rankingMetrics = new RankingMetrics(predictedAndTrueForRanking)
+
+rankingMetrics.meanAveragePrecision   //> 0.1905180005743294
+```
