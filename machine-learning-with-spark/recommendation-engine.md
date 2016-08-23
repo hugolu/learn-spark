@@ -146,7 +146,7 @@ val sortedSims = sims.top(10)(Ordering.by[(Int, Double), Double] { case (id, sim
   - 比較方法 `Ordering.by`，輸入 (id, similarity)，比較 similarity (降冪排序)
 - 等同於 `sims.top(10)(Ordering.by[(Int, Double), Double](_._2))`
 
-> `Ordering.by` 參考 [Scala 比较器：Ordered与Ordering](http://www.doc00.com/doc/10010048t)
+> 更多 `Ordering.by` 的細節，參考 [比較集合內的元素](https://github.com/hugolu/learn-scala/blob/master/myNote/ordered-ordering.md)
 
 ## 應用標準的評估指標來評估該模型的預測能力
 source: [src/ex-4](src/ex-4)
@@ -155,7 +155,7 @@ source: [src/ex-4](src/ex-4)
 - 用於衡量 "用戶-物品" 憑藉矩陣的重建誤差
 - 適合評估顯式數據集的評級
 
-#### 推薦平方誤差 (Squared Error)
+#### 評估平方誤差 (Squared Error)
 ```scala
 val moviesForUser = ratings.keyBy(_.user).lookup(789)
 val actualRating = moviesForUser.take(1)(0)
@@ -165,6 +165,28 @@ val squaredError = math.pow(predictedRating - actualRating.rating, 2.0)
 - 找出使用者#789平價過的電影，取一個
 - 使用同一部電影預測評分
 - 計算兩者平方誤差
+
+#### 評估 MSE & RMSE
+```scala
+val usersProducts = ratings.map{ case Rating(user, product, rating) => (user, product) }
+val predictions = model.predict(usersProducts).map{ case Rating(user, product, rating) => ((user, product), rating) }
+val ratingsAndPredictions = ratings.map{ case Rating(user, product, rating) => ((user, product), rating) }.join(predictions)
+
+val MSE = ratingsAndPredictions.map{ case ((user, product), (actual, predicted)) => math.pow((actual - predicted), 2) }.reduce(_ + _) / ratingsAndPredictions.count
+val RMSE = math.sqrt(MSE)
+```
+- `predictions` 預測所有使用者對評價過物品的評價
+- `ratingsAndPredictions` 合併實際評價與預測評價
+- `MSE` 計算均方誤差 (Mean Squared Error)
+- `RMSE` 計算均方根誤差 (Root Mean Squared Error)
+
+#### 透過 MLlib 提供的方法評估 MSE, RMSE
+```scala
+val predictedAndTrue = ratingsAndPredictions.map { case ((user, product), (actual, predicted)) => (actual, predicted) }
+val regressionMetrics = new RegressionMetrics(predictedAndTrue)
+regressionMetrics.meanSquaredError      //> 0.08354004842106058
+regressionMetrics.rootMeanSquaredError  //> 0.2890329538669606
+```
 
 ### K值平均準確率 (Average Percision at K metric, APK)
 - 用於衡量針對某個查詢所返回的 “前K個” 物件的相關性
