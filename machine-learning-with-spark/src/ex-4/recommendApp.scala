@@ -78,23 +78,20 @@ object RecommendationApp {
       val recommendedIds = sortedWithId.map(_._2 + 1).toSeq
       (userId, recommendedIds)
     }
-    val userMovies = ratings.map{ case Rating(user, product, rating) => (user, product)}.groupBy(_._1)
+    val userMovies = ratings.map{ case Rating(user, product, rating) => (user, product)}.groupBy(_._1).map{ case (k, v) => (k, v.map(_._2).toSeq) }
 
-    val MAPK10 = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
-      val actual = actualWithIds.map(_._2).toSeq
+    val MAPK10 = allRecs.join(userMovies).map{ case (userId, (predicted, actual)) =>
       avgPrecisionK(actual, predicted, 10)
     }.reduce(_ + _) / allRecs.count
     println(s"MAPK10=${MAPK10}")
 
-    val MAPK2000 = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
-      val actual = actualWithIds.map(_._2).toSeq
+    val MAPK2000 = allRecs.join(userMovies).map{ case (userId, (predicted, actual)) =>
       avgPrecisionK(actual, predicted, 2000)
     }.reduce(_ + _) / allRecs.count
     println(s"MAPK2000=${MAPK2000}")
 
     // MAPK (mllib)
-    val predictedAndTrueForRanking = allRecs.join(userMovies).map{ case (userId, (predicted, actualWithIds)) =>
-      val actual = actualWithIds.map(_._2)
+    val predictedAndTrueForRanking = allRecs.join(userMovies).map{ case (userId, (predicted, actual)) =>
       (predicted.toArray, actual.toArray)
     }
     val rankingMetrics = new RankingMetrics(predictedAndTrueForRanking)
