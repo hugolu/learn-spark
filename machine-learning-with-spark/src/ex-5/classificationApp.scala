@@ -8,6 +8,7 @@ import org.apache.spark.mllib.classification.NaiveBayes
 import org.apache.spark.mllib.tree.DecisionTree
 import org.apache.spark.mllib.tree.configuration.Algo
 import org.apache.spark.mllib.tree.impurity.Entropy
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 
 object classificationApp {
   def main(args: Array[String]) {
@@ -79,6 +80,33 @@ object classificationApp {
     println(s"dtAccuracy=${dtAccuracy}")
 
     //-- Area under PR (Precision & Recall), Area under ROC(Receiver Operating Characteristic curve)
-    
+    val metrics = Seq(lrModel, svmModel).map{ model =>
+      val scoreAndLabels = data.map{ lp => (model.predict(lp.features), lp.label) }
+      val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+      (model.getClass.getSimpleName, metrics.areaUnderPR, metrics.areaUnderROC)
+    }
+
+    val nbMetrics = Seq(nbModel).map{ model =>
+      val scoreAndLabels = data.map{ lp =>
+        val score = model.predict(lp.features)
+        (if (score > 0.5) 1.0 else 0.0, lp.label)
+      }
+      val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+      (model.getClass.getSimpleName, metrics.areaUnderPR, metrics.areaUnderROC)
+    }
+
+    val dtMetrics = Seq(dtModel).map{ model =>
+      val scoreAndLabels = data.map{ lp =>
+        val score = model.predict(lp.features)
+        (if (score > 0.5) 1.0 else 0.0, lp.label)
+      }
+      val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+      (model.getClass.getSimpleName, metrics.areaUnderPR, metrics.areaUnderROC)
+    }
+
+    val allMetrics = metrics ++ nbMetrics ++ dtMetrics
+    allMetrics.foreach{ case (m, pr, roc) =>
+      println(f"$m, Area under PR: ${pr * 100.0}%2.4f%%, Area under ROC: ${roc * 100.0}%2.4f%%")
+    }
   }
 }
