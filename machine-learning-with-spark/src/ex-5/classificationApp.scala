@@ -7,14 +7,11 @@ import org.apache.spark.mllib.classification.SVMWithSGD
 import org.apache.spark.mllib.classification.NaiveBayes
 import org.apache.spark.mllib.tree.DecisionTree
 import org.apache.spark.mllib.tree.configuration.Algo
-import org.apache.spark.mllib.tree.impurity.Entropy
+import org.apache.spark.mllib.tree.impurity.{ Impurity, Entropy, Gini }
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
 import org.apache.spark.mllib.feature.StandardScaler
-import org.apache.spark.mllib.optimization.Updater
-import org.apache.spark.mllib.optimization.SimpleUpdater
-import org.apache.spark.mllib.optimization.L1Updater
-import org.apache.spark.mllib.optimization.SquaredL2Updater
+import org.apache.spark.mllib.optimization.{ Updater, SimpleUpdater, L1Updater, SquaredL2Updater }
 import org.apache.spark.mllib.classification.ClassificationModel
 
 object classificationApp {
@@ -212,17 +209,69 @@ object classificationApp {
     }
     iterResults.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
 
-    //---- Steps
+    //---- Step size
     val stepResults = Seq(0.01, 0.1, 1.0, 10.0).map{ param =>
       val model = trainWithParams(scaledDataCats, 0.0, numIterations, new SimpleUpdater, param)
       createMetrics(s"$param step size", scaledDataCats, model)
     }
     stepResults.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
 
+    //---- Regularization
+    val regResults = Seq(0.001, 0.01, 0.1, 1.0, 10.0).map{ param =>
+      val model = trainWithParams(scaledDataCats, param, numIterations, new SquaredL2Updater, 1.0)
+      createMetrics(s"$param L2 Regularization parameter", scaledDataCats, model)
+    }
+    regResults.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100}%2.2f%%") }
 
     //-- Tuning model parameters: Decision trees
+    def trainDTWithParams(input: RDD[LabeledPoint], maxDepth: Int, impurity: Impurity) = {
+      DecisionTree.train(input, Algo.Classification, impurity, maxDepth)
+    }
+
+    //---- Tuning tree depth
+    val dtResultsEntropy = Seq(1, 2, 3, 4, 5, 10, 20).map{ param =>
+      val model = trainDTWithParams(data, param, Entropy)
+      val scoredAndLabels = data.map{ lp =>
+        val score = model.predict(lp.features)
+        (if (score > 0.5) 1.0 else 0.0, lp.label)
+      }
+      val metrics = new BinaryClassificationMetrics(scoredAndLabels)
+      (s"$param tree depth", metrics.areaUnderROC)
+    }
+    dtResultsEntropy.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
+
+    //---- Tuning impurity
+    val dtResultsGini = Seq(1, 2, 3, 4, 5, 10, 20).map{ param =>
+      val model = trainDTWithParams(data, param, Gini)
+      val scoredAndLabels = data.map{ lp =>
+        val score = model.predict(lp.features)
+        (if (score > 0.5) 1.0 else 0.0, lp.label)
+      }
+      val metrics = new BinaryClassificationMetrics(scoredAndLabels)
+      (s"$param tree depth", metrics.areaUnderROC)
+    }
+    dtResultsGini.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
+
     //-- Tuning model parameters: Naive Bayes models
+    def trainNBWithParams(input: RDD[LabeledPoint], lambda: Double) = {
+      val nb = new NaiveBayes
+      nb.setLambda(lambda)
+      nb.run(input)
+    }
+    val nbResults = Seq(0.001, 0.01, 0.1, 1.0, 10.0).map{ param =>
+      val model = trainNBWithParams(dataNB, param)
+      val scoredAndLabels = dataNB.map{ lp => (model.predict(lp.features), lp.label) }
+      val metrics = new BinaryClassificationMetrics(scoredAndLabels)
+      (s"$param lambda", metrics.areaUnderROC)
+    }
+    nbResults.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
 
+    //-- Cross-validation
+    val Array(train, test) = scaledDataCats.randomSplit(Array(0.6, 0.4), 123)
+    val regResultsTest = Seq(0.0, 0.001, 0.0025, 0.005, 0.01).map{ param =>
+      val model = trainWithParams(train, param, numIterations, new SquaredL2Updater, 1.0)
+      createMetrics(s"$param L2 regularization parameter", test, model)
+    }
+    regResultsTest.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100}%2.6f%%") }
   }
-
 }
