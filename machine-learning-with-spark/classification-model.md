@@ -139,7 +139,82 @@ val dtModel = DecisionTree.train(data, Algo.Classification, Entropy, maxTreeDept
 - `dtModel`:  訓練 Decision Tree Model
 
 ### 使用分類模型
+```scala
+val dataPoint = data.first
+val prediction = lrModel.predict(dataPoint.features)
+val trueLabel = dataPoint.label
+
+val predictions = lrModel.predict(data.map(lp => lp.features))
+val trueLabels = data.map(lp => lp.label)
+```
+```
+(1.0,0.0)
+(1.0,1.0)
+(1.0,1.0)
+(1.0,1.0)
+(1.0,0.0)
+(1.0,0.0)
+(1.0,1.0)
+(1.0,0.0)
+(1.0,1.0)
+(1.0,1.0)
+```
+- 預測結果很不準？！
 
 ### 評估分類模型的性能
+怎麼知道用模型預測效果好不好？應該知道怎麼評估模型性能 (We need to be able to evaluate how well our model performs.) 二元分類使用評估方式包含：
+- 預測正確率與錯誤率
+- 準確率與召回率曲線下的面積
+- ROC曲線下的面積
+- F-Measure (書本沒提到？)
+
+#### 預測正確率(Accuracy)、錯誤率 (prediction error)
+- 正確率 - 訓練樣本中被正確分類的數目除以總樣本數
+- 錯誤率 - 訓練樣本中被錯誤分類的數目除以總樣本數
+
+```scala
+val lrTotalCorrect = data.map{ lp => if (lrModel.predict(lp.features) == lp.label) 1 else 0 }.sum   //> 3806.0
+val lrAccuracy = lrTotalCorrect / numData                                                           //> 0.5146720757268425
+
+val svmTotalCorrect = data.map{ lp => if (svmModel.predict(lp.features) == lp.label) 1 else 0 }.sum //> 3806.0
+val svmAccuracy = svmTotalCorrect / numData                                                         //> 0.5146720757268425
+
+val nbTotalCorrect = data.map{ lp => if (nbModel.predict(lp.features) == lp.label) 1 else 0 }.sum   //> 4293.0
+val nbAccuracy = nbTotalCorrect / numData                                                           //> 0.5805273833671399
+
+val dtTotalCorrect = data.map{ lp =>
+  val score = dtModel.predict(lp.features)
+  val predicted = if (score > 0.5) 1 else 0
+  if (predicted == lp.label) 1 else 0
+}.sum                                                                                               //> 4794.0
+val dtAccuracy = dtTotalCorrect / numData                                                           //> 0.6482758620689655
+```
+
+#### 延伸閱讀: [准确率(Accuracy), 精确率(Precision), 召回率(Recall)和F1-Measure](https://argcv.com/articles/1036.c)
+```
+假如某个班级有男生80人,女生20人,共计100人.目标是找出所有女生.
+现在某人挑选出50个人,其中20人是女生,另外还错误的把30个男生也当作女生挑选出来了.
+作为评估者的你需要来评估(evaluation)下他的工作
+```
+
+    |相关(Relevant),正类 | 无关(NonRelevant),负类
+----|--------------------|------------------------
+被检索到(Retrieved) |	true positives(TP 正类判定为正类,例子中就是正确的判定"这位是女生") |	false positives(FP 负类判定为正类,"存伪",例子中就是分明是男生却判断为女生,当下伪娘横行,这个错常有人犯)
+未被检索到(Not Retrieved)	| false negatives(FN 正类判定为负类,"去真",例子中就是,分明是女生,这哥们却判断为男生--梁山伯同学犯的错就是这个)	| true negatives(TN 负类判定为负类,也就是一个男生被判断为男生,像我这样的纯爷们一准儿就会在此处)
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Precisionrecall.svg/264px-Precisionrecall.svg.png)
+
+#### 精確率 (Precision)、召回率 (Recall)
+- 精確率 - 平價結果的品質 `= TP/ TP + FP`
+- 召回率 - 平價結果完整性 `= TP/ TP + FN`
+
+![](http://www.chioka.in/wp-content/uploads/2014/04/sample-PR-curve.png)
+- Recall 越高，Precision 會降低 (全部都猜是女生，當然 Recall=100%，但是 Precision會降到20%)
+
+#### ROC 曲線
+- TPR (true positive rate) 真陽性佔所有正樣本的比例 `= TP / TP + FN`
+- FPR (false positive rate) 偽陽性佔所有負樣本的比例  `= FP / FP + TN`
+
+![](http://www.chioka.in/wp-content/uploads/2014/04/sample-ROC-curve.png)
 
 ### 改進模型性能與參數調校
