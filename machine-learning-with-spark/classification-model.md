@@ -74,6 +74,44 @@ SVM 是一個最大區間的分類氣，它試圖訓練一個使得類別盡可�
 source: [src/ex-5](src/ex-5)
 
 ### 從數據抽取合適的特徵
+下載資料: http://www.kaggle.com/c/stumbleupon/data
+
+#### 刪除第一行的標題
+```shell
+$ sed 1d train.tsv > train_noheader.tsv
+```
+- 有時候透過其他工具執行 ETL 比使用 spark 的指令拼湊來得方便有效率
+
+#### 載入資料、分隔欄位
+```scala
+val rawData = sc.textFile("../data/train_noheader.tsv")
+val records = rawData.map(line => line.split("\t"))
+```
+
+#### 清理數據、處理缺失數據
+```scala
+  val data = records.map{ r =>
+    val trimmed = r.map(_.replaceAll("\"", ""))
+    val label = trimmed(r.size - 1).toInt
+    val features = trimmed.slice(4, r.size - 1).map(d => if (d == "?") 0.0 else d.toDouble)
+    LabeledPoint(label, Vectors.dense(features))
+  }
+  data.cache
+  val numData = data.count
+```
+- 拿掉資料裡 `"` 符號
+- 將資料中 `?` 取代為 `0`
+
+#### 針對樸素貝氏模型特別處理
+```scala
+val nbData = records.map{ r =>
+  val trimmed = r.map(_.replaceAll("\"", ""))
+  val label = trimmed(r.size - 1).toInt
+  val features = trimmed.slice(4, r.size - 1).map(d => if (d == "?") 0.0 else d.toDouble).map(d => if (d < 0) 0.0 else d)
+  LabeledPoint(label, Vectors.dense(features))
+}
+```
+- 要求特徵值非負值
 
 ### 訓練分類模型
 
