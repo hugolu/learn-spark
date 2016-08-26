@@ -209,12 +209,60 @@ val dtAccuracy = dtTotalCorrect / numData                                       
 - 召回率 - 平價結果完整性 `= TP/ TP + FN`
 
 ![](http://www.chioka.in/wp-content/uploads/2014/04/sample-PR-curve.png)
+
+精確率-召回率 (PR) 曲線 - 表示給定模型隨著決策值得改變，精確率與召回率的對應關係
+- PR 曲線線下的面積為平均準確率
+- 直覺上，PR曲線下的面積為1等價于一個完美的模型，準確率與召回率達到100%
 - Recall 越高，Precision 會降低 (全部都猜是女生，當然 Recall=100%，但是 Precision會降到20%)
 
 #### ROC 曲線
-- TPR (true positive rate) 真陽性佔所有正樣本的比例 `= TP / TP + FN`
-- FPR (false positive rate) 偽陽性佔所有負樣本的比例  `= FP / FP + TN`
+- TPR (true positive rate) - 真陽性佔所有正樣本的比例 `= TP / TP + FN`
+- FPR (false positive rate) - 偽陽性佔所有負樣本的比例  `= FP / FP + TN`
 
 ![](http://www.chioka.in/wp-content/uploads/2014/04/sample-ROC-curve.png)
+
+ROC 曲線表示分類器性能在不同決策域值下 TRP 對 FPR 的折衷 (?)
+- 曲線上每個點代表分類器決策函數中不同的域值
+- ROC 下的面積表示平均值
+- AUC 為1.0 表示一個完美個分類器，0.5 表示一個隨機性能跟用猜的一樣
+
+> Area under PR 與 Area under ROC 的面積經過歸依化 (最小為0, 最大為1)，可以用這些度量方法比較不同參數配置下的模型，甚至可以比較不同的模型。
+
+```scala
+val metrics = Seq(lrModel, svmModel).map{ model =>
+  val scoreAndLabels = data.map{ lp => (model.predict(lp.features), lp.label) }
+  val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+  (model.getClass.getSimpleName, metrics.areaUnderPR, metrics.areaUnderROC)
+}
+
+val nbMetrics = Seq(nbModel).map{ model =>
+  val scoreAndLabels = data.map{ lp =>
+    val score = model.predict(lp.features)
+    (if (score > 0.5) 1.0 else 0.0, lp.label)
+  }
+  val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+  (model.getClass.getSimpleName, metrics.areaUnderPR, metrics.areaUnderROC)
+}
+
+val dtMetrics = Seq(dtModel).map{ model =>
+  val scoreAndLabels = data.map{ lp =>
+    val score = model.predict(lp.features)
+    (if (score > 0.5) 1.0 else 0.0, lp.label)
+  }
+  val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+  (model.getClass.getSimpleName, metrics.areaUnderPR, metrics.areaUnderROC)
+}
+
+val allMetrics = metrics ++ nbMetrics ++ dtMetrics
+allMetrics.foreach{ case (m, pr, roc) =>
+  println(f"$m, Area under PR: ${pr * 100.0}%2.4f%%, Area under ROC: ${roc * 100.0}%2.4f%%")
+}
+```
+```
+LogisticRegressionModel, Area under PR: 75.6759%, Area under ROC: 50.1418%
+SVMModel, Area under PR: 75.6759%, Area under ROC: 50.1418%
+NaiveBayesModel, Area under PR: 68.1003%, Area under ROC: 58.3683%
+DecisionTreeModel, Area under PR: 74.3081%, Area under ROC: 64.8837%
+```
 
 ### 改進模型性能與參數調校
