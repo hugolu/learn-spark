@@ -114,6 +114,29 @@ val nbData = records.map{ r =>
 - 要求特徵值非負值
 
 ### 訓練分類模型
+```scala
+import org.apache.spark.mllib.classification.LogisticRegressionWithSGD
+import org.apache.spark.mllib.classification.SVMWithSGD
+import org.apache.spark.mllib.classification.NaiveBayes
+import org.apache.spark.mllib.tree.DecisionTree
+
+import org.apache.spark.mllib.tree.configuration.Algo
+import org.apache.spark.mllib.tree.impurity.{ Impurity, Entropy, Gini }
+
+val numIterations = 10
+val maxTreeDepth = 5
+```
+
+```scala
+val lrModel = LogisticRegressionWithSGD.train(data, numIterations)
+val svmModel = SVMWithSGD.train(data, numIterations)
+val nbModel = NaiveBayes.train(nbData)
+val dtModel = DecisionTree.train(data, Algo.Classification, Entropy, maxTreeDepth)
+```
+- `lrModel`: 訓練 Logistic Regression Model
+- `svmModel`: 訓練 Support Vector Machine
+- `nbModel`: 訓練 Naive Bayes Model，使用沒有負數特徵值的數據
+- `dtModel`:  訓練 Decision Tree Model
 
 ### 使用分類模型
 
