@@ -228,7 +228,7 @@ object classificationApp {
       DecisionTree.train(input, Algo.Classification, impurity, maxDepth)
     }
 
-    //---- Tuning tree depth
+    //---- Entropy with different depth
     val dtResultsEntropy = Seq(1, 2, 3, 4, 5, 10, 20).map{ param =>
       val model = trainDTWithParams(data, param, Entropy)
       val scoredAndLabels = data.map{ lp =>
@@ -240,7 +240,7 @@ object classificationApp {
     }
     dtResultsEntropy.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
 
-    //---- Tuning impurity
+    //---- Gini with different depth
     val dtResultsGini = Seq(1, 2, 3, 4, 5, 10, 20).map{ param =>
       val model = trainDTWithParams(data, param, Gini)
       val scoredAndLabels = data.map{ lp =>
