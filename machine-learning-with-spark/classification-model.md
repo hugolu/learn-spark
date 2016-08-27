@@ -565,3 +565,25 @@ nbResults.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}
 - lambda 對性能似乎沒有影響
 
 #### 交叉驗證
+交叉驗證目的是測試模型在未知的數據上的性能
+- 使用一部分數據訓練模型
+- 使用一部分數據評估模型性能
+
+```scala
+val Array(train, test) = scaledDataCats.randomSplit(Array(0.6, 0.4), 123)
+val regResultsTest = Seq(0.0, 0.001, 0.0025, 0.005, 0.01).map{ param =>
+  val model = trainWithParams(train, param, numIterations, new SquaredL2Updater, 1.0)
+  createMetrics(s"$param L2 regularization parameter", test, model)
+}
+regResultsTest.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100}%2.6f%%") }
+```
+- 使用 60% 數據訓練模型
+- 使用 40% 數據評估模型
+
+```
+   0.0 L2 regularization parameter, AUC = 65.260950%
+ 0.001 L2 regularization parameter, AUC = 65.260950%
+0.0025 L2 regularization parameter, AUC = 65.227749%
+ 0.005 L2 regularization parameter, AUC = 65.227749%
+  0.01 L2 regularization parameter, AUC = 65.194526%
+```
