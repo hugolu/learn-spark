@@ -226,7 +226,7 @@ ROC 曲線表示分類器性能在不同決策域值下 TRP 對 FPR 的折衷 (?
 - ROC 下的面積表示平均值
 - AUC 為1.0 表示一個完美個分類器，0.5 表示一個隨機性能跟用猜的一樣
 
-> Area under PR 與 Area under ROC 的面積經過歸依化 (最小為0, 最大為1)，可以用這些度量方法比較不同參數配置下的模型，甚至可以比較不同的模型。
+> Area under PR 與 Area under ROC 的面積經過歸一化 (最小為0, 最大為1)，可以用這些度量方法比較不同參數配置下的模型，甚至可以比較不同的模型。
 
 ```scala
 val metrics = Seq(lrModel, svmModel).map{ model =>
@@ -393,6 +393,88 @@ NaiveBayesModel
 - AUC: 58% -> 60%
 
 #### 模型參數 - 線性模型
+邏輯回歸與SVM有相同參數，因為他們都使用隨機梯度下降 (SGD) 作為基礎優化技術
+- 可調整參數: `stepSize`, `numIterations`, `miniBatchFraction`
+
+建立第一個輔助函數，在給定參數後訓練邏輯回歸模型，第二個輔助模型根據輸入數據與訓練後的模型，計算相關 AUC
+```scala
+def trainWithParams(input: RDD[LabeledPoint], regParam: Double, numIterations: Int, updater: Updater, stepSize: Double) = {
+  val lr = new LogisticRegressionWithSGD
+  lr.optimizer.setNumIterations(numIterations).setUpdater(updater).setRegParam(regParam).setStepSize(stepSize)
+  lr.run(input)
+}
+
+def createMetrics(label: String, data: RDD[LabeledPoint], model: ClassificationModel) = {
+  val scoredAndLabels = data.map{ lp => (model.predict(lp.features), lp.label) }
+  val metrics = new BinaryClassificationMetrics(scoredAndLabels)
+  (label, metrics.areaUnderROC)
+}
+
+scaledDataCats.cache
+```
+
+##### 迭代 iterations
+大數據學習需要迭代，經過一定次數的迭代後收斂到某個解
+```scala
+val iterResults = Seq(1, 5, 10, 50).map{ param =>
+  val model = trainWithParams(scaledDataCats, 0.0, param, new SimpleUpdater, 1.0)
+  createMetrics(s"$param iterations", scaledDataCats, model)
+}
+iterResults.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
+```
+```
+    1 iterations, AUC = 64.95%
+    5 iterations, AUC = 66.62%
+   10 iterations, AUC = 66.55%
+   50 iterations, AUC = 66.81%
+```
+- SGD 一旦完成特定次數的迭代，增加迭代次數對結果影響很小
+
+##### 步長 step size
+步長用來控制在最陡的低度方向前進多遠，越大步長收斂越快，但可能導致收斂到局部最優解
+
+```scala
+val stepResults = Seq(0.01, 0.1, 1.0, 10.0).map{ param =>
+  val model = trainWithParams(scaledDataCats, 0.0, numIterations, new SimpleUpdater, param)
+  createMetrics(s"$param step size", scaledDataCats, model)
+}
+stepResults.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
+```
+```
+  0.01 step size, AUC = 64.96%
+   0.1 step size, AUC = 65.52%
+   1.0 step size, AUC = 66.55%
+  10.0 step size, AUC = 61.92%
+```
+- 步長增加過大對性能有負面影響
+
+##### 正則化 regularization
+正則化通過限制模型的複雜度避免模型在訓練中過度擬合
+
+正則化的具體作法是在損失函數中添加一項關於模型權重向量的函數，使得損失增加。正則化在現實中幾乎是必需的，當維度高於訓練樣本時尤其重要。
+
+mllib 可用的這正則化形式有
+- `SimpleUpdater`: 相當於沒有正則化
+- `SquaredL2Updater`: 基於權重向量的 L2 正則化，SVM 默認模型
+- `L1Updater`: 基於權重向量的 L1 正則化，會導致一個稀疏的權重向量
+
+```scala
+val regResults = Seq(0.001, 0.01, 0.1, 1.0, 10.0).map{ param =>
+  val model = trainWithParams(scaledDataCats, param, numIterations, new SquaredL2Updater, 1.0)
+  createMetrics(s"$param L2 Regularization parameter", scaledDataCats, model)
+}
+regResults.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100}%2.2f%%") }
+```
+```
+ 0.001 L2 Regularization parameter, AUC = 66.55%
+  0.01 L2 Regularization parameter, AUC = 66.55%
+   0.1 L2 Regularization parameter, AUC = 66.63%
+   1.0 L2 Regularization parameter, AUC = 66.04%
+  10.0 L2 Regularization parameter, AUC = 35.33%
+```
+- 低等級的正則化對模型的性能影響不大
+- 加大正則化(regParam)看到欠擬合導致性能變差
+
 #### 模型參數 - 決策樹
 #### 模型參數 - 樸素貝氏模型
 #### 交叉驗證
