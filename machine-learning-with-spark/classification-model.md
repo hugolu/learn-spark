@@ -266,3 +266,57 @@ DecisionTreeModel, Area under PR: 74.3081%, Area under ROC: 64.8837%
 ```
 
 ### 改進模型性能與參數調校
+
+#### 特徵標準化
+模型對輸入數據的分佈和規模有一些固有的**假設**，最常見的形式是特徵滿足常態分佈。
+
+先使用 `RowMatrix` 觀察特徵的統計特性：
+```scala
+val vectors = data.map(lp => lp.features)
+val matrix = new RowMatrix(vectors)
+val matrixSummary = matrix.computeColumnSummaryStatistics()
+
+matrixSummary.mean        //> [0.41225805299526774,2.76182319198661,0.46823047328613876,0.21407992638350257,0.0920623607189991,0.04926216043908034,2.255103452212025,-0.10375042752143329,0.0,0.05642274498417848,0.02123056118999324,0.23377817665490225,0.2757090373659231,0.615551048005409,0.6603110209601082,30.077079107505178,0.03975659229208925,5716.598242055454,178.75456389452327,4.960649087221106,0.17286405047031753,0.10122079189276531]
+matrixSummary.min         //> [0.0,0.0,0.0,0.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,0.045564223,-1.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]
+matrixSummary.max         //> [0.0,0.0,0.0,0.0,0.0,0.0,0.0,-1.0,0.0,0.0,0.0,0.045564223,-1.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0]
+matrixSummary.variance    //> [0.10974244167559023,74.30082476809655,0.04126316989120245,0.021533436332001124,0.009211817450882448,0.005274933469767929,32.53918714591818,0.09396988697611537,0.0,0.001717741034662896,0.020782634824610638,0.0027548394224293023,3.6837889196744116,0.2366799607085986,0.22433071201674218,415.87855895438463,0.03818116876739597,7.877330081138441E7,32208.11624742624,10.453009045764313,0.03359363403832387,0.0062775328842146995]
+matrixSummary.numNonzeros //> [5053.0,7354.0,7172.0,6821.0,6160.0,5128.0,7350.0,1257.0,0.0,7362.0,157.0,7395.0,7355.0,4552.0,4883.0,7347.0,294.0,7378.0,7395.0,6782.0,6868.0,7235.0]
+```
+- 第二特徵的方差與均值比其他都高 (數據在原始形式下不符合高斯分佈)
+
+為使數據更符合模型假設，可以對每個特徵進行標準化 (standardize) 使得每個特徵的0均值為單位標準差
+- 具體作法 - 對每個特徵減去列的均值，然後除以列的標準差以進行縮放 `(x - 𝜇)/sqrt(variance)`
+
+```scala
+val scaler = new StandardScaler(withMean=true, withStd=true).fit(vectors)
+val scaledData = data.map{ lp => LabeledPoint(lp.label, scaler.transform(lp.features)) }
+
+scaledData.first.features(0)                                                            //> 1.1376473364976751
+data.first.features(0) - matrixSummary.mean(0)) / math.sqrt(matrixSummary.variance(0))  //> 1.1376473364976751
+```
+
+使用標準化的數據重新訓練**羅輯回歸** (決策樹與樸素貝氏模型不受特徵化影響)
+```scala
+val lrModelScaled = LogisticRegressionWithSGD.train(scaledData, numIterations)
+val lrTotalCorrectScaled = scaledData.map{ lp => if (lrModelScaled.predict(lp.features) == lp.label) 1 else 0 }.sum
+val lrAccuracyScaled = lrTotalCorrectScaled / numData
+val lrScoredAndLabels = scaledData.map{ lp => (lrModelScaled.predict(lp.features), lp.label) }
+val lrMetricsScaled = new BinaryClassificationMetrics(lrScoredAndLabels)
+val lrPr = lrMetricsScaled.areaUnderPR
+val lrRoc = lrMetricsScaled.areaUnderROC
+println(f"${lrModelScaled.getClass.getSimpleName}\n\tAccuracy: ${lrAccuracyScaled * 100}%2.4f%%\n\tarea under PR: ${lrPr * 100}%2.4f%%\n\tarea under ROC: ${lrRoc * 100}%2.4f%%")
+//> LogisticRegressionModel
+//>        Accuracy: 62.0419%
+//>        area under PR: 72.7254%
+//>        area under ROC: 61.9663%
+```
+- AUC: 50% -> 62%
+
+#### 類別特徵
+
+#### 使用正確的數據格式
+
+#### 模型參數 - 線性模型
+#### 模型參數 - 決策樹
+#### 模型參數 - 樸素貝氏模型
+#### 交叉驗證
