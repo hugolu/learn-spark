@@ -313,8 +313,78 @@ println(f"${lrModelScaled.getClass.getSimpleName}\n\tAccuracy: ${lrAccuracyScale
 - AUC: 50% -> 62%
 
 #### 類別特徵
+查看所有類別，對每個類別做一個索引的映射，這索引可以用於類別特徵 1-of-k 編碼
+```scala
+val categories = records.map(r => r(3)).distinct.collect.zipWithIndex.toMap
+val numCategories = categories.size
+
+val dataCategories = records.map{ r =>
+  val trimmed = r.map(_.replaceAll("\"", ""))
+  val label = trimmed(r.size - 1).toInt
+  val categoriesIdx = categories(r(3))
+  val categoriesFeatures = Array.ofDim[Double](numCategories)
+  categoriesFeatures(categoriesIdx) = 1.0
+  val otherFeatures = trimmed.slice(4, r.size - 1).map(d => if (d == "?") 0.0 else d.toDouble)
+  val features = categoriesFeatures ++ otherFeatures
+  LabeledPoint(label, Vectors.dense(features))
+}
+
+val scaledCats = new StandardScaler(withMean=true, withStd=true).fit(dataCategories.map(lp => lp.features))
+val scaledDataCats = dataCategories.map{ lp => LabeledPoint(lp.label, scaledCats.transform(lp.features)) }
+```
+- `categories` 類別映射
+- `numCategories` 類別數量
+- `dataCategories` 加入類別特徵的數據
+- `scaledDataCats` 經過標準化轉換的數據 (包含類別特徵)
+
+使用擴展後的特徵訓練邏輯會回歸模型
+```scala
+val lrModelScaledCats = LogisticRegressionWithSGD.train(scaledDataCats, numIterations)
+val lrTotalCorrectScaledCats = scaledDataCats.map{ lp => if (lrModelScaledCats.predict(lp.features) == lp.label) 1 else 0 }.sum
+val lrAccuracyScaledCats = lrTotalCorrectScaledCats / numData
+val lrScoredAndLabelsCats = scaledDataCats.map{ lp => (lrModelScaledCats.predict(lp.features), lp.label) }
+val lrMetricsScaledCats = new BinaryClassificationMetrics(lrScoredAndLabelsCats)
+val lrPrCats = lrMetricsScaledCats.areaUnderPR
+val lrRocCats = lrMetricsScaledCats.areaUnderROC
+println(f"${lrModelScaledCats.getClass.getSimpleName}\n\tAccuracy: ${lrAccuracyScaledCats * 100}%2.4f%%\n\tarea under PR: ${lrPrCats * 100}%2.4f%%\n\tarea under ROC: ${lrRocCats * 100}%2.4f%%")
+//> LogisticRegressionModel
+//>        Accuracy: 66.5720%
+//>        area under PR: 75.7964%
+//>        area under ROC: 66.5483%
+```
+- AUC: 50% -> 62% -> 65%
 
 #### 使用正確的數據格式
+模型性能的另一個關鍵部分是對每個模型使用正確的數據格式
+- 樸素貝氏模型不擅長處理數值特徵
+- 樸素貝氏模型可以處理計數形式的數據，包含二元表示的類型特徵(1-of-k)或頻率數據(bag-of-words)
+
+下面僅使用 1-of-k 類型特徵建構樸素貝氏模型，並對性能進行評估
+```scala
+val dataNB = records.map{ r =>
+  val trimmed = r.map(_.replaceAll("\"", ""))
+  val label = trimmed(r.size - 1).toInt
+  val categoryIdx = categories(r(3))
+  val categoryFeatures = Array.ofDim[Double](numCategories)
+  val otherFeatures = trimmed.slice(4, r.size - 1).map(d => if (d == "?") 0.0 else d.toDouble)
+  categoryFeatures(categoryIdx) = 1.0
+  LabeledPoint(label, Vectors.dense(categoryFeatures))
+}
+
+val nbModelCats = NaiveBayes.train(dataNB)
+val nbTotalCorrectCats = dataNB.map{ lp => if (nbModelCats.predict(lp.features) == lp.label) 1 else 0 }.sum
+val nbAccuracyCats = nbTotalCorrect / numData
+val nbScoredAndLabelsCats = dataNB.map{ lp => (nbModelCats.predict(lp.features), lp.label) }
+val nbMetricsCats = new BinaryClassificationMetrics(nbScoredAndLabelsCats)
+val nbPrCats = nbMetricsCats.areaUnderPR
+val nbRocCats = nbMetricsCats.areaUnderROC
+println(f"${nbModelCats.getClass.getSimpleName}\n\tAccuracy: ${nbAccuracyCats * 100}%2.4f%%\n\tarea under PR: ${nbPrCats * 100}%2.4f%%\n\tarea under ROC: ${nbRocCats * 100}%2.4f%%")
+//> NaiveBayesModel
+//>         Accuracy: 58.0527%
+//>         area under PR: 74.0522%
+//>         area under ROC: 60.5138%
+```
+- AUC: 58% -> 60%
 
 #### 模型參數 - 線性模型
 #### 模型參數 - 決策樹
