@@ -534,4 +534,34 @@ dtResultsEntropy.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc
 - 不純度對性能營想差異不大
 
 #### 模型參數 - 樸素貝氏模型
+lambda 參數可以控制相加式平滑 (additive smoothing)，解決數據中某個類別與某個特徵的組合沒有同時出現的問題
+
+輔助方法，用來訓練不同的 lambda 級別下的模型
+```scala
+def trainNBWithParams(input: RDD[LabeledPoint], lambda: Double) = {
+  val nb = new NaiveBayes
+  nb.setLambda(lambda)
+  nb.run(input)
+}
+```
+
+##### lambda
+```scala
+val nbResults = Seq(0.001, 0.01, 0.1, 1.0, 10.0).map{ param =>
+  val model = trainNBWithParams(dataNB, param)
+  val scoredAndLabels = dataNB.map{ lp => (model.predict(lp.features), lp.label) }
+  val metrics = new BinaryClassificationMetrics(scoredAndLabels)
+  (s"$param lambda", metrics.areaUnderROC)
+}
+nbResults.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
+```
+```
+    0.001 lambda, AUC = 60.51%
+     0.01 lambda, AUC = 60.51%
+      0.1 lambda, AUC = 60.51%
+      1.0 lambda, AUC = 60.51%
+     10.0 lambda, AUC = 60.51%
+```
+- lambda 對性能似乎沒有影響
+
 #### 交叉驗證
