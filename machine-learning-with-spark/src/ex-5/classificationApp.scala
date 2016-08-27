@@ -268,10 +268,17 @@ object classificationApp {
 
     //-- Cross-validation
     val Array(train, test) = scaledDataCats.randomSplit(Array(0.6, 0.4), 123)
+
     val regResultsTest = Seq(0.0, 0.001, 0.0025, 0.005, 0.01).map{ param =>
       val model = trainWithParams(train, param, numIterations, new SquaredL2Updater, 1.0)
       createMetrics(s"$param L2 regularization parameter", test, model)
     }
     regResultsTest.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100}%2.6f%%") }
+
+    val regResultsTrain = Seq(0.0, 0.001, 0.0025, 0.005, 0.01).map{ param =>
+      val model = trainWithParams(train, param, numIterations, new SquaredL2Updater, 1.0)
+      createMetrics(s"$param L2 regularization parameter", train, model)
+    }
+    regResultsTrain.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100}%2.6f%%") }
   }
 }
