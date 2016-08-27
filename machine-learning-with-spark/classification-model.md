@@ -305,10 +305,12 @@ val lrMetricsScaled = new BinaryClassificationMetrics(lrScoredAndLabels)
 val lrPr = lrMetricsScaled.areaUnderPR
 val lrRoc = lrMetricsScaled.areaUnderROC
 println(f"${lrModelScaled.getClass.getSimpleName}\n\tAccuracy: ${lrAccuracyScaled * 100}%2.4f%%\n\tarea under PR: ${lrPr * 100}%2.4f%%\n\tarea under ROC: ${lrRoc * 100}%2.4f%%")
-//> LogisticRegressionModel
-//>        Accuracy: 62.0419%
-//>        area under PR: 72.7254%
-//>        area under ROC: 61.9663%
+```
+```
+LogisticRegressionModel
+        Accuracy: 62.0419%
+        area under PR: 72.7254%
+        area under ROC: 61.9663%
 ```
 - AUC: 50% -> 62%
 
@@ -347,10 +349,12 @@ val lrMetricsScaledCats = new BinaryClassificationMetrics(lrScoredAndLabelsCats)
 val lrPrCats = lrMetricsScaledCats.areaUnderPR
 val lrRocCats = lrMetricsScaledCats.areaUnderROC
 println(f"${lrModelScaledCats.getClass.getSimpleName}\n\tAccuracy: ${lrAccuracyScaledCats * 100}%2.4f%%\n\tarea under PR: ${lrPrCats * 100}%2.4f%%\n\tarea under ROC: ${lrRocCats * 100}%2.4f%%")
-//> LogisticRegressionModel
-//>        Accuracy: 66.5720%
-//>        area under PR: 75.7964%
-//>        area under ROC: 66.5483%
+```
+```
+LogisticRegressionModel
+        Accuracy: 66.5720%
+        area under PR: 75.7964%
+        area under ROC: 66.5483%
 ```
 - AUC: 50% -> 62% -> 65%
 
@@ -379,10 +383,12 @@ val nbMetricsCats = new BinaryClassificationMetrics(nbScoredAndLabelsCats)
 val nbPrCats = nbMetricsCats.areaUnderPR
 val nbRocCats = nbMetricsCats.areaUnderROC
 println(f"${nbModelCats.getClass.getSimpleName}\n\tAccuracy: ${nbAccuracyCats * 100}%2.4f%%\n\tarea under PR: ${nbPrCats * 100}%2.4f%%\n\tarea under ROC: ${nbRocCats * 100}%2.4f%%")
-//> NaiveBayesModel
-//>         Accuracy: 58.0527%
-//>         area under PR: 74.0522%
-//>         area under ROC: 60.5138%
+```
+```
+NaiveBayesModel
+        Accuracy: 58.0527%
+        area under PR: 74.0522%
+        area under ROC: 60.5138%
 ```
 - AUC: 58% -> 60%
 
