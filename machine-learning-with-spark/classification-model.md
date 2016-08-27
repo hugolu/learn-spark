@@ -476,5 +476,62 @@ regResults.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100
 - 加大正則化(regParam)看到欠擬合導致性能變差
 
 #### 模型參數 - 決策樹
+
+建立一個輔助函數，為決策樹模型選擇深度與不存度
+```scala
+def trainDTWithParams(input: RDD[LabeledPoint], maxDepth: Int, impurity: Impurity) = {
+  DecisionTree.train(input, Algo.Classification, impurity, maxDepth)
+}
+```
+
+使用 Entropy 不純度，搭配不同深度
+```scala
+val dtResultsEntropy = Seq(1, 2, 3, 4, 5, 10, 20).map{ param =>
+  val model = trainDTWithParams(data, param, Entropy)
+  val scoredAndLabels = data.map{ lp =>
+    val score = model.predict(lp.features)
+    (if (score > 0.5) 1.0 else 0.0, lp.label)
+  }
+  val metrics = new BinaryClassificationMetrics(scoredAndLabels)
+  (s"$param tree depth", metrics.areaUnderROC)
+}
+dtResultsEntropy.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
+```
+```
+    1 tree depth, AUC = 59.33%
+    2 tree depth, AUC = 61.68%
+    3 tree depth, AUC = 62.61%
+    4 tree depth, AUC = 63.63%
+    5 tree depth, AUC = 64.88%
+   10 tree depth, AUC = 76.26%
+   20 tree depth, AUC = 98.45%
+```
+
+使用 Gini 不純度，搭配不同深度
+```scala
+    val dtResultsGini = Seq(1, 2, 3, 4, 5, 10, 20).map{ param =>
+      val model = trainDTWithParams(data, param, Gini)
+      val scoredAndLabels = data.map{ lp =>
+        val score = model.predict(lp.features)
+        (if (score > 0.5) 1.0 else 0.0, lp.label)
+      }
+      val metrics = new BinaryClassificationMetrics(scoredAndLabels)
+      (s"$param tree depth", metrics.areaUnderROC)
+    }
+    dtResultsGini.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}%2.2f%%") }
+```
+```
+    1 tree depth, AUC = 59.33%
+    2 tree depth, AUC = 61.68%
+    3 tree depth, AUC = 62.61%
+    4 tree depth, AUC = 63.63%
+    5 tree depth, AUC = 64.89%
+   10 tree depth, AUC = 78.37%
+   20 tree depth, AUC = 98.87%
+```
+
+- 提高數的深度可以得到更津準的模型 (但深度越高過度訓練越嚴重 - overfitting)
+- 不純度對性能營想差異不大
+
 #### 模型參數 - 樸素貝氏模型
 #### 交叉驗證
