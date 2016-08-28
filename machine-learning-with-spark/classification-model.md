@@ -571,19 +571,38 @@ nbResults.foreach{ case (param, auc) => println(f"$param%16s, AUC = ${auc * 100}
 
 ```scala
 val Array(train, test) = scaledDataCats.randomSplit(Array(0.6, 0.4), 123)
+```
+- 使用 60% 數據訓練模型
+- 使用 40% 數據評估模型
+
+```scala
 val regResultsTest = Seq(0.0, 0.001, 0.0025, 0.005, 0.01).map{ param =>
   val model = trainWithParams(train, param, numIterations, new SquaredL2Updater, 1.0)
   createMetrics(s"$param L2 regularization parameter", test, model)
 }
 regResultsTest.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100}%2.6f%%") }
 ```
-- 使用 60% 數據訓練模型
-- 使用 40% 數據評估模型
+```
+   0.0 L2 regularization parameter, AUC = 66.126842%
+ 0.001 L2 regularization parameter, AUC = 66.126842%
+0.0025 L2 regularization parameter, AUC = 66.126842%
+ 0.005 L2 regularization parameter, AUC = 66.126842%
+  0.01 L2 regularization parameter, AUC = 66.093195%
+```
+- 訓練與評估資數據不同，較高正則化得到較高性能 (實驗結果相反?)
 
+```scala
+val regResultsTrain = Seq(0.0, 0.001, 0.0025, 0.005, 0.01).map{ param =>
+  val model = trainWithParams(train, param, numIterations, new SquaredL2Updater, 1.0)
+  createMetrics(s"$param L2 regularization parameter", train, model)
+}
+regResultsTrain.foreach{ case (param, auc) => println(f"$param%34s, AUC = ${auc * 100}%2.6f%%") }
 ```
-   0.0 L2 regularization parameter, AUC = 65.260950%
- 0.001 L2 regularization parameter, AUC = 65.260950%
-0.0025 L2 regularization parameter, AUC = 65.227749%
- 0.005 L2 regularization parameter, AUC = 65.227749%
-  0.01 L2 regularization parameter, AUC = 65.194526%
 ```
+   0.0 L2 regularization parameter, AUC = 66.233459%
+ 0.001 L2 regularization parameter, AUC = 66.233459%
+0.0025 L2 regularization parameter, AUC = 66.233459%
+ 0.005 L2 regularization parameter, AUC = 66.257100%
+  0.01 L2 regularization parameter, AUC = 66.278745%
+```
+- 訓練與評估資數據相同，較低正則化得到較高性能 (實驗結果相反?)
