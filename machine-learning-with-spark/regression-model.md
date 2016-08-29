@@ -66,12 +66,52 @@ Readme.txt 說明數據集相關資訊
 去掉標頭
 ```shell
 $ sed 1d hour.csv > hour_noheader.csv
+$ wc hour_noheader.csv
+  17379   17379 1156617 hour_noheader.csv
 ```
+- 數據集有 17379 筆紀錄
 
 ## 從數據中抽取合適的特徵
+source: [src/ex-6.ipynb](src/ex-6.ipynb)
+
+接下來的實驗，忽略 casual, registered 變數，保留 cnt (=casual + registered)。剩下12個變數，前八個 (idx: 2~9) 是類型變數，後四個 (idx: 10~13) 是實數變數。其中類型變數使用二元編碼，時數變量不處理。
+
+```python
+def get_mapping(rdd, idx):
+    return rdd.map(lambda fields: fields[idx]).distinct().zipWithIndex().collectAsMap()
+
+mappings = [get_mapping(records, i) for i in range(2, 10)]
+cat_len = sum(map(len, mappings))       # 57
+num_len = len(records.first()[10:14])   # 4
+total_len = num_len + cat_len           # 61
+```
+
+- 為線性模型創建特徵向量：要將類別變數轉換成二元編碼的特徵
+- 為決策樹模型創建特徵向量：直接使用原始數據
 
 ## 回歸模型的訓練與應用
+- 訓練線性模型：`LinearRegressionWithSGD.train()`
+- 訓練決策樹模型：`DecisionTree.trainRegressor()`
 
 ## 評估回歸模型的性能
+- 均方誤差 (MSE, Mean Squared Error)
+- 均方根誤差 (RMSE, Root Mean Squared Error)
+- 平均絕對誤差 (MAE, Mean Absoluate Error)
+- 均方根對數誤差 (RMSLE, Root Mean Squared Log Error)
 
 ## 改進模型性能與參數調優
+
+模型目標變量
+- 可能不是常態分佈
+- 將目標轉換為對數值、或平方根
+
+線性模型參數
+- 迭代次數 (Iterations)
+- 步長 (Step size)
+- L2 正則化 (L2 regularization)
+- L1 正則化 (L1 regularization)
+- 截距 (Intercept)
+
+決策樹模型參數
+- 數深度 (Tree depth)
+- 最大畫分數 (Maximum bins)
