@@ -3,6 +3,9 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.mllib.recommendation.{ ALS, Rating }
 import org.apache.spark.mllib.linalg.Vectors
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
+import org.apache.spark.mllib.clustering.KMeans
+import breeze.linalg._
+import breeze.numerics.pow
 
 object clusteringApp {
   def main(args: Array[String]) {
@@ -53,5 +56,65 @@ object clusteringApp {
     println("Movie factors variance: " + movieMatrixSummary.variance)
     println("User factors mean: " + userMatrixSummary.mean)
     println("User factors variance: " + userMatrixSummary.variance)
+
+    // Training a clustering model
+    val numClusters = 5
+    val numIterations = 10
+    val numRuns = 3
+
+    val movieClusterModel = KMeans.train(movieVectors, numClusters, numIterations, numRuns)
+    val movieClusterModelConverged = KMeans.train(movieVectors, numClusters, numIterations, 100)
+    val userClusterModel = KMeans.train(userVectors, numClusters, numIterations, numRuns)
+
+    // Making predictions using a clustering model
+    val movieCluster = movieClusterModel.predict(movieVectors.first)
+    println(movieCluster)
+
+    val predictions = movieClusterModel.predict(movieVectors)
+    println(predictions.take(10).mkString(", "))
+
+    // Interpreting the movie clusters
+    def computeDistance(v1: DenseVector[Double], v2: DenseVector[Double]) = pow(v1 - v2, 2).sum
+
+    val titlesWithFactors = titlesAndGenres.join(movieFactors)
+    val movieAssigned = titlesWithFactors.map{ case (id, ((title, genres), vector)) =>
+      val pred = movieClusterModel.predict(vector)
+      val clusterCenter = movieClusterModel.clusterCenters(pred)
+      val dist = computeDistance(DenseVector(clusterCenter.toArray), DenseVector(vector.toArray))
+      (id, title, genres, pred, dist)
+    }
+    val clusterAssignments = movieAssigned.groupBy{ case (id, title, genres, cluster, dist) => cluster }.collectAsMap
+
+    for ( (k, v) <- clusterAssignments.toSeq.sortBy(_._1)) {
+      println(s"Cluster $k: ")
+      val m = v.toSeq.sortBy(_._5)
+      println(m.take(10).map{ case (_, title, genres, _, d) => (title, genres, d) }.mkString("\n"))
+      println("====\n")
+    }
+
+    // Evaluating the performance of clustering models
+    val movieCost = movieClusterModel.computeCost(movieVectors)
+    val userCost = userClusterModel.computeCost(userVectors)
+    println("WCSS for movies: " + movieCost)
+    println("WCSS for users: " + userCost)
+
+    // Selecting K through cross-validation
+    val trainTestSplitMovies = movieVectors.randomSplit(Array(0.6, 0.4), 123)
+    val trainMovies = trainTestSplitMovies(0)
+    val testMovies = trainTestSplitMovies(1)
+    val costsMovies = Seq(2, 3, 4, 5, 10, 20).map{ k =>
+      (k, KMeans.train(trainMovies, numIterations, k, numRuns).computeCost(testMovies))
+    }
+    println("Movie clustering cross-validation: ")
+    costsMovies.foreach{ case (k, cost) => println(f"WCSS for K=$k id $cost%2.2f") }
+
+    val trainTestSplitUsers = userVectors.randomSplit(Array(0.6, 0.4), 123)
+    val trainUsers = trainTestSplitUsers(0)
+    val testUsers = trainTestSplitUsers(1)
+    val costsUsers = Seq(2, 3, 4, 5, 10, 20).map{ k =>
+      (k, KMeans.train(trainUsers, numIterations, k, numRuns).computeCost(testUsers))
+    }
+    println("User clustering cross-validation: ")
+    costsUsers.foreach{ case (k, cost) => println(f"WCSS for K=$k id $cost%2.2f") }
   }
 }
