@@ -23,11 +23,7 @@ object clusteringApp {
 
     val titlesAndGenres = movies.map(_.split("\\|")).map{ array =>
       val genres = array.slice(5, array.size)
-      val genresAssigned = genres.zipWithIndex.filter{ case (g, idx) =>
-        g == "1"
-      }.map{ case (g, idx) =>
-        genreMap(idx.toString)
-      }
+      val genresAssigned = genres.zipWithIndex.filter{ case (g, idx) => g == "1" }.map{ case (g, idx) => genreMap(idx.toString) }
       (array(0).toInt, (array(1), genresAssigned.mkString("(", ", ", ")")))
     }
     println(titlesAndGenres.first)
