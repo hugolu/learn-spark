@@ -183,3 +183,103 @@ val predictions = movieClusterModel.predict(movieVectors)
 println(predictions.take(10).mkString(", "))
 ```
 
+#### 用 MovieLens dataset 解釋類別預測
+儘管無監督學習有不需要提供帶標注的訓練數據的優勢，但它的結果需要由人工來解釋
+
+為了解釋電影聚類結果，嘗試觀察每個類簇具有可以解釋的含義
+- 選擇距離類簇中心最近的電影，觀察這些電影共有的屬性
+
+定義度量樣本距離的函數
+```scala
+def computeDistance(v1: DenseVector[Double], v2: DenseVector[Double]) = pow(v1 - v2, 2).sum
+```
+
+對算每個電影計算其特徵向量與所屬類簇中心向量的距離
+```scala
+val titlesWithFactors = titlesAndGenres.join(movieFactors)
+val movieAssigned = titlesWithFactors.map{ case (id, ((title, genres), vector)) =>
+  val pred = movieClusterModel.predict(vector)
+  val clusterCenter = movieClusterModel.clusterCenters(pred)
+  val dist = computeDistance(DenseVector(clusterCenter.toArray), DenseVector(vector.toArray))
+  (id, title, genres, pred, dist)
+}
+val clusterAssignments = movieAssigned.groupBy{ case (id, title, genres, cluster, dist) => cluster }.collectAsMap
+```
+- ` (id, title, genres, pred, dist)`: 電影ID、標題、題材、類別索引、電影特徵向量與類簇中心的距離
+
+列舉每個類簇距離中心最近的10部電影：
+```scala
+for ( (k, v) <- clusterAssignments.toSeq.sortBy(_._1)) {
+  println(s"\nCluster $k: ")
+  val m = v.toSeq.sortBy(_._5)
+  println(m.take(10).map{ case (_, title, genres, _, d) => (title, genres, d) }.mkString("\n"))
+}
+```
+```
+Cluster 0:
+(Last Time I Saw Paris, The (1954),(Drama),0.13441192088144988)
+(Witness (1985),(Drama, Romance, Thriller),0.2181986360369887)
+(Substance of Fire, The (1996),(Drama),0.2341278221130343)
+(Mamma Roma (1962),(Drama),0.25699307927130965)
+(Beans of Egypt, Maine, The (1994),(Drama),0.30793242799782633)
+(All Things Fair (1996),(Drama),0.33145412207224323)
+(Angel and the Badman (1947),(Western),0.3471051109621638)
+(Cosi (1996),(Comedy),0.34729047611842595)
+(Wife, The (1995),(Comedy, Drama),0.35564957780305173)
+(Gate of Heavenly Peace, The (1995),(Documentary),0.36748409077647026)
+```
+```
+Cluster 1:
+(Being Human (1993),(Drama),0.09184959799797433)
+(Machine, The (1994),(Comedy, Horror),0.14128451526053637)
+(Johnny 100 Pesos (1993),(Action, Drama),0.17279308828743525)
+(Crows and Sparrows (1949),(Drama),0.1832462352234873)
+(Sprung (1997),(Comedy),0.21982015413553468)
+(War at Home, The (1996),(Drama),0.248259093295264)
+(Somebody to Love (1994),(Drama),0.26182803126721027)
+(Boys in Venice (1996),(Drama),0.26182803126721027)
+(Falling in Love Again (1980),(Comedy),0.2638645622322385)
+(Venice/Venice (1992),(Drama),0.2713099175586161)
+```
+```
+Cluster 2:
+(Angela (1995),(Drama),0.21879105133157503)
+(Johns (1996),(Drama),0.33281214321088615)
+(Outlaw, The (1943),(Western),0.3467791068800832)
+(Moonlight and Valentino (1995),(Drama, Romance),0.35644276905492656)
+(Mr. Wonderful (1993),(Comedy, Romance),0.3649758115733649)
+(Intimate Relations (1996),(Comedy),0.37047557661220004)
+(Mr. Jones (1993),(Drama, Romance),0.39033578448398876)
+(Commandments (1997),(Romance),0.41476196349645905)
+(Outbreak (1995),(Action, Drama, Thriller),0.4165627237579114)
+(Blue Chips (1994),(Drama),0.4210099912784404)
+```
+```
+Cluster 3:
+(King of the Hill (1993),(Drama),0.15851785324198917)
+(Silence of the Palace, The (Saimt el Qusur) (1994),(Drama),0.2548107283459248)
+(Land and Freedom (Tierra y libertad) (1995),(War),0.2548107283459248)
+(Dadetown (1995),(Documentary),0.2548107283459248)
+(Girls Town (1996),(Drama),0.2548107283459248)
+(Big One, The (1997),(Comedy, Documentary),0.2548107283459248)
+(Two Friends (1986) ,(Drama),0.2548107283459248)
+(Normal Life (1996),(Crime, Drama),0.2548107283459248)
+(Eighth Day, The (1996),(Drama),0.2548107283459248)
+(Hana-bi (1997),(Comedy, Crime, Drama),0.2548107283459248)
+```
+```
+Cluster 4:
+(Killer: A Journal of Murder (1995),(Crime, Drama),0.35750181191045605)
+(Sunchaser, The (1996),(Drama),0.3802884815672308)
+(Day the Sun Turned Cold, The (Tianguo niezi) (1994),(Drama),0.4281792662947208)
+(Target (1995),(Action, Drama),0.4587125939154496)
+(Mad Dog Time (1996),(Crime),0.5396240453547967)
+(Touch (1997),(Romance),0.5521300478523113)
+(Bewegte Mann, Der (1994),(Comedy),0.569222042441792)
+(Nowhere (1997),(Drama),0.5782057248768299)
+(House Party 3 (1994),(Comedy),0.5846793509623962)
+(Hunted, The (1995),(Action),0.5855742520959386)
+```
+
+- 我們不能明顯看出每個類簇所表示的內容
+- 但證據表明類聚過程會提取電影間的屬性或者相似之處 (這不是基於電影名稱和題材容易看得出來的)
