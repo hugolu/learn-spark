@@ -105,3 +105,81 @@ println(titlesAndGenres.first)
 (1,(Toy Story (1995),(Animation, Children's, Comedy)))
 ```
 - `genres.zipWithIndex.filter{ ... }.map{ ... }` 先找出欄位 5~23 為 1 的欄位，再對應 genreMap 找出題材名稱
+
+### 訓練推薦模型
+```scala
+val rawData = sc.textFile("../ml-100k/u.data")
+val rawRatings = rawData.map(_.split("\t").take(3))
+val ratings = rawRatings.map{ case Array(user, movie, rating) => Rating(user.toInt, movie.toInt, rating.toDouble) }
+val alsModel = ALS.train(ratings, 50, 10, 0.1)
+```
+- 得到 alsModel.productFeatures, alsModel.userFeatures，作為聚類模型的輸入
+
+#### 將 productFeatures, userFeatures 轉換成 Vectors
+```scala
+scala> alsModel.productFeatures
+res6: org.apache.spark.rdd.RDD[(Int, Array[Double])] = products MapPartitionsRDD[222] at mapValues at ALS.scala:272
+
+scala> alsModel.userFeatures
+res7: org.apache.spark.rdd.RDD[(Int, Array[Double])] = users MapPartitionsRDD[221] at mapValues at ALS.scala:268
+```
+
+要轉換成 Vectors 才能當作聚類模型輸入
+```scala
+val movieFactors = alsModel.productFeatures.map{ case (id, factor) => (id, Vectors.dense(factor)) }
+val movieVectors = movieFactors.map(_._2)
+
+val userFactors = alsModel.userFeatures.map{ case (id, factor) => (id, Vectors.dense(factor)) }
+val userVectors = userFactors.map(_._2)
+```
+
+#### 是否需要歸一化 (normalization)
+```scala
+val movieMatrix = new RowMatrix(movieVectors)
+val movieMatrixSummary = movieMatrix.computeColumnSummaryStatistics()
+
+val userMatrix = new RowMatrix(userVectors)
+val userMatrixSummary = userMatrix.computeColumnSummaryStatistics()
+```
+```scala
+(movieMatrixSummary.mean.toArray.min, movieMatrixSummary.mean.toArray.max)          //= (-0.47623446825960364,0.5025996821508916)
+(movieMatrixSummary.variance.toArray.min, movieMatrixSummary.variance.toArray.max)  //= (0.0227785374526902,0.05176045879190178)
+(userMatrixSummary.mean.toArray.min, userMatrixSummary.mean.toArray.max)            //= (-0.7596118996726696,0.7629363966685025)
+(userMatrixSummary.variance.toArray.min, userMatrixSummary.variance.toArray.max)    //= (0.024648487745135637,0.059129161048841965)
+```
+- 沒有特別的離群值會影響結果，不需要歸一化
+
+### 訓練聚類模型
+```scala
+val numClusters = 5
+val numIterations = 10
+val numRuns = 3
+
+val movieClusterModel = KMeans.train(movieVectors, numClusters, numIterations, numRuns, "k-means||", 42)
+val userClusterModel = KMeans.train(userVectors, numClusters, numIterations, numRuns, "k-means||", 42)
+```
+
+```scala
+scala> sc.setLogLevel("INFO")
+scala> val movieClusterModelConverged = KMeans.train(movieVectors, numClusters, 100)
+...
+16/09/02 05:39:33 INFO KMeans: Run 0 finished in 33 iterations
+16/09/02 05:39:33 INFO KMeans: Iterations took 3.658 seconds.
+16/09/02 05:39:33 INFO KMeans: KMeans converged in 33 iterations.
+16/09/02 05:39:33 INFO KMeans: The cost for the best run is 2249.2365442526802.
+```
+- 第 33 次迭代就已收斂
+
+### 使用聚類模型預測
+預測單個電影向量
+```scala
+val movieCluster = movieClusterModel.predict(movieVectors.first)
+println(movieCluster)
+```
+
+針對多個輸入進行預測
+```scala
+val predictions = movieClusterModel.predict(movieVectors)
+println(predictions.take(10).mkString(", "))
+```
+
