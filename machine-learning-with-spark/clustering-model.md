@@ -219,67 +219,90 @@ for ( (k, v) <- clusterAssignments.toSeq.sortBy(_._1)) {
 Cluster 0:
 (Last Time I Saw Paris, The (1954),(Drama),0.13441192088144988)
 (Witness (1985),(Drama, Romance, Thriller),0.2181986360369887)
-(Substance of Fire, The (1996),(Drama),0.2341278221130343)
-(Mamma Roma (1962),(Drama),0.25699307927130965)
-(Beans of Egypt, Maine, The (1994),(Drama),0.30793242799782633)
-(All Things Fair (1996),(Drama),0.33145412207224323)
-(Angel and the Badman (1947),(Western),0.3471051109621638)
-(Cosi (1996),(Comedy),0.34729047611842595)
-(Wife, The (1995),(Comedy, Drama),0.35564957780305173)
-(Gate of Heavenly Peace, The (1995),(Documentary),0.36748409077647026)
-```
-```
+...
+
 Cluster 1:
 (Being Human (1993),(Drama),0.09184959799797433)
 (Machine, The (1994),(Comedy, Horror),0.14128451526053637)
-(Johnny 100 Pesos (1993),(Action, Drama),0.17279308828743525)
-(Crows and Sparrows (1949),(Drama),0.1832462352234873)
-(Sprung (1997),(Comedy),0.21982015413553468)
-(War at Home, The (1996),(Drama),0.248259093295264)
-(Somebody to Love (1994),(Drama),0.26182803126721027)
-(Boys in Venice (1996),(Drama),0.26182803126721027)
-(Falling in Love Again (1980),(Comedy),0.2638645622322385)
-(Venice/Venice (1992),(Drama),0.2713099175586161)
-```
-```
+...
+
 Cluster 2:
 (Angela (1995),(Drama),0.21879105133157503)
 (Johns (1996),(Drama),0.33281214321088615)
-(Outlaw, The (1943),(Western),0.3467791068800832)
-(Moonlight and Valentino (1995),(Drama, Romance),0.35644276905492656)
-(Mr. Wonderful (1993),(Comedy, Romance),0.3649758115733649)
-(Intimate Relations (1996),(Comedy),0.37047557661220004)
-(Mr. Jones (1993),(Drama, Romance),0.39033578448398876)
-(Commandments (1997),(Romance),0.41476196349645905)
-(Outbreak (1995),(Action, Drama, Thriller),0.4165627237579114)
-(Blue Chips (1994),(Drama),0.4210099912784404)
-```
-```
+...
+
 Cluster 3:
 (King of the Hill (1993),(Drama),0.15851785324198917)
 (Silence of the Palace, The (Saimt el Qusur) (1994),(Drama),0.2548107283459248)
-(Land and Freedom (Tierra y libertad) (1995),(War),0.2548107283459248)
-(Dadetown (1995),(Documentary),0.2548107283459248)
-(Girls Town (1996),(Drama),0.2548107283459248)
-(Big One, The (1997),(Comedy, Documentary),0.2548107283459248)
-(Two Friends (1986) ,(Drama),0.2548107283459248)
-(Normal Life (1996),(Crime, Drama),0.2548107283459248)
-(Eighth Day, The (1996),(Drama),0.2548107283459248)
-(Hana-bi (1997),(Comedy, Crime, Drama),0.2548107283459248)
-```
-```
+...
+
 Cluster 4:
 (Killer: A Journal of Murder (1995),(Crime, Drama),0.35750181191045605)
 (Sunchaser, The (1996),(Drama),0.3802884815672308)
-(Day the Sun Turned Cold, The (Tianguo niezi) (1994),(Drama),0.4281792662947208)
-(Target (1995),(Action, Drama),0.4587125939154496)
-(Mad Dog Time (1996),(Crime),0.5396240453547967)
-(Touch (1997),(Romance),0.5521300478523113)
-(Bewegte Mann, Der (1994),(Comedy),0.569222042441792)
-(Nowhere (1997),(Drama),0.5782057248768299)
-(House Party 3 (1994),(Comedy),0.5846793509623962)
-(Hunted, The (1995),(Action),0.5855742520959386)
+...
 ```
 
 - 我們不能明顯看出每個類簇所表示的內容
 - 但證據表明類聚過程會提取電影間的屬性或者相似之處 (這不是基於電影名稱和題材容易看得出來的)
+
+### 評估聚類模型性能
+
+- 內部評價指標
+  - 使類簇內部樣本距離盡可能靠近，不同類簇樣本相對較遠
+  - WCSS, Davies-Bouldin index, the Dunn Index, silhouette coefficient
+- 外部評價指標
+  - 如果有一些帶標註的數據，便可以用這些標籤來評估類聚模型
+  - Rand measure, F-measure, Jaccard index
+
+#### 在 MovieLens 數據集計算性能
+```scala
+val movieCost = movieClusterModel.computeCost(movieVectors)   //= 2324.070441831106
+val userCost = userClusterModel.computeCost(userVectors)      //= 1467.9665024564836
+```
+
+### 類聚性能調優
+K-Means 均值模型只有一個可調參數，就是 K (類簇中心的數目)
+
+使用 60/40 劃分訓練集與測試集，並使用 mllib 內建的 WCSS 累方法評估模行性能
+
+#### 電影類聚
+```scala
+val Array(trainMovies, testMovies) = movieVectors.randomSplit(Array(0.6, 0.4), 123)
+trainMovies.cache; testMovies.cache
+val costsMovies = Seq(2, 3, 4, 5, 10, 20).map{ k =>
+  (k, KMeans.train(trainMovies, numIterations, k, numRuns).computeCost(testMovies))
+}
+println("Movie clustering cross-validation: ")
+costsMovies.foreach{ case (k, cost) => println(f"WCSS for K=$k id $cost%2.2f") }
+```
+```
+Movie clustering cross-validation:
+WCSS for K=2 id 913.79
+WCSS for K=3 id 898.17
+WCSS for K=4 id 906.13
+WCSS for K=5 id 901.44
+WCSS for K=10 id 893.00
+WCSS for K=20 id 914.91
+```
+- WCSS 隨著 K 增大持續變小，但到某值後下降速度變緩，這時的K值通常為最優 (稱為拐點)
+- 儘管較大的K直從數學的角度可以得到更優的解，但是類簇太多就會變得難以理解與解釋
+
+#### 用戶類聚
+```scala
+val Array(trainUsers, testUsers) = userVectors.randomSplit(Array(0.6, 0.4), 123)
+trainUsers.cache; testUsers.cache
+val costsUsers = Seq(2, 3, 4, 5, 10, 20).map{ k =>
+  (k, KMeans.train(trainUsers, numIterations, k, numRuns).computeCost(testUsers))
+}
+println("User clustering cross-validation: ")
+costsUsers.foreach{ case (k, cost) => println(f"WCSS for K=$k id $cost%2.2f") }
+```
+```
+User clustering cross-validation:
+WCSS for K=2 id 566.21
+WCSS for K=3 id 565.19
+WCSS for K=4 id 564.52
+WCSS for K=5 id 562.70
+WCSS for K=10 id 558.10
+WCSS for K=20 id 557.58
+```
