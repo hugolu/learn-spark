@@ -116,3 +116,23 @@ res6: String = 10
   - Partition 1: min(min("".length, "345".length).toString.length, "".length).toString = "0"
 - 第二次 reduce，x + y
   - (("" + "1") + "0") = "0"
+
+----
+### 範例 - 計算平均值
+```scala
+val nums = sc.parallelize(List(1,2,3,4,5,6))
+```
+
+```scala
+val (total, count) = nums.map(num => (num, 1)).fold((0,0))((tuple1, tuple2) => (tuple1._1 + tuple2._1, tuple1._2 + tuple2._2))
+```
+- 先將 nums 映射為 (num, 1) 的 tuple，然後透過 fold 個別加總 (total, count)
+
+```scala
+val (total, count) = nums.aggregate((0, 0))((acc, num) => (acc._1 + num, acc._2 + 1), (acc1, acc2) => (acc1._1 + acc2._1, acc1._2 + acc2._2))
+```
+- 可以用 `aggregate` 代替 `map()` 後面接 `fold()` 的方式 (可讀性？)
+
+```scala
+val mean = total / count.toDouble   //= 3.5
+```
