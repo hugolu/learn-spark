@@ -136,3 +136,14 @@ val (total, count) = nums.aggregate((0, 0))((acc, num) => (acc._1 + num, acc._2 
 ```scala
 val mean = total / count.toDouble   //= 3.5
 ```
+
+### `aggregate` 與 `reduce`, `fold` 的差異
+By definition,
+```scala
+def aggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U): U
+
+def reduce(f: (T, T) => T): T
+def fold(zeroValue: T)(op: (T, T) => T): T
+```
+- aggregate 的 `zeroValue: U` 可以不同於 RDD 元素的型別，使用 `seqOp: (U, T) => U` 轉換 T 得到 U
+- reduct 與 fold 的匿名函式只能輸入、輸出與相同 RDD 元素的型別
