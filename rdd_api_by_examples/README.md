@@ -25,9 +25,60 @@ a.aggregate("")((str, num) => num.toString + str, (str1, str2) => str1 + str2)
 ```
 
 ### cartesian
-### checkpoint
+```scala
+def cartesian[U](other: RDD[U])(implicit arg0: ClassTag[U]): RDD[(T, U)]
+```
+Return the Cartesian product of this RDD and another one, that is, the RDD of all pairs of elements (a, b) where a is in this and b is in other.
+
+```scala
+val a = sc.parallelize(List(1,2,3))         //a: org.apache.spark.rdd.RDD[Int]
+val b = sc.parallelize(List("a","b","c"))   //b: org.apache.spark.rdd.RDD[String]
+val c = a.cartesian(b)                      //c: org.apache.spark.rdd.RDD[(Int, String)]
+c.collect
+//> res5: Array[(Int, String)] = Array((1,a), (1,b), (1,c), (2,a), (2,b), (2,c), (3,a), (3,b), (3,c))
+
+```
+
 ### coalesce
+```scala
+def coalesce(numPartitions: Int, shuffle: Boolean = false, partitionCoalescer: Option[PartitionCoalescer] = Option.empty)(implicit ord: Ordering[T] = null): RDD[T]
+```
+Return a new RDD that is reduced into numPartitions partitions.
+
+```scala
+val a = sc.parallelize(1 to 10, 2)
+a.foreachPartition( iter => println(iter.toList.mkString(",")) )
+//> 1,2,3,4,5
+//> 6,7,8,9,10
+
+val b = a.coalesce(3, false)
+b.foreachPartition( iter => println(iter.toList.mkString(",")) )
+//> 1,2,3,4,5
+//> 6,7,8,9,10
+
+val c = a.coalesce(3, true)
+c.foreachPartition( iter => println(iter.toList.mkString(",")) )
+//> 3,8
+//> 1,4,6,9
+//> 2,5,7,10
+```
+- 如果 shuffle=false 且 source RDD partition 數目小於 numPartitions，無法執行 re-partition
+
 ### repartition
+```scala
+def repartition(numPartitions: Int)(implicit ord: Ordering[T] = null): RDD[T]
+```
+Return a new RDD that has exactly numPartitions partitions.
+
+```scala
+val a = sc.parallelize(1 to 10, 2)
+val b = a.repartition(3)
+b.foreachPartition( iter => println(iter.toList.mkString(",")) )
+//> 3,8
+//> 1,4,6,9
+//> 2,5,7,10
+```
+
 ### collect
 ### toArray
 ### compute
