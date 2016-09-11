@@ -13,6 +13,17 @@
 
 ## Basic 
 ### aggregate
+```scala
+def aggregate[U](zeroValue: U)(seqOp: (U, T) ⇒ U, combOp: (U, U) ⇒ U)(implicit arg0: ClassTag[U]): U
+```
+Aggregate the elements of each partition, and then the results for all the partitions, using given combine functions and a neutral "zero value".
+
+```scala
+val a = sc.parallelize(List(1,2,3,4,5,6,7,8,9), 3)
+a.aggregate("")((str, num) => num.toString + str, (str1, str2) => str1 + str2)
+//> res3: String = 321654987
+```
+
 ### cartesian
 ### checkpoint
 ### coalesce
