@@ -838,6 +838,22 @@ b.groupWith(c,d).collect
 ```
 
 ### collectAsMap
+```scala
+def
+collectAsMap(): Map[K, V]
+```
+Return the key-value pairs in this RDD to the master as a Map.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","date","elderberry"))
+
+a.zipWithIndex.collect
+//> res18: Array[(String, Long)] = Array((apple,0), (banana,1), (cherry,2), (date,3), (elderberry,4))
+
+a.zipWithIndex.collectAsMap
+//> res20: scala.collection.Map[String,Long] = Map(date -> 3, banana -> 1, elderberry -> 4, cherry -> 2, apple -> 0)
+```
+
 ### combineByKey
 ### countApproxDistinctByKey
 ### countByKey
