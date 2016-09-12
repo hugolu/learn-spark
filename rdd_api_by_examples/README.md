@@ -617,19 +617,157 @@ a.takeSample(false, 3)  //> res245: Array[Int] = Array(7, 8, 1)
 ```
 
 ### treeAggregate
+```scala
+def treeAggregate[U](zeroValue: U)(seqOp: (U, T) ⇒ U, combOp: (U, U) ⇒ U, depth: Int = 2)(implicit arg0: ClassTag[U]): U
+```
+Aggregates the elements of this RDD in a multi-level tree pattern.
+
 ### treeReduce
+```scala
+def treeReduce(f: (T, T) ⇒ T, depth: Int = 2): T
+```
+Reduces the elements of this RDD in a multi-level tree pattern.
+
 ### toDebugString
+```scala
+def toDebugString: String
+```
+A description of this RDD and its recursive dependencies for debugging.
+
+```scala
+val a = sc.parallelize(1 to 9, 3)
+val b = sc.parallelize(1 to 3, 3)
+val c = a.subtract(b)
+c.toDebugString
+res246: String =
+(3) MapPartitionsRDD[210] at subtract at <console>:28 []
+ |  SubtractedRDD[209] at subtract at <console>:28 []
+ +-(3) MapPartitionsRDD[207] at subtract at <console>:28 []
+ |  |  ParallelCollectionRDD[205] at parallelize at <console>:24 []
+ +-(3) MapPartitionsRDD[208] at subtract at <console>:28 []
+    |  ParallelCollectionRDD[206] at parallelize at <console>:24 []
+```
+
 ### toJavaRDD
+```scala
+def toJavaRDD(): JavaRDD[T]
+```
+
+```scala
+val a = sc.parallelize(1 to 10)
+a.toJavaRDD //> res247: org.apache.spark.api.java.JavaRDD[Int] = ParallelCollectionRDD[211] at parallelize at <console>:24
+```
+
 ### toLocalIterator
+```scala
+def toLocalIterator: Iterator[T]
+```
+Return an iterator that contains all of the elements in this RDD.
+ 
+```scala
+val a = sc.parallelize(1 to 10, 2)
+val iter = a.toLocalIterator
+iter.next //> res248: Int = 1
+iter.next //> res249: Int = 2
+```
+
 ### top
+```scala
+def top(num: Int)(implicit ord: Ordering[T]): Array[T]
+```
+Returns the top k (largest) elements from this RDD as defined by the specified implicit Ordering[T] and maintains the ordering.
+
+```scala
+val a = sc.parallelize(List(1,3,5,7,9,8,6,4,2,0))
+a.top(3)  //> res252: Array[Int] = Array(9, 8, 7)
+```
+
 ### toString
+```scala
+def toString(): String
+```
+
+```scala
+val a = sc.parallelize(List(1,3,5,7,9,8,6,4,2,0)) //> a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[215] at parallelize at <console>:24
+a.toString                                        //> res253: String = ParallelCollectionRDD[215] at parallelize at <console>:24
+```
+
 ### union
+```scala
+def union(other: RDD[T]): RDD[T]
+```
+Return the union of this RDD and another one.
+
+```scala
+val a = sc.parallelize(1 to 4)
+val b = sc.parallelize(3 to 6)
+a.union(b).collect    //> res255: Array[Int] = Array(1, 2, 3, 4, 3, 4, 5, 6)
+```
+
 ### ++
+```scala
+def ++(other: RDD[T]): RDD[T]
+```
+Return the union of this RDD and another one.
+
+```scala
+val a = sc.parallelize(1 to 4)
+val b = sc.parallelize(3 to 6)
+(a ++ b).collect      //> res256: Array[Int] = Array(1, 2, 3, 4, 3, 4, 5, 6)
+```
+
 ### unpersist
+```scala
+def unpersist(blocking: Boolean = true): RDD.this.type
+```
+Mark the RDD as non-persistent, and remove all blocks for it from memory and disk.
+
 ### zip
+```scala
+def zip[U](other: RDD[U])(implicit arg0: ClassTag[U]): RDD[(T, U)]
+```
+Zips this RDD with another one, returning key-value pairs with the first element in each RDD, second element in each RDD, etc.
+
+```scala
+val a = sc.parallelize(1 to 4)
+val b = sc.parallelize(3 to 6)
+a.zip(b).collect  //> res258: Array[(Int, Int)] = Array((1,3), (2,4), (3,5), (4,6))
+```
+
 ### zipPartitions
+```scala
+def zipPartitions[B, C, D, V](rdd2: RDD[B], rdd3: RDD[C], rdd4: RDD[D])(f: (Iterator[T], Iterator[B], Iterator[C], Iterator[D]) ⇒ Iterator[V])(implicit arg0: ClassTag[B], arg1: ClassTag[C], arg2: ClassTag[D], arg3: ClassTag[V]): RDD[V]
+def zipPartitions[B, C, D, V](rdd2: RDD[B], rdd3: RDD[C], rdd4: RDD[D], preservesPartitioning: Boolean)(f: (Iterator[T], Iterator[B], Iterator[C], Iterator[D]) ⇒ Iterator[V])(implicit arg0: ClassTag[B], arg1: ClassTag[C], arg2: ClassTag[D], arg3: ClassTag[V]): RDD[V]
+def zipPartitions[B, C, V](rdd2: RDD[B], rdd3: RDD[C])(f: (Iterator[T], Iterator[B], Iterator[C]) ⇒ Iterator[V])(implicit arg0: ClassTag[B], arg1: ClassTag[C], arg2: ClassTag[V]): RDD[V]
+def zipPartitions[B, C, V](rdd2: RDD[B], rdd3: RDD[C], preservesPartitioning: Boolean)(f: (Iterator[T], Iterator[B], Iterator[C]) ⇒ Iterator[V])(implicit arg0: ClassTag[B], arg1: ClassTag[C], arg2: ClassTag[V]): RDD[V]
+def zipPartitions[B, V](rdd2: RDD[B])(f: (Iterator[T], Iterator[B]) ⇒ Iterator[V])(implicit arg0: ClassTag[B], arg1: ClassTag[V]): RDD[V]
+def zipPartitions[B, V](rdd2: RDD[B], preservesPartitioning: Boolean)(f: (Iterator[T], Iterator[B]) ⇒ Iterator[V])(implicit arg0: ClassTag[B], arg1: ClassTag[V]): RDD[V]
+```
+Zip this RDD's partitions with one (or more) RDD(s) and return a new RDD by applying a function to the zipped partitions.
+
+> 什麼時候會用到？
+
 ### zipWithIndex
+```scala
+def zipWithIndex(): RDD[(T, Long)]
+```
+Zips this RDD with its element indices.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","data","elderberry"))
+a.zipWithIndex.collect  //> res259: Array[(String, Long)] = Array((apple,0), (banana,1), (cherry,2), (data,3), (elderberry,4))
+```
+
 ### zipWithUniquId
+```scala
+def zipWithUniqueId(): RDD[(T, Long)]
+```
+Zips this RDD with generated unique Long ids.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","data","elderberry"))
+a.zipWithUniqueId.collect //> res261: Array[(String, Long)] = Array((apple,0), (banana,1), (cherry,2), (data,3), (elderberry,4))
+```
 
 ## [PairRDDFunctions](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.PairRDDFunctions)
 ### aggregateByKey
