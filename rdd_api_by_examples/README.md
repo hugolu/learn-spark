@@ -20,8 +20,7 @@ Aggregate the elements of each partition, and then the results for all the parti
 
 ```scala
 val a = sc.parallelize(List(1,2,3,4,5,6,7,8,9), 3)
-a.aggregate("")((str, num) => num.toString + str, (str1, str2) => str1 + str2)
-//> res3: String = 321654987
+a.aggregate("")((str, num) => num.toString + str, (str1, str2) => str1 + str2)  //> res3: String = 321654987
 ```
 
 ### cartesian
@@ -34,9 +33,7 @@ Return the Cartesian product of this RDD and another one, that is, the RDD of al
 val a = sc.parallelize(List(1,2,3))         //a: org.apache.spark.rdd.RDD[Int]
 val b = sc.parallelize(List("a","b","c"))   //b: org.apache.spark.rdd.RDD[String]
 val c = a.cartesian(b)                      //c: org.apache.spark.rdd.RDD[(Int, String)]
-c.collect
-//> res5: Array[(Int, String)] = Array((1,a), (1,b), (1,c), (2,a), (2,b), (2,c), (3,a), (3,b), (3,c))
-
+c.collect                                   //> res5: Array[(Int, String)] = Array((1,a), (1,b), (1,c), (2,a), (2,b), (2,c), (3,a), (3,b), (3,c))
 ```
 
 ### coalesce
@@ -80,13 +77,54 @@ b.foreachPartition( iter => println(iter.toList.mkString(",")) )
 ```
 
 ### collect
-### toArray
-### compute
-### context
-### sparkContext
+```scala
+def collect(): Array[T]
+```
+Return an array that contains all of the elements in this RDD.
+
+```scala
+val a = sc.parallelize(1 to 10, 2)
+a.collect       //> res1: Array[Int] = Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+```
+
+### context, sparkContext
+```scala
+def context: SparkContext
+def sparkContext: SparkContext
+```
+The org.apache.spark.SparkContext that this RDD was created on.
+
+```scala
+val a = sc.parallelize(1 to 10, 2)
+a.context       //> res3: org.apache.spark.SparkContext = org.apache.spark.SparkContext@5ece7044
+a.SparkContext  //> res4: org.apache.spark.SparkContext = org.apache.spark.SparkContext@5ece7044
+```
+
 ### count
-### countApprox
+```scala
+def count(): Long
+```
+Return the number of elements in the RDD.
+
+```scala
+val a = sc.parallelize(1 to 10, 2)
+a.count     //> res5: Long = 10
+```
+
 ### countApproxDistinct
+```scala
+def countApproxDistinct(relativeSD: Double = 0.05): Long
+```
+Return approximate number of distinct elements in the RDD.
+
+```scala
+val a = sc.parallelize(1 to 1000000, 100)
+val b = a ++ a ++ a ++ a ++ a
+b.countApproxDistinct(0.05)   //> res6: Long = 1083002
+b.countApproxDistinct(0.01)   //> res7: Long = 1013205
+b.countApproxDistinct(0.001)  //> res8: Long = 1000902
+```
+
 ### countByValue
 ### countByValueApprox
 ### dependencies
