@@ -144,8 +144,45 @@ def countByValueApprox(timeout: Long, confidence: Double = 0.95)(implicit ord: O
 Approximate version of countByValue().
 
 ### dependencies
+```scala
+final def dependencies: Seq[Dependency[_]]
+```
+Get the list of dependencies of this RDD, taking into account whether the RDD is checkpointed or not.
+
+```scala
+val a = sc.parallelize(1 to 3)
+val b = sc.parallelize("a" to "c")
+
+val c = a.map(_+1)
+c.dependencies.length     //> res38: Int = 1
+
+val d = a.cartesian(b)
+d.dependencies.length     //> res39: Int = 2
+```
+
 ### distinct
+```scala
+def distinct(): RDD[T]
+```
+Return a new RDD containing the distinct elements in this RDD.
+
+```scala
+val a = sc.parallelize(List(1,2,2,3,3,3,4,4,4,4,5,5,5,5,5))
+a.count             //> res40: Long = 15
+a.distinct.count    //> res41: Long = 5
+```
+
 ### first
+```scala
+def first(): T
+```
+Return the first element in this RDD.
+
+```scala
+val a = sc.parallelize(1 to 10, 4)
+a.first             //> res44: Int = 1
+```
+
 ### filter
 ### filterWith
 ### flatMap
