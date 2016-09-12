@@ -552,6 +552,23 @@ b.collect                           //> res228: Array[String] = Array(1, 2, 3, 4
 ```
 
 ### sortBy
+```scala
+def sortBy[K](f: (T) ⇒ K, ascending: Boolean = true, numPartitions: Int = this.partitions.length)(implicit ord: Ordering[K], ctag: ClassTag[K]): RDD[T]
+```
+Return this RDD sorted by the given key function.
+
+```scala
+val a = sc.parallelize(List(1,3,5,7,9,8,6,4,2,0))
+a.sortBy(n => n, true).collect  //> res233: Array[Int] = Array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+a.sortBy(n => n, false).collect //> res234: Array[Int] = Array(9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+```
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","date","elderberry"))
+a.sortBy(n => n, true).collect        //> res238: Array[String] = Array(apple, banana, cherry, date, elderberry)
+a.sortBy(n => n.length, true).collect //> res239: Array[String] = Array(date, apple, banana, cherry, elderberry)
+```
+
 ### subtract
 ### take
 ### takeOrdered
