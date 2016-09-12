@@ -908,9 +908,36 @@ Generic function to combine the elements for each key using a custom set of aggr
 ### sampleVariance
 
 ## [OrderedRDDFunctions](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.OrderedRDDFunctions)
+
 ### filterByRange
+```scala
+def filterByRange(lower: K, upper: K): RDD[P]
+```
+Returns an RDD containing only the elements in the inclusive range lower to upper.
+
+```scala
+val randRDD = sc.parallelize(List( (2,"cat"), (6, "mouse"),(7, "cup"), (3, "book"), (4, "tv"), (1, "screen"), (5, "heater")), 3)
+
+randRDD.filterByRange(1,3).collect  //> res23: Array[(Int, String)] = Array((2,cat), (3,book), (1,screen))
+randRDD.filterByRange(3,5).collect  //> res25: Array[(Int, String)] = Array((3,book), (4,tv), (5,heater))
+```
+
 ### repartitionAndSortWithPartitions
 ### sortByKey
 
 ## [SequenceFileRDDFunctions](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.SequenceFileRDDFunctions)
-###saveAsSequenceFile
+
+### saveAsSequenceFile
+```scala
+def saveAsSequenceFile(path: String, codec: Option[Class[_ <: CompressionCodec]] = None): Unit
+```
+Output the RDD as a Hadoop SequenceFile using the Writable types we infer from the RDD's key and value types.
+
+```scala
+val a = sc.parallelize(Array(("owl",3), ("gnu",4), ("dog",1), ("cat",2), ("ant",5)), 2)
+a.saveAsSequenceFile("hd_seq_file")
+
+val b = sc.sequenceFile[String, Int]("hd_seq_file")
+b.collect
+//> res22: Array[(String, Int)] = Array((dog,1), (cat,2), (ant,5), (owl,3), (gnu,4))
+```
