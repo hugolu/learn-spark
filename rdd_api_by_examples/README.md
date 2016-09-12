@@ -264,8 +264,23 @@ b.getCheckpointFile //> res60: Option[String] = Some(file:/home/hduser/my_direct
 ```
 > [Spark容错机制](http://www.jianshu.com/p/99ebcc7c92d3)：检查点（本质是通过将RDD写入Disk做检查点）是为了通过lineage做容错的辅助，lineage过长会造成容错成本过高，这样就不如在中间阶段做检查点容错，如果之后有节点出现问题而丢失分区，从做检查点的RDD开始重做Lineage，就会减少开销。
 
-### preferredLocations
 ### getStorageLevel
+```scala
+def getStorageLevel: StorageLevel
+```
+Get the RDD's current storage level, or StorageLevel.NONE if none is set.
+
+```scala
+val a = sc.parallelize(1 to 10)
+a.getStorageLevel.description   //> res77: String = Serialized 1x Replicated
+a.cache
+a.getStorageLevel.description   //> res79: String = Memory Deserialized 1x Replicated
+a.unpersist(true)
+a.getStorageLevel.description   //> res86: String = Serialized 1x Replicated
+a.persist(org.apache.spark.storage.StorageLevel.DISK_ONLY)
+a.getStorageLevel.description   //> res88: String = Disk Serialized 1x Replicated
+```
+
 ### glom
 ### groupBy
 ### id
