@@ -425,9 +425,42 @@ a.name                    //> res160: String = one to ten
 ```
 
 ### partitioner
+```scala
+val partitioner: Option[Partitioner]
+```
+Optionally overridden by subclasses to specify how they are partitioned.
+
 ### partitions
-### persist
-### cache
+```scala
+final def partitions: Array[Partition]
+```
+Get the array of partitions of this RDD, taking into account whether the RDD is checkpointed or not.
+
+```scala
+val a = sc.parallelize(1 to 10, 5)
+a.partitions
+//> res163: Array[org.apache.spark.Partition] = Array(org.apache.spark.rdd.ParallelCollectionPartition@1643, org.apache.spark.rdd.ParallelCollectionPartition@1644, org.apache.spark.rdd.ParallelCollectionPartition@1645, org.apache.spark.rdd.ParallelCollectionPartition@1646, org.apache.spark.rdd.ParallelCollectionPartition@1647)
+```
+
+### persist, cache
+```scala
+def persist(): RDD.this.type
+def cache(): RDD.this.type
+```
+Persist this RDD with the default storage level (MEMORY_ONLY).
+
+```scala
+def persist(newLevel: StorageLevel): RDD.this.type
+```
+Set this RDD's storage level to persist its values across operations after the first time it is computed.
+
+```scala
+val c = sc.parallelize(List("Gnu", "Cat", "Rat", "Dog", "Gnu", "Rat"), 2)
+c.getStorageLevel     //> res164: org.apache.spark.storage.StorageLevel = StorageLevel(1 replicas)
+c.cache
+c.getStorageLevel     //> res166: org.apache.spark.storage.StorageLevel = StorageLevel(memory, deserialized, 1 replicas)
+```
+
 ### pipe
 ### randomSplit
 ### reduce
