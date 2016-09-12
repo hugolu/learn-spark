@@ -502,8 +502,55 @@ b.foreachPartition( iter => println(iter.toList.mkString(",")) )
 ```
 
 ### sample
+```scala
+def sample(withReplacement: Boolean, fraction: Double, seed: Long = Utils.random.nextLong): RDD[T]
+```
+Return a sampled subset of this RDD.
+
+> withReplacement: can elements be sampled multiple times (replaced when sampled out)
+
+```scala
+val a = sc.parallelize(1 to 10)
+
+a.sample(true, 1, 1).collect      //> res202: Array[Int] = Array(1, 1, 2, 3, 3, 4, 6, 8, 8, 10)
+a.sample(false, 1, 1).collect     //> res203: Array[Int] = Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+a.sample(true, 0.6, 11).collect   //> res216: Array[Int] = Array(4, 4, 9, 9)
+a.sample(false, 0.6, 11).collect  //> res217: Array[Int] = Array(1, 5, 6, 7, 8, 9, 10)
+```
+
 ### saveAsObjectFile
+```scala
+def
+saveAsObjectFile(path: String): Unit
+```
+Save this RDD as a SequenceFile of serialized objects.
+
+```scala
+val a = sc.parallelize(1 to 10)       //> a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[160] at parallelize at <console>:24
+a.saveAsObjectFile("objFile")
+val b = sc.objectFile[Int]("objFile") //> b: org.apache.spark.rdd.RDD[Int] = MapPartitionsRDD[164] at objectFile at <console>:24
+b.collect                             //> res226: Array[Int] = Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+```
+
 ### saveAsTextFile
+```scala
+def saveAsTextFile(path: String, codec: Class[_ <: CompressionCodec]): Unit
+```
+Save this RDD as a compressed text file, using string representations of elements.
+
+```scala
+saveAsTextFile(path: String): Unit
+```
+Save this RDD as a text file, using string representations of elements.
+
+```scala
+val a = sc.parallelize(1 to 10)     //> a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[160] at parallelize at <console>:24
+a.saveAsTextFile("textFile")
+val val b = sc.textFile("textFile") //> b: org.apache.spark.rdd.RDD[String] = textFile MapPartitionsRDD[167] at textFile at <console>:24
+b.collect                           //> res228: Array[String] = Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+```
+
 ### sortBy
 ### subtract
 ### take
