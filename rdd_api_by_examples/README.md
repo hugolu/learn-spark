@@ -282,7 +282,31 @@ a.getStorageLevel.description   //> res88: String = Disk Serialized 1x Replicate
 ```
 
 ### glom
+```scala
+def glom(): RDD[Array[T]]
+```
+Return an RDD created by coalescing all elements within each partition into an array.
+
+```scala
+val a = sc.parallelize(1 to 10, 3)
+a.glom.collect
+//> res90: Array[Array[Int]] = Array(Array(1, 2, 3), Array(4, 5, 6), Array(7, 8, 9, 10))
+```
+
 ### groupBy
+```scala
+def groupBy[K](f: (T) ⇒ K, p: Partitioner)(implicit kt: ClassTag[K], ord: Ordering[K] = null): RDD[(K, Iterable[T])]
+def groupBy[K](f: (T) ⇒ K, numPartitions: Int)(implicit kt: ClassTag[K]): RDD[(K, Iterable[T])]
+def groupBy[K](f: (T) ⇒ K)(implicit kt: ClassTag[K]): RDD[(K, Iterable[T])]
+```
+Return an RDD of grouped items.
+
+```scala
+val a = sc.parallelize(1 to 10)
+a.groupBy(_%2).collect    //> res92: Array[(Int, Iterable[Int])] = Array((0,CompactBuffer(2, 4, 6, 8, 10)), (1,CompactBuffer(1, 3, 5, 7, 9)))
+a.groupBy(_%5).collect    //> res94: Array[(Int, Iterable[Int])] = Array((0,CompactBuffer(5, 10)), (3,CompactBuffer(3, 8)), (4,CompactBuffer(4, 9)), (1,CompactBuffer(1, 6)), (2,CompactBuffer(2, 7)))
+```
+
 ### id
 ### intersection
 ### isCheckpointed
