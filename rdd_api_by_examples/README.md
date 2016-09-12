@@ -207,9 +207,43 @@ b.collect //> res47: Array[Int] = Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 2, 4, 6, 8, 1
 ```
 
 ### fold
+```scala
+def fold(zeroValue: T)(op: (T, T) ⇒ T): T
+```
+Aggregate the elements of each partition, and then the results for all the partitions, using a given associative function and a neutral "zero value".
+
+```scala
+val a = sc.parallelize(1 to 10)
+a.fold(0)(_+_)   //> res52: Int = 55
+```
 ### foreach
+```scala
+def foreach(f: (T) ⇒ Unit): Unit
+```
+Applies a function f to all elements of this RDD.
+
+```scala
+val a = sc.parallelize(1 to 3)
+a.foreach(n => println(n*n))
+//> 1
+//> 4
+//> 9
+```
+
 ### foreachPartition
-### foreachWith
+```scala
+def foreachPartition(f: (Iterator[T]) ⇒ Unit): Unit
+```
+Applies a function f to each partition of this RDD.
+
+```scala
+val a = sc.parallelize(1 to 9, 3)
+a.foreachPartition{ iter => println(iter.toArray.mkString(",")) }
+//> 1,2,3
+//> 4,5,6
+//> 7,8,9
+```
+
 ### generator
 ### setGenerator
 ### getCheckpointFile
