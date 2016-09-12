@@ -570,6 +570,19 @@ a.sortBy(n => n.length, true).collect //> res239: Array[String] = Array(date, ap
 ```
 
 ### subtract
+```scala
+def subtract(other: RDD[T], p: Partitioner)(implicit ord: Ordering[T] = null): RDD[T]
+def subtract(other: RDD[T], numPartitions: Int): RDD[T]
+def subtract(other: RDD[T]): RDD[T]
+```
+Return an RDD with the elements from `this` that are not in `other`.
+
+```scala
+val a = sc.parallelize(1 to 7)
+val b = sc.parallelize(5 to 10)
+a.subtract(b).collect   //> res240: Array[Int] = Array(1, 2, 3, 4)
+```
+
 ### take
 ### takeOrdered
 ### takeSample
