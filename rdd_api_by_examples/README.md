@@ -126,7 +126,23 @@ b.countApproxDistinct(0.001)  //> res8: Long = 1000902
 ```
 
 ### countByValue
+```scala
+def countByValue()(implicit ord: Ordering[T] = null): Map[T, Long]
+```
+Return the count of each unique value in this RDD as a local map of (value, count) pairs.
+
+```scala
+val b = sc.parallelize(List(1,2,3,4,5,6,7,8,2,4,2,1,1,1,1,1))
+b.countByValue
+//> res23: scala.collection.Map[Int,Long] = Map(5 -> 1, 1 -> 6, 6 -> 1, 2 -> 3, 7 -> 1, 3 -> 1, 8 -> 1, 4 -> 2)
+```
+
 ### countByValueApprox
+```scala
+def countByValueApprox(timeout: Long, confidence: Double = 0.95)(implicit ord: Ordering[T] = null): PartialResult[Map[T, BoundedDouble]]
+```
+Approximate version of countByValue().
+
 ### dependencies
 ### distinct
 ### first
