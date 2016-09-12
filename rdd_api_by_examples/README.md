@@ -359,15 +359,71 @@ a.keyBy(_%3).groupByKey.collect //> res142: Array[(Int, Iterable[Int])] = Array(
 ```
 
 ### map
+```scala
+def map[U](f: (T) ⇒ U)(implicit arg0: ClassTag[U]): RDD[U]
+```
+Return a new RDD by applying a function to all elements of this RDD.
+
+```scala
+val a = sc.parallelize(1 to 5)
+a.map(n=>n*n).collect //> res144: Array[Int] = Array(1, 4, 9, 16, 25)
+```
+
 ### mapPartitions
-### mapPartitionsWithContext
+```scala
+def mapPartitions[U](f: (Iterator[T]) ⇒ Iterator[U], preservesPartitioning: Boolean = false)(implicit arg0: ClassTag[U]): RDD[U]
+```
+Return a new RDD by applying a function to each partition of this RDD.
+
+```scala
+val a = sc.parallelize(1 to 10, 5)
+a.mapPartitions(iter => iter.map(n=>n*n))
+```
+
 ### mapPartitionsWithIndex
-### mapPartitionsWithSplit
-### mapWith
-### max
-### min
+```scala
+def mapPartitionsWithIndex[U](f: (Int, Iterator[T]) ⇒ Iterator[U], preservesPartitioning: Boolean = false)(implicit arg0: ClassTag[U]): RDD[U]
+```
+Return a new RDD by applying a function to each partition of this RDD, while tracking the index of the original partition.
+
+```scala
+val a = sc.parallelize(1 to 10, 5)
+val b = a.mapPartitionsWithIndex((idx, iter) => iter.map((idx, _)))
+b.collect
+//> res155: Array[(Int, Int)] = Array((0,1), (0,2), (1,3), (1,4), (2,5), (2,6), (3,7), (3,8), (4,9), (4,10))
+```
+
+### max, min
+```scala
+def max()(implicit ord: Ordering[T]): T
+def min()(implicit ord: Ordering[T]): T
+```
+Returns the max/min of this RDD as defined by the implicit Ordering[T].
+
+```scala
+val a = sc.parallelize(1 to 10, 5)
+a.max   //> res156: Int = 10
+a.min   //> res157: Int = 1
+```
+
 ### name
-### setName
+```scala
+var name: String
+```
+A friendly name for this RDD
+
+```scala
+def setName(_name: String): RDD.this.type
+```
+Assign a name to this RDD
+
+```scala
+val a = sc.parallelize(1 to 10, 5)
+a.name                    //> res158: String = null
+a.setName("one to ten")   //> res159: a.type = one to ten ParallelCollectionRDD[98] at parallelize at <console>:24
+a.name                    //> res160: String = one to ten
+```
+
 ### partitioner
 ### partitions
 ### persist
