@@ -61,21 +61,6 @@ c.foreachPartition( iter => println(iter.toList.mkString(",")) )
 ```
 - 如果 shuffle=false 且 source RDD partition 數目小於 numPartitions，無法執行 re-partition
 
-### repartition
-```scala
-def repartition(numPartitions: Int)(implicit ord: Ordering[T] = null): RDD[T]
-```
-Return a new RDD that has exactly numPartitions partitions.
-
-```scala
-val a = sc.parallelize(1 to 10, 2)
-val b = a.repartition(3)
-b.foreachPartition( iter => println(iter.toList.mkString(",")) )
-//> 3,8
-//> 1,4,6,9
-//> 2,5,7,10
-```
-
 ### collect
 ```scala
 def collect(): Array[T]
@@ -462,9 +447,60 @@ c.getStorageLevel     //> res166: org.apache.spark.storage.StorageLevel = Storag
 ```
 
 ### pipe
+```scala
+def pipe(command: Seq[String], env: Map[String, String] = Map(), printPipeContext: ((String) ⇒ Unit) ⇒ Unit = null, printRDDElement: (T, (String) ⇒ Unit) ⇒ Unit = null, separateWorkingDir: Boolean = false, bufferSize: Int = 8192, encoding: String = Codec.defaultCharsetCodec.name): RDD[String]
+def pipe(command: String, env: Map[String, String]): RDD[String]
+def pipe(command: String): RDD[String]
+```
+Return an RDD created by piping elements to a forked external process.
+
+```scala
+val a = sc.parallelize(1 to 9, 3)
+a.pipe("head -n 1").collect   //> res167: Array[String] = Array(1, 4, 7)
+a.pipe("wc -l").collect       //> res168: Array[String] = Array(3, 3, 3)
+```
+
 ### randomSplit
+```scala
+def randomSplit(weights: Array[Double], seed: Long = Utils.random.nextLong): Array[RDD[T]]
+```
+Randomly splits this RDD with the provided weights.
+>  Note the actual size of each smaller RDD is only approximately equal to the percentages specified by the weights Array. 
+
+```scala
+val a = sc.parallelize(1 to 10)
+val b = a.randomSplit(Array(0.7, 0.3), 42)
+b.foreach(rdd => println(rdd.collect.mkString(",")))
+//> 1,5,6,7,8,9,10
+//> 2,3,4
+```
+
 ### reduce
+```scala
+def reduce(f: (T, T) ⇒ T): T
+```
+Reduces the elements of this RDD using the specified commutative and associative binary operator.
+
+```scala
+val a = sc.parallelize(1 to 10)
+a.reduce(_+_)   //> res181: Int = 55
+```
+
 ### repartition
+```scala
+def repartition(numPartitions: Int)(implicit ord: Ordering[T] = null): RDD[T]
+```
+Return a new RDD that has exactly numPartitions partitions.
+
+```scala
+val a = sc.parallelize(1 to 10, 2)
+val b = a.repartition(3)
+b.foreachPartition( iter => println(iter.toList.mkString(",")) )
+//> 3,8
+//> 1,4,6,9
+//> 2,5,7,10
+```
+
 ### sample
 ### saveAsObjectFile
 ### saveAsTextFile
