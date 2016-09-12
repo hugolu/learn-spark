@@ -584,8 +584,38 @@ a.subtract(b).collect   //> res240: Array[Int] = Array(1, 2, 3, 4)
 ```
 
 ### take
+```scala
+def take(num: Int): Array[T]
+```
+Take the first num elements of the RDD.
+
+```scala
+val a = sc.parallelize(List(2,4,6,8,7,5,3,1))
+a.take(3)         //> res242: Array[Int] = Array(2, 4, 6)
+```
+
 ### takeOrdered
+```scala
+def takeOrdered(num: Int)(implicit ord: Ordering[T]): Array[T]
+```
+Returns the first k (smallest) elements from this RDD as defined by the specified implicit Ordering[T] and maintains the ordering.
+
+```scala
+val a = sc.parallelize(List(2,4,6,8,7,5,3,1))
+a.takeOrdered(3)  //> res243: Array[Int] = Array(1, 2, 3)
+```
+
 ### takeSample
+```scala
+def takeSample(withReplacement: Boolean, num: Int, seed: Long = Utils.random.nextLong): Array[T]
+```
+Return a fixed-size sampled subset of this RDD in an array
+
+```scala
+val a = sc.parallelize(List(2,4,6,8,7,5,3,1))
+a.takeSample(false, 3)  //> res245: Array[Int] = Array(7, 8, 1)
+```
+
 ### treeAggregate
 ### treeReduce
 ### toDebugString
