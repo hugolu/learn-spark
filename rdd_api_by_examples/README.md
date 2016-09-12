@@ -308,10 +308,56 @@ a.groupBy(_%5).collect    //> res94: Array[(Int, Iterable[Int])] = Array((0,Comp
 ```
 
 ### id
+```scala
+val id: Int
+```
+A unique ID for this RDD (within its SparkContext).
+
+```scala
+val a = sc.parallelize(1 to 3)  //> a: org.apache.spark.rdd.RDD[Int] = ParallelCollectionRDD[66] at parallelize at <console>:24
+a.id                            //> res99: Int = 66
+```
+
 ### intersection
+```scala
+def intersection(other: RDD[T]): RDD[T]
+```
+Return the intersection of this RDD and another one.
+
+```scala
+val a = sc.parallelize(1 to 7)
+val b = sc.parallelize(3 to 10)
+a.intersection(b).collect   //> res101: Array[Int] = Array(4, 6, 3, 7, 5)
+```
+
 ### isCheckpointed
-### iterator
+```scala
+def isCheckpointed: Boolean
+```
+Return whether this RDD is checkpointed and materialized, either reliably or locally.
+
+```scala
+val a = sc.parallelize(1 to 3)
+a.isCheckpointed    //> res134: Boolean = false
+a.checkpoint
+a.isCheckpointed    //> res136: Boolean = false
+a.collect           //> res137: Array[Int] = Array(1, 2, 3)
+a.isCheckpointed    //> res138: Boolean = true
+```
+
 ### keyBy
+```scala
+def keyBy[K](f: (T) ⇒ K): RDD[(K, T)]
+```
+Creates tuples of the elements in this RDD by applying f.
+
+```scala
+val a = sc.parallelize(1 to 10)
+
+a.keyBy(_%3).collect            //> res140: Array[(Int, Int)] = Array((1,1), (2,2), (0,3), (1,4), (2,5), (0,6), (1,7), (2,8), (0,9), (1,10))
+a.keyBy(_%3).groupByKey.collect //> res142: Array[(Int, Iterable[Int])] = Array((0,CompactBuffer(3, 6, 9)), (1,CompactBuffer(1, 4, 7, 10)), (2,CompactBuffer(2, 5, 8)))
+```
+
 ### map
 ### mapPartitions
 ### mapPartitionsWithContext
