@@ -855,6 +855,21 @@ a.zipWithIndex.collectAsMap
 ```
 
 ### combineByKey
+```scala
+def combineByKey[C](createCombiner: (V) ⇒ C, mergeValue: (C, V) ⇒ C, mergeCombiners: (C, C) ⇒ C): RDD[(K, C)]
+```
+Simplified version of combineByKeyWithClassTag that hash-partitions the resulting RDD using the existing partitioner/parallelism level.
+
+```scala
+def combineByKey[C](createCombiner: (V) ⇒ C, mergeValue: (C, V) ⇒ C, mergeCombiners: (C, C) ⇒ C, numPartitions: Int): RDD[(K, C)]
+```
+Simplified version of combineByKeyWithClassTag that hash-partitions the output RDD.
+
+```scala
+def combineByKey[C](createCombiner: (V) ⇒ C, mergeValue: (C, V) ⇒ C, mergeCombiners: (C, C) ⇒ C, partitioner: Partitioner, mapSideCombine: Boolean = true, serializer: Serializer = null): RDD[(K, C)]
+```
+Generic function to combine the elements for each key using a custom set of aggregation functions.
+
 ### countApproxDistinctByKey
 ### countByKey
 ### countByKeyApprox
