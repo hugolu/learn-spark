@@ -569,6 +569,18 @@ a.sortBy(n => n, true).collect        //> res238: Array[String] = Array(apple, b
 a.sortBy(n => n.length, true).collect //> res239: Array[String] = Array(date, apple, banana, cherry, elderberry)
 ```
 
+```scala
+case class Box(n: Int)
+val a = sc.parallelize(List(Box(2),Box(5),Box(1),Box(4)))
+
+implicit val sortingBox = new Ordering[Box] {
+ override def compare(a: Box, b: Box) = a.n.compare(b.n)
+}
+
+a.sortBy(n=>n).collect
+//> res133: Array[Box] = Array(Box(1), Box(2), Box(4), Box(5))
+```
+
 ### subtract
 ```scala
 def subtract(other: RDD[T], p: Partitioner)(implicit ord: Ordering[T] = null): RDD[T]
