@@ -1012,20 +1012,20 @@ def fullOuterJoin[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (Opt
 Perform a full outer join of this and other.
 
 ```scala
-val a = sc.parallelize(List(("A",1), ("B",2), ("C",3)))
-val b = sc.parallelize(List(("B",4), ("C",5), ("D",6)))
+val a = sc.parallelize(List(("A",1),("B",2),("B",3),("C",4)))
+val b = sc.parallelize(List(("B",5),("C",6),("C",7),("D",8)))
 
 a.join(b).collect
-//> res60: Array[(String, (Int, Int))] = Array((B,(2,4)), (C,(3,5)))
+//> res122: Array[(String, (Int, Int))] = Array((B,(2,5)), (B,(3,5)), (C,(4,6)), (C,(4,7)))
 
 a.leftOuterJoin(b).collect
-//> res61: Array[(String, (Int, Option[Int]))] = Array((B,(2,Some(4))), (A,(1,None)), (C,(3,Some(5))))
+//> res123: Array[(String, (Int, Option[Int]))] = Array((B,(2,Some(5))), (B,(3,Some(5))), (A,(1,None)), (C,(4,Some(6))), (C,(4,Some(7))))
 
 a.rightOuterJoin(b).collect
-//> res62: Array[(String, (Option[Int], Int))] = Array((B,(Some(2),4)), (C,(Some(3),5)), (D,(None,6)))
+//> res124: Array[(String, (Option[Int], Int))] = Array((B,(Some(2),5)), (B,(Some(3),5)), (C,(Some(4),6)), (C,(Some(4),7)), (D,(None,8)))
 
 a.fullOuterJoin(b).collect
-//> res63: Array[(String, (Option[Int], Option[Int]))] = Array((B,(Some(2),Some(4))), (A,(Some(1),None)), (C,(Some(3),Some(5))), (D,(None,Some(6))))
+//> res125: Array[(String, (Option[Int], Option[Int]))] = Array((B,(Some(2),Some(5))), (B,(Some(3),Some(5))), (A,(Some(1),None)), (C,(Some(4),Some(6))), (C,(Some(4),Some(7))), (D,(None,Some(8))))
 ```
 
 ### lookup
