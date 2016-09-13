@@ -1029,21 +1029,99 @@ a.fullOuterJoin(b).collect
 ```
 
 ### lookup
-### mapValues
-### partitionBy
-### reduceByKey
-### reduceByKeyLocally
-### reduceByKeyToDriver
+```scala
+def lookup(key: K): Seq[V]
+```
+Return the list of values in the RDD for key key.
 
-### sampleByKey
-### sampleByKeyExact
+```scala
+val a = sc.parallelize(List("dog", "tiger", "lion", "cat", "panther", "eagle"), 2)
+val b = a.map(x => (x.length, x))
+b.lookup(5)
+//> res66: Seq[String] = WrappedArray(tiger, eagle)
+```
+
+### mapValues
+```scala
+def mapValues[U](f: (V) ⇒ U): RDD[(K, U)]
+```
+Pass each value in the key-value pair RDD through a map function without changing the keys; this also retains the original RDD's partitioning.
+
+```scala
+val a = sc.parallelize(List("dog", "tiger", "lion", "cat", "panther", "eagle"), 2)
+val b = a.map(x => (x.length, x))
+b.mapValues("x" + _ + "x").collect
+//> res68: Array[(Int, String)] = Array((3,xdogx), (5,xtigerx), (4,xlionx), (3,xcatx), (7,xpantherx), (5,xeaglex))
+```
+
+### partitionBy
+```scala
+def partitionBy(partitioner: Partitioner): RDD[(K, V)]
+```
+Return a copy of the RDD partitioned using the specified partitioner.
+
+### reduceByKey, reduceByKeyLocally, reduceByKeyToDriver
+```scala
+def reduceByKey(func: (V, V) ⇒ V): RDD[(K, V)]
+def reduceByKey(func: (V, V) ⇒ V, numPartitions: Int): RDD[(K, V)]
+def reduceByKey(partitioner: Partitioner, func: (V, V) ⇒ V): RDD[(K, V)]
+```
+Merge the values for each key using an associative and commutative reduce function.
+
+```scala
+def reduceByKeyLocally(func: (V, V) ⇒ V): Map[K, V]
+```
+Merge the values for each key using an associative and commutative reduce function, but return the results immediately to the master as a Map.
+
+```scala
+val a = sc.parallelize(List(("A", 100), ("B", 150), ("A", 200), ("C", 50), ("B", 50)))
+a.reduceByKey(_+_).collect
+//> res74: Array[(String, Int)] = Array((B,200), (A,300), (C,50))
+```
+
+### sampleByKey, sampleByKeyExact
+```scala
+def sampleByKey(withReplacement: Boolean, fractions: Map[K, Double], seed: Long = Utils.random.nextLong): RDD[(K, V)]
+```
+Return a subset of this RDD sampled by key (via stratified sampling).
+
+```scala
+def sampleByKeyExact(withReplacement: Boolean, fractions: Map[K, Double], seed: Long = Utils.random.nextLong): RDD[(K, V)]
+```
+Return a subset of this RDD sampled by key (via stratified sampling) containing exactly math.ceil(numItems * samplingRate) for each stratum (group of pairs with the same key).
+
 ### saveAsHodoopFile
 ### saveAsHadoopDataset
 ### saveAsNewAPIHadoopFile
-### subtractByKey
-### values
 
-### rightOuterJoin
+### subtractByKey
+```scala
+def subtractByKey[W](other: RDD[(K, W)], p: Partitioner)(implicit arg0: ClassTag[W]): RDD[(K, V)]
+def subtractByKey[W](other: RDD[(K, W)], numPartitions: Int)(implicit arg0: ClassTag[W]): RDD[(K, V)]
+def subtractByKey[W](other: RDD[(K, W)])(implicit arg0: ClassTag[W]): RDD[(K, V)]
+```
+Return an RDD with the pairs from this whose keys are not in other.
+
+```scala
+val a = sc.parallelize(List(("A",1), ("B",2), ("C",3)))
+val b = sc.parallelize(List(("B",4), ("C",5), ("D",6)))
+
+a.subtractByKey(b).collect //> res93: Array[(String, Int)] = Array((A,1))
+b.subtractByKey(a).collect //> res95: Array[(String, Int)] = Array((D,6))
+```
+
+### values
+```scala
+def values: RDD[V]
+```
+Return an RDD with the values of each tuple.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","date","elderberry"))
+val b = a.keyBy(_.length)
+b.values.collect
+//> res70: Array[String] = Array(apple, banana, cherry, date, elderberry)
+```
 
 ### aggregateByKey vs combineByKey
 ```scala
