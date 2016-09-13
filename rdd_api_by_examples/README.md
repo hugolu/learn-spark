@@ -926,16 +926,101 @@ a.combineByKey((v) => (v, 1), (acc: (Int, Int), v) => (acc._1 + v, acc._2 + 1), 
 > `combineByKey` 使用上比 `aggregateByKey` 更繁瑣，什麼情況非用不可呢？
 
 ## [DoubleRDDFunctions](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.DoubleRDDFunctions)
-### mean
-### meanApprox
+
+### mean, meanApprox
+```scala
+def mean(): Double
+```
+Compute the mean of this RDD's elements.
+
+```scala
+def meanApprox(timeout: Long, confidence: Double = 0.95): PartialResult[BoundedDouble]
+```
+Approximate operation to return the mean within a timeout.
+
+```scala
+val a = sc.parallelize(List(9.1, 1.0, 1.2, 2.1, 1.3, 5.0, 2.0, 2.1, 7.4, 7.5, 7.6, 8.8, 10.0, 8.9, 5.5), 3)
+a.mean  //> res63: Double = 5.3
+a.meanApprox(1) //> res64: org.apache.spark.partial.PartialResult[org.apache.spark.partial.BoundedDouble] = (final: [5.300, 5.300])
+```
+
 ### histogram
+```scala
+def histogram(bucketCount: Int): (Array[Double], Array[Long])
+```
+Compute a histogram of the data using bucketCount number of buckets evenly spaced between the minimum and maximum of the RDD.
+
+```scala
+val a = sc.parallelize(1 to 10) ++ sc.parallelize(3 to 8)
+
+a.histogram(5)
+//> res69: (Array[Double], Array[Long]) = (Array(1.0, 2.8, 4.6, 6.4, 8.2, 10.0),Array(2, 4, 4, 4, 2))
+
+a.histogram(3)
+//> res70: (Array[Double], Array[Long]) = (Array(1.0, 4.0, 7.0, 10.0),Array(4, 6, 6))
+```
+
 ### stats
-### stdev
-### sampleStdev
-### sum
-### sumApprox[Double]
-### variance
-### sampleVariance
+```scala
+def stats(): StatCounter
+```
+Return a org.apache.spark.util.StatCounter object that captures the mean, variance and count of the RDD's elements in one operation.
+
+```scala
+val x = sc.parallelize(List(1.0, 2.0, 3.0, 5.0, 20.0, 19.02, 19.29, 11.09, 21.0), 2)
+x.stats
+//> res75: org.apache.spark.util.StatCounter = (count: 9, mean: 11.266667, stdev: 8.126859, max: 21.000000, min: 1.000000)
+```
+### stdev, sampleStdev
+```scala
+def stdev(): Double
+```
+Compute the standard deviation of this RDD's elements.
+
+```scala
+def sampleStdev(): Double
+```
+Compute the sample standard deviation of this RDD's elements (which corrects for bias in estimating the standard deviation by dividing by N-1 instead of N).
+
+```scala
+val x = sc.parallelize(List(1.0, 2.0, 3.0, 5.0, 20.0, 19.02, 19.29, 11.09, 21.0), 2)
+x.stdev       //> res76: Double = 8.126859445348149
+x.sampleStdev //> res77: Double = 8.619836135333431
+```
+
+### sum, sumApprox
+```scala
+def sum(): Double
+```
+Add up the elements in this RDD.
+
+```scala
+def sumApprox(timeout: Long, confidence: Double = 0.95): PartialResult[BoundedDouble]
+```
+Approximate operation to return the sum within a timeout.
+
+```scala
+val x = sc.parallelize(List(1.0, 2.0, 3.0, 5.0, 20.0, 19.02, 19.29, 11.09, 21.0), 2)
+x.sum           //> res95: Double = 101.39999999999999
+x.sumApprox(10) //> res99: org.apache.spark.partial.PartialResult[org.apache.spark.partial.BoundedDouble] = (final: [101.400, 101.400])
+```
+
+### variance, sampleVariance
+```scala
+def variance(): Double
+```
+Compute the variance of this RDD's elements.
+
+```scala
+def sampleVariance(): Double
+```
+Compute the sample variance of this RDD's elements (which corrects for bias in estimating the variance by dividing by N-1 instead of N).
+
+```scala
+val x = sc.parallelize(List(1.0, 2.0, 3.0, 5.0, 20.0, 19.02, 19.29, 11.09, 21.0), 2)
+x.variance       //> res100: Double = 66.04584444444443
+x.sampleVariance //> res103: Double = 74.30157499999999
+```
 
 ## [OrderedRDDFunctions](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.OrderedRDDFunctions)
 
