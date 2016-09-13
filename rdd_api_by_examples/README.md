@@ -884,9 +884,60 @@ result.collect //> res34: Array[(String, Double)] = Array((B,100.0), (A,150.0), 
 ```
 
 ### countApproxDistinctByKey
-### countByKey
-### countByKeyApprox
+```scala
+def countApproxDistinctByKey(relativeSD: Double = 0.05): RDD[(K, Long)]
+def countApproxDistinctByKey(relativeSD: Double, numPartitions: Int): RDD[(K, Long)]
+def countApproxDistinctByKey(relativeSD: Double, partitioner: Partitioner): RDD[(K, Long)]
+def countApproxDistinctByKey(p: Int, sp: Int, partitioner: Partitioner): RDD[(K, Long)]
+```
+Return approximate number of distinct values for each key in this RDD.
+
+> The parameter `relativeSD` controls the accuracy of the computation.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","date"))
+val b = sc.parallelize(a.takeSample(true, 10000), 20)
+val c = b.zipWithIndex
+
+c.countApproxDistinctByKey(0.1).collect  //> res1: Array[(String, Long)] = Array((apple,2285), (banana,2854), (date,2375), (cherry,2459))
+c.countApproxDistinctByKey(0.01).collect //> res2: Array[(String, Long)] = Array((apple,2420), (banana,2549), (date,2546), (cherry,2485))
+```
+
+### countByKey, countByKeyApprox
+```scala
+def countByKey(): Map[K, Long]
+```
+Count the number of elements for each key, collecting the results to a local Map.
+
+```scala
+def countByKeyApprox(timeout: Long, confidence: Double = 0.95): PartialResult[Map[K, BoundedDouble]]
+```
+Approximate version of countByKey that can return a partial result if it does not finish within a timeout.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","date","elderberry"))
+val b = a.map(n => (n.length, n))
+b.countByKey
+//> res4: scala.collection.Map[Int,Long] = Map(4 -> 1, 6 -> 2, 10 -> 1, 5 -> 1)
+```
+
 ### flatMapValues
+```scala
+def flatMapValues[U](f: (V) ⇒ TraversableOnce[U]): RDD[(K, U)]
+```
+Pass each value in the key-value pair RDD through a flatMap function without changing the keys; this also retains the original RDD's partitioning.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry"))
+val b = a.map(n => (n, n.length))
+
+b.collect
+//> res29: Array[(String, Int)] = Array((apple,5), (banana,6), (cherry,6))
+
+b.flatMapValues(n => 1 to n).collect
+//> res30: Array[(String, Int)] = Array((apple,1), (apple,2), (apple,3), (apple,4), (apple,5), (banana,1), (banana,2), (banana,3), (banana,4), (banana,5), (banana,6), (cherry,1), (cherry,2), (cherry,3), (cherry,4), (cherry,5), (cherry,6))
+```
+
 ### foldByKey
 ### fullOuterJoin
 ### groupByKey
