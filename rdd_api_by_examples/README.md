@@ -939,10 +939,89 @@ b.flatMapValues(n => 1 to n).collect
 ```
 
 ### foldByKey
+```scala
+def foldByKey(zeroValue: V)(func: (V, V) ⇒ V): RDD[(K, V)]
+def foldByKey(zeroValue: V, numPartitions: Int)(func: (V, V) ⇒ V): RDD[(K, V)]
+def foldByKey(zeroValue: V, partitioner: Partitioner)(func: (V, V) ⇒ V): RDD[(K, V)]
+```
+Merge the values for each key using an associative function and a neutral "zero value" which may be added to the result an arbitrary number of times, and must not change the result (e.g., Nil for list concatenation, 0 for addition, or 1 for multiplication.).
+
+```scala
+val a = sc.parallelize(List(("A", 100), ("B", 150), ("A", 200), ("C", 50), ("B", 50)))
+a.foldByKey(0)(_+_).collect      //> res34: Array[(String, Int)] = Array((B,200), (A,300), (C,50))
+a.foldByKey(0)(math.max).collect //> res36: Array[(String, Int)] = Array((B,150), (A,200), (C,50))
+```
+
 ### fullOuterJoin
+```scala
+def fullOuterJoin[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (Option[V], Option[W]))]
+def fullOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (Option[V], Option[W]))]
+def fullOuterJoin[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (Option[V], Option[W]))]
+```
+Perform a full outer join of this and other.
+
+```scala
+val pairRDD1 = sc.parallelize(List( ("cat",2), ("cat", 5), ("book", 4),("cat", 12)))
+val pairRDD2 = sc.parallelize(List( ("cat",2), ("cup", 5), ("mouse", 4),("cat", 12)))
+pairRDD1.fullOuterJoin(pairRDD2).collect
+//> res37: Array[(String, (Option[Int], Option[Int]))] = Array((book,(Some(4),None)), (mouse,(None,Some(4))), (cup,(None,Some(5))), (cat,(Some(2),Some(2))), (cat,(Some(2),Some(12))), (cat,(Some(5),Some(2))), (cat,(Some(5),Some(12))), (cat,(Some(12),Some(2))), (cat,(Some(12),Some(12))))
+```
+
 ### groupByKey
+```scala
+def groupByKey(): RDD[(K, Iterable[V])]
+def groupByKey(numPartitions: Int): RDD[(K, Iterable[V])]
+def groupByKey(partitioner: Partitioner): RDD[(K, Iterable[V])]
+```
+Group the values for each key in the RDD into a single sequence.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","date","elderberry"))
+val b = a.keyBy(_.length)
+
+b.groupByKey.collect
+//> res39: Array[(Int, Iterable[String])] = Array((4,CompactBuffer(date)), (6,CompactBuffer(banana, cherry)), (10,CompactBuffer(elderberry)), (5,CompactBuffer(apple)))
+```
+
 ### join
+```scala
+def join[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (V, W))]
+def join[W](other: RDD[(K, W)]): RDD[(K, (V, W))]
+def join[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (V, W))]
+```
+Return an RDD containing all pairs of elements with matching keys in this and other.
+
+```scala
+val a = sc.parallelize(List("dog", "salmon", "salmon", "rat", "elephant"), 3)
+val b = a.keyBy(_.length)
+b.collect
+//> res44: Array[(Int, String)] = Array((3,dog), (6,salmon), (6,salmon), (3,rat), (8,elephant))
+
+val c = sc.parallelize(List("dog","cat","gnu","salmon","rabbit","turkey","wolf","bear","bee"), 3)
+val d = c.keyBy(_.length)
+d.collect
+//> res45: Array[(Int, String)] = Array((3,dog), (3,cat), (3,gnu), (6,salmon), (6,rabbit), (6,turkey), (4,wolf), (4,bear), (3,bee))
+
+b.join(d).collect
+//> res46: Array[(Int, (String, String))] = Array((6,(salmon,salmon)), (6,(salmon,rabbit)), (6,(salmon,turkey)), (6,(salmon,salmon)), (6,(salmon,rabbit)), (6,(salmon,turkey)), (3,(dog,dog)), (3,(dog,cat)), (3,(dog,gnu)), (3,(dog,bee)), (3,(rat,dog)), (3,(rat,cat)), (3,(rat,gnu)), (3,(rat,bee)))
+```
+- 共同的部分
+ - key=3, b: dog, rat (x2), d: dog, cat, gnu, bee (x4) => 2x4=8
+ - key=6, b: salomn, salmon (x2), d: salmon, rabbit, trukey (x3) => 2x3=6
+
 ### keys
+```scala
+def keys: RDD[K]
+```
+Return an RDD with the keys of each tuple.
+
+```scala
+val a = sc.parallelize(List("apple","banana","cherry","date","elderberry"))
+val b = a.keyBy(_.length)
+b.keys.collect
+//> res50: Array[Int] = Array(5, 6, 6, 4, 10)
+```
+
 ### leftOuterJoin
 ### lookup
 ### mapValues
