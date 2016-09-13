@@ -953,7 +953,27 @@ randRDD.filterByRange(3,5).collect  //> res25: Array[(Int, String)] = Array((3,b
 ```
 
 ### repartitionAndSortWithPartitions
+
 ### sortByKey
+```scala
+def sortByKey(ascending: Boolean = true, numPartitions: Int = self.partitions.length): RDD[(K, V)]
+```
+Sort the RDD by key, so that each partition contains a sorted range of the elements.
+
+```scala
+val a = sc.parallelize(List("dog", "cat", "owl", "gnu", "ant"), 2)
+val b = sc.parallelize(1 to a.count.toInt, 2)
+val c = a.zip(b)
+
+c.collect                  //> res57: Array[(String, Int)] = Array((dog,1), (cat,2), (owl,3), (gnu,4), (ant,5))
+c.sortByKey(true).collect  //> res58: Array[(String, Int)] = Array((ant,5), (cat,2), (dog,1), (gnu,4), (owl,3))
+```
+
+其他作法
+```scala
+c.sortBy(kv => kv._1, true).collect  //> res60: Array[(String, Int)] = Array((ant,5), (cat,2), (dog,1), (gnu,4), (owl,3))
+c.sortBy(kv => kv._2, false).collect //> res61: Array[(String, Int)] = Array((ant,5), (gnu,4), (owl,3), (cat,2), (dog,1))
+```
 
 ## [SequenceFileRDDFunctions](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.SequenceFileRDDFunctions)
 
