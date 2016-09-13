@@ -1090,6 +1090,21 @@ def sampleByKeyExact(withReplacement: Boolean, fractions: Map[K, Double], seed: 
 ```
 Return a subset of this RDD sampled by key (via stratified sampling) containing exactly math.ceil(numItems * samplingRate) for each stratum (group of pairs with the same key).
 
+```scala
+val a =  sc.parallelize(List((0,0), (1,1), (2,2), (3,3), (0,4), (1,5), (2,6), (3,7), (0,8), (1,9), (2, 10), (3,11)))
+a.lookup(0) //> res117: Seq[Int] = WrappedArray(0, 4, 8)
+a.lookup(1) //> res118: Seq[Int] = WrappedArray(1, 5, 9)
+a.lookup(2) //> res119: Seq[Int] = WrappedArray(2, 6, 10)
+a.lookup(3) //> res120: Seq[Int] = WrappedArray(3, 7, 11)
+
+val sampleMap = List((0, 0.4), (2, 0.6)).toMap
+a.sampleByKey(false, sampleMap).collect
+
+16/09/13 10:35:11 ERROR Executor: Exception in task 0.0 in stage 114.0 (TID 242)
+java.util.NoSuchElementException: key not found: 1
+```
+> 不懂?!
+
 ### saveAsHodoopFile
 ### saveAsHadoopDataset
 ### saveAsNewAPIHadoopFile
