@@ -857,18 +857,21 @@ a.zipWithIndex.collectAsMap
 ### combineByKey
 ```scala
 def combineByKey[C](createCombiner: (V) ⇒ C, mergeValue: (C, V) ⇒ C, mergeCombiners: (C, C) ⇒ C): RDD[(K, C)]
-```
-Simplified version of combineByKeyWithClassTag that hash-partitions the resulting RDD using the existing partitioner/parallelism level.
-
-```scala
 def combineByKey[C](createCombiner: (V) ⇒ C, mergeValue: (C, V) ⇒ C, mergeCombiners: (C, C) ⇒ C, numPartitions: Int): RDD[(K, C)]
-```
-Simplified version of combineByKeyWithClassTag that hash-partitions the output RDD.
-
-```scala
 def combineByKey[C](createCombiner: (V) ⇒ C, mergeValue: (C, V) ⇒ C, mergeCombiners: (C, C) ⇒ C, partitioner: Partitioner, mapSideCombine: Boolean = true, serializer: Serializer = null): RDD[(K, C)]
 ```
-Generic function to combine the elements for each key using a custom set of aggregation functions.
+使用不同返回類型，合併具有相同鍵的值
+- 對於新元素，`createCombiner` 創建鍵值對應的累加器的初值。針對每個分區第一次出現各個鍵值時發生，不是整個 RDD 中第一次出現一個鍵時發生
+- 如果這是一個在處理當前分區已經遇過的鍵值，使用 `mergeValue` 將該鍵的累加器對應當前的值與這個新的值進行合併
+- 由於每個分區都是獨立處理，所以同一個鍵可以有多個累加器。有兩個或更多分區對應同一個鍵的累加器，需要使用用戶提供的 `mergeCombiners` 將個分區的結果進行合併
+
+```scala
+val a = sc.parallelize(List(("A", 100), ("B", 150), ("A", 200), ("C", 50), ("B", 50)))
+
+val result = a.combineByKey((v) => (v, 1), (acc: (Int, Int), v) => (acc._1 + v, acc._2 + 1), (acc1: (Int, Int), acc2: (Int, Int)) => (acc1._1 + acc2._1, acc1._2 + acc2._2)).map{ case (key, value) => (key, value._1 / value._2.toDouble) }
+
+result.collect //> res34: Array[(String, Double)] = Array((B,100.0), (A,150.0), (C,50.0))
+```
 
 ### countApproxDistinctByKey
 ### countByKey
