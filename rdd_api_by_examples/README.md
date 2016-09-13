@@ -952,21 +952,6 @@ a.foldByKey(0)(_+_).collect      //> res34: Array[(String, Int)] = Array((B,200)
 a.foldByKey(0)(math.max).collect //> res36: Array[(String, Int)] = Array((B,150), (A,200), (C,50))
 ```
 
-### fullOuterJoin
-```scala
-def fullOuterJoin[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (Option[V], Option[W]))]
-def fullOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (Option[V], Option[W]))]
-def fullOuterJoin[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (Option[V], Option[W]))]
-```
-Perform a full outer join of this and other.
-
-```scala
-val pairRDD1 = sc.parallelize(List( ("cat",2), ("cat", 5), ("book", 4),("cat", 12)))
-val pairRDD2 = sc.parallelize(List( ("cat",2), ("cup", 5), ("mouse", 4),("cat", 12)))
-pairRDD1.fullOuterJoin(pairRDD2).collect
-//> res37: Array[(String, (Option[Int], Option[Int]))] = Array((book,(Some(4),None)), (mouse,(None,Some(4))), (cup,(None,Some(5))), (cat,(Some(2),Some(2))), (cat,(Some(2),Some(12))), (cat,(Some(5),Some(2))), (cat,(Some(5),Some(12))), (cat,(Some(12),Some(2))), (cat,(Some(12),Some(12))))
-```
-
 ### groupByKey
 ```scala
 def groupByKey(): RDD[(K, Iterable[V])]
@@ -983,32 +968,6 @@ b.groupByKey.collect
 //> res39: Array[(Int, Iterable[String])] = Array((4,CompactBuffer(date)), (6,CompactBuffer(banana, cherry)), (10,CompactBuffer(elderberry)), (5,CompactBuffer(apple)))
 ```
 
-### join
-```scala
-def join[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (V, W))]
-def join[W](other: RDD[(K, W)]): RDD[(K, (V, W))]
-def join[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (V, W))]
-```
-Return an RDD containing all pairs of elements with matching keys in this and other.
-
-```scala
-val a = sc.parallelize(List("dog", "salmon", "salmon", "rat", "elephant"), 3)
-val b = a.keyBy(_.length)
-b.collect
-//> res44: Array[(Int, String)] = Array((3,dog), (6,salmon), (6,salmon), (3,rat), (8,elephant))
-
-val c = sc.parallelize(List("dog","cat","gnu","salmon","rabbit","turkey","wolf","bear","bee"), 3)
-val d = c.keyBy(_.length)
-d.collect
-//> res45: Array[(Int, String)] = Array((3,dog), (3,cat), (3,gnu), (6,salmon), (6,rabbit), (6,turkey), (4,wolf), (4,bear), (3,bee))
-
-b.join(d).collect
-//> res46: Array[(Int, (String, String))] = Array((6,(salmon,salmon)), (6,(salmon,rabbit)), (6,(salmon,turkey)), (6,(salmon,salmon)), (6,(salmon,rabbit)), (6,(salmon,turkey)), (3,(dog,dog)), (3,(dog,cat)), (3,(dog,gnu)), (3,(dog,bee)), (3,(rat,dog)), (3,(rat,cat)), (3,(rat,gnu)), (3,(rat,bee)))
-```
-- 共同的部分
- - key=3, b: dog, rat (x2), d: dog, cat, gnu, bee (x4) => 2x4=8
- - key=6, b: salomn, salmon (x2), d: salmon, rabbit, trukey (x3) => 2x3=6
-
 ### keys
 ```scala
 def keys: RDD[K]
@@ -1022,14 +981,60 @@ b.keys.collect
 //> res50: Array[Int] = Array(5, 6, 6, 4, 10)
 ```
 
-### leftOuterJoin
+### join, leftOuterJoin, rightOuterJoin, fullOuterJoin
+
+```scala
+def join[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (V, W))]
+def join[W](other: RDD[(K, W)]): RDD[(K, (V, W))]
+def join[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (V, W))]
+```
+Return an RDD containing all pairs of elements with matching keys in this and other.
+
+```scala
+def leftOuterJoin[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (V, Option[W]))]
+def leftOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (V, Option[W]))]
+def leftOuterJoin[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (V, Option[W]))]
+```
+Perform a left outer join of this and other.
+
+```scala
+def rightOuterJoin[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (Option[V], W))]
+def rightOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (Option[V], W))]
+def rightOuterJoin[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (Option[V], W))]
+```
+Perform a right outer join of this and other.
+
+```scala
+def fullOuterJoin[W](other: RDD[(K, W)], numPartitions: Int): RDD[(K, (Option[V], Option[W]))]
+def fullOuterJoin[W](other: RDD[(K, W)]): RDD[(K, (Option[V], Option[W]))]
+def fullOuterJoin[W](other: RDD[(K, W)], partitioner: Partitioner): RDD[(K, (Option[V], Option[W]))]
+```
+Perform a full outer join of this and other.
+
+```scala
+val a = sc.parallelize(List(("A",1), ("B",2), ("C",3)))
+val b = sc.parallelize(List(("B",4), ("C",5), ("D",6)))
+
+a.join(b).collect
+//> res60: Array[(String, (Int, Int))] = Array((B,(2,4)), (C,(3,5)))
+
+a.leftOuterJoin(b).collect
+//> res61: Array[(String, (Int, Option[Int]))] = Array((B,(2,Some(4))), (A,(1,None)), (C,(3,Some(5))))
+
+a.rightOuterJoin(b).collect
+//> res62: Array[(String, (Option[Int], Int))] = Array((B,(Some(2),4)), (C,(Some(3),5)), (D,(None,6)))
+
+a.fullOuterJoin(b).collect
+//> res63: Array[(String, (Option[Int], Option[Int]))] = Array((B,(Some(2),Some(4))), (A,(Some(1),None)), (C,(Some(3),Some(5))), (D,(None,Some(6))))
+```
+
 ### lookup
 ### mapValues
 ### partitionBy
 ### reduceByKey
 ### reduceByKeyLocally
 ### reduceByKeyToDriver
-### rightOuterJoin
+
 ### sampleByKey
 ### sampleByKeyExact
 ### saveAsHodoopFile
@@ -1037,6 +1042,8 @@ b.keys.collect
 ### saveAsNewAPIHadoopFile
 ### subtractByKey
 ### values
+
+### rightOuterJoin
 
 ### aggregateByKey vs combineByKey
 ```scala
