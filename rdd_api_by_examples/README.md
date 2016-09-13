@@ -789,6 +789,16 @@ pairRDD.aggregateByKey(0)(math.max(_,_), math.max(_,_)).collect
 //> res5: Array[(String, Int)] = Array((dog,12), (cat,12), (mouse,4))
 ```
 
+```scala
+val a = sc.parallelize(List(("A", 100), ("B", 150), ("A", 200), ("C", 50), ("B", 50)))
+
+val result = a.aggregateByKey((0,0))((acc: (Int, Int), v) => (acc._1 + v, acc._2 + 1), (acc1, acc2) => (acc1._1 + acc2._1, acc1._2 + acc2._2)).map{case (key: String, value: (Int, Int)) => (key, value._1 / value._2.toDouble) }
+//> result: org.apache.spark.rdd.RDD[(String, Double)] = MapPartitionsRDD[61] at map at <console>:28
+
+result.collect
+//> res45: Array[(String, Double)] = Array((B,100.0), (A,150.0), (C,50.0))
+```
+
 ### cogroup
 ```scala
 def cogroup[W1, W2, W3](other1: RDD[(K, W1)], other2: RDD[(K, W2)], other3: RDD[(K, W3)], numPartitions: Int): RDD[(K, (Iterable[V], Iterable[W1], Iterable[W2], Iterable[W3]))]
