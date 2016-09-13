@@ -908,6 +908,23 @@ result.collect //> res34: Array[(String, Double)] = Array((B,100.0), (A,150.0), 
 ### subtractByKey
 ### values
 
+### aggregateByKey vs combineByKey
+```scala
+def aggregateByKey[U](zeroValue: U)(seqOp: (U, V) ⇒ U, combOp: (U, U) ⇒ U)(implicit arg0: ClassTag[U]): RDD[(K, U)]
+def combineByKey[C](createCombiner: (V) ⇒ C, mergeValue: (C, V) ⇒ C, mergeCombiners: (C, C) ⇒ C): RDD[(K, C)]
+```
+
+```scala
+val a = sc.parallelize(List(("A", 100), ("B", 150), ("A", 200), ("C", 50), ("B", 50)))
+
+a.aggregateByKey((0, 0))((acc, v) => (acc._1 + v, acc._2 + 1), (acc1, acc2) => (acc1._1 + acc2._1, acc1._2 + acc2._2)).map{ case (key, value) => (key, value._1 / value._2.toDouble) }.collect
+//> res50: Array[(String, Double)] = Array((B,100.0), (A,150.0), (C,50.0))
+
+a.combineByKey((v) => (v, 1), (acc: (Int, Int), v) => (acc._1 + v, acc._2 + 1), (acc1: (Int, Int), acc2: (Int, Int)) => (acc1._1 + acc2._1, acc1._2 + acc2._2)).map{ case (key, value) => (key, value._1 / value._2.toDouble) }.collect
+//> res55: Array[(String, Double)] = Array((B,100.0), (A,150.0), (C,50.0))
+```
+> `combineByKey` 使用上比 `aggregateByKey` 更繁瑣，什麼情況非用不可呢？
+
 ## [DoubleRDDFunctions](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.DoubleRDDFunctions)
 ### mean
 ### meanApprox
