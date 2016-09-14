@@ -1,3 +1,0 @@
-## isCheckpointed
-
-<<< TBC >>>

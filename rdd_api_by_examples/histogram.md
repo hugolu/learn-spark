@@ -1,3 +1,0 @@
-## histogram [Double]
-
-<<< TBC >>>

@@ -1,3 +1,0 @@
-## fullOuterJoin [Pair]
-
-<<< TBC >>>

@@ -1,3 +1,0 @@
-## getStorageLevel
-
-<<< TBC >>>

@@ -1,3 +1,0 @@
-## filterByRange [Ordered]
-
-<<< TBC >>>

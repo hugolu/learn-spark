@@ -1,3 +1,0 @@
-## saveAsSequenceFile [SeqFile]
-
-<<< TBC >>>

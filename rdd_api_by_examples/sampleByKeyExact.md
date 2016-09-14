@@ -1,3 +1,0 @@
-## sampleByKeyExact [Pari]
-
-<<< TBC >>>

@@ -1,3 +1,0 @@
-## partitionBy [pair]
-
-<<< TBC >>>

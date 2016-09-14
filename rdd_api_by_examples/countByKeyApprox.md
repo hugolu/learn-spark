@@ -1,3 +1,0 @@
-## countByKeyApprox [pair]
-
-<<< TBC >>>

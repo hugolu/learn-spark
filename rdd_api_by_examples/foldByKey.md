@@ -1,3 +1,0 @@
-## foldByKey [Pair]
-
-<<< TBC >>>
