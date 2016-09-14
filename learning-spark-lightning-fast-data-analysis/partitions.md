@@ -8,6 +8,7 @@
 val a = sc.parallelize(1 to 10000, 100)
 
 val b = a.map(n => (n, 1)).reduce((x, y) => (x._1 + y._1, x._2 + y._2))
+//> b: (Int, Int) = (50005000,10000)
 
 val c = a.mapPartitions{ iter =>
   var sum = 0
@@ -18,6 +19,18 @@ val c = a.mapPartitions{ iter =>
   }
   List((sum, cnt)).iterator
 }.reduce((x, y) => (x._1 + y._1, x._2 + y._2))
+//> c: (Int, Int) = (50005000,10000)
 ```
 - b: 為每個元素創建一個 tuple
 - c: 為每個分區創建一個 tuple，不用為每個元素都執行這個操作
+
+## `aggregate` 更好的用法
+```scala
+val d = a.aggregate((0,0))((acc, value) => (acc._1 + value, acc._2 + 1), (acc1, acc2) => (acc1._1 + acc2._1, acc1._2 + acc2._2))
+//> d: (Int, Int) = (50005000,10000)
+```
+The aggregate function allows the user to apply two different reduce functions to the RDD.
+- The first reduce function is applied within each **partition** to reduce the data within each partition into a single result.
+- The second reduce function is used to combine the different reduced results of all partitions together to arrive at one final result.
+
+The ability to have two separate reduce functions for intra partition versus across partition reducing adds a lot of flexibility.
