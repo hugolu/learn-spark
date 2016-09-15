@@ -98,3 +98,13 @@ data.take(5).foreach(item => println(f"${item(1)}%20s: ${genreInfo(item)}"))
 //>   Get Shorty (1995): Action, Comedy, Drama
 //>      Copycat (1995): Crime, Drama, Thriller
 ```
+
+### 用戶評分
+```scala
+val rating = sc.textFile("ml-100k/u.data").map(_.split("\t"))
+rating.first
+//> res81: Array[String] = Array(196, 242, 3, 881250949)
+
+rating.map(r => r(2).toDouble).stats()
+//> res82: org.apache.spark.util.StatCounter = (count: 100000, mean: 3.529860, stdev: 1.125668, max: 5.000000, min: 1.000000)
+```
