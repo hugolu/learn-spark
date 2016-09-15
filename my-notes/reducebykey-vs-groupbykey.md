@@ -7,6 +7,8 @@ def groupByKey(): RDD[(K, Iterable[V])]
 def reduceByKey(func: (V, V) => V): RDD[(K, V)]
 ```
 
+> 虽然两个函数都能得出正确的结果， 但reduceByKey函数更适合使用在大数据集上。 这是因为Spark知道它可以在每个分区移动数据之前将输出数据与一个共用的 key 结合。
+
 ```scala
 val words = sc.parallelize(List("apple", "dog", "cat", "cat", "apple", "dog", "cat", "dog", "cat"), 3)
 words.foreachPartition(iter => println(iter.mkString(",")))
