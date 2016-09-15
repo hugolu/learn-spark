@@ -34,3 +34,29 @@
 ### u.occupation
 用戶職業列表
 
+## 隨便看看
+
+### 用戶資訊
+```scala
+val user = sc.textFile("ml-100k/u.user").map(line => line.split("\\|"))
+user.first
+//> res2: Array[String] = Array(1, 24, M, technician, 85711)
+```
+
+### 職業資訊
+```scala
+val occupation = sc.textFile("ml-100k/u.occupation")
+occupation.collect
+//> res4: Array[String] = Array(administrator, artist, doctor, educator, engineer, entertainment, executive, healthcare, homemaker, lawyer, librarian, marketing, none, other, programmer, retired, salesman, scientist, student, technician, writer)
+
+val occupationMap = occupation.zipWithIndex.collectAsMap
+//> res6: scala.collection.Map[String,Long] = Map(scientist -> 17, writer -> 20, doctor -> 2, healthcare -> 7, administrator -> 0, educator -> 3, homemaker -> 8, none -> 12, artist -> 1, salesman -> 16, executive -> 6, programmer -> 14, engineer -> 4, librarian -> 10, technician -> 19, retired -> 15, entertainment -> 5, marketing -> 11, student -> 18, lawyer -> 9, other -> 13)
+val bcOccupationMap = sc.broadcast(occupationMap)
+```
+
+## 轉換用戶資訊
+```scala
+val userRDD = user.map(u => (u(0).toInt, u(1).toInt, if (u(2) == "M") 0 else 1, bcOccupationMap.value(u(3)).toInt, u(4).toInt))
+userRDD.first
+//> res16: (Int, Int, Int, Int, Int) = (1,24,0,19,85711)
+```
