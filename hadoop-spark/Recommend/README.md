@@ -139,3 +139,20 @@ rating.map(r => r(2).toDouble).stats()
 ```
 
 ## 隨便玩玩
+```scala
+import org.apache.spark.mllib.recommendation.{ALS, Rating}
+
+val rawRatings = sc.textFile("ml-100k/u.data").map(_.split("\t").take(3))
+val ratingsRDD = rawRatings.map(r => Rating(r(0).toInt, r(1).toInt, r(2).toDouble))
+val Array(trainRDD, validationRDD) = ratingsRDD.randomSplit(Array(0.8, 0.2))
+
+val model = ALS.train(trainRDD, 5, 20, 0.1)
+
+model.recommendUsers(1, 3)
+model.recommendProducts(1, 3)
+
+val predictRDD = model.predict(validationRDD.map(t => (t.user, t.product)))
+val predictAndRatings = predictRDD.map(t => ((t.user, t.product), t.rating)).join(validationRDD.map(t => ((t.user, t.product), t.rating))).values
+val rmse = math.sqrt(predictAndRatings.map(t => math.pow(t._1 - t._2, 2)).reduce(_+_) / predictAndRatings.count)
+//> rmse: Double = 0.91382775129132
+```
