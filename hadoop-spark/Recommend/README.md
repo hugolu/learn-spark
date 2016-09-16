@@ -1,6 +1,35 @@
-# ml-100
+# 推薦系統
 
-## README
+## 重點整理
+
+### ALS 訓練資料
+```scala
+case class Rating(user: Int, product: Int, rating: Double) extends Product with Serializable
+```
+
+### ALS 進行訓練
+```scala
+def train(ratings: RDD[Rating], rank: Int, iterations: Int): MatrixFactorizationModel
+def trainImplicit(ratings: RDD[Rating], rank: Int, iterations: Int): MatrixFactorizationModel
+```
+
+### MatrixFactorizationModel
+```scala
+MatrixFactorizationModel(rank: Int, userFeatures: RDD[(Int, Array[Double])], productFeatures: RDD[(Int, Array[Double])])
+```
+
+```scala
+def recommendUsers(product: Int, num: Int): Array[Rating]
+def recommendProducts(user: Int, num: Int): Array[Rating]
+def predict(usersProducts: RDD[(Int, Int)]): RDD[Rating]
+```
+
+### RMSE (Root Mean Squared Error)
+```scala
+math.sqrt(tuples.map(t => math.pow(t._1, t._2, 2)).reduct(_+_) / tuples.count)
+```
+
+## ml-100　相關文件
 
 ### u.data
 10000 個評論，來自 943 位使用者對 1682 部電影的評論
@@ -108,3 +137,5 @@ rating.first
 rating.map(r => r(2).toDouble).stats()
 //> res82: org.apache.spark.util.StatCounter = (count: 100000, mean: 3.529860, stdev: 1.125668, max: 5.000000, min: 1.000000)
 ```
+
+## 隨便玩玩
