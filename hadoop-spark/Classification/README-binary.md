@@ -64,6 +64,9 @@ val model = DecisionTree.trainClassifier(trainLabeledPoint, 2, Map[Int, Int](), 
 ```scala
 validationRDD.first.label                     //> res1: Double = 1.0
 model.predict(validationRDD.first.features)   //> res2: Double = 0.0
+
+model.predict(validationRDD.map(lp => lp.features)).take(5)
+//> res3: Array[Double] = Array(0.0, 0.0, 1.0, 0.0, 1.0)
 ```
 
 ```scala
