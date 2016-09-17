@@ -65,7 +65,7 @@ registered  | 已註冊會員：此時租借的數目 | 忽略
 cnt         | 此時租借總數量 cnt = casual + registered | 標籤欄位 (預測目標)
 
 ## 建立 RunDecisionTreeRegression.scala
-source: [Classification/src/main/scala/RunDecisionTreeRegression.scala](Classification/src/main/scala/RunDecisionTreeRegression.scala)
+source: [Regression/src/main/scala/RunDecisionTreeRegression.scala](Regression/src/main/scala/RunDecisionTreeRegression.scala)
 
 函數 | 說明
 -----|-----
