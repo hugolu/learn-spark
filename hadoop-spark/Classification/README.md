@@ -250,3 +250,19 @@ val matrics = new BinaryClassificationMetrics(scoreAndLabels)
 val AUC = matrics.areaUnderROC
 //> AUC: Double = 0.6304762672687201
 ```
+
+# Multi-Class Classification
+
+## UCI CoverType 資料
+
+檔案 | 說明
+-----|------
+covtype.data | 訓練資料集 (features + label)
+
+欄位
+- 0~9: Numerical features, Elevation, Aspect, Slope, ...
+- 10~13: Category features, Wilderness Areas
+- 14~53: Category features, Soil Types
+- 54: label
+
+## DecisionTree Multi-classs Classification
