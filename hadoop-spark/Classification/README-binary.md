@@ -57,7 +57,7 @@ val Array(trainRDD, validationRDD) = labeledPointRDD.randomSplit(Array(0.8, 0.2)
 ### 訓練模型
 ```scala
 import org.apache.spark.mllib.tree.DecisionTree
-//import org.apache.spark.mllib.tree.model.DecisionTreeModel
+import org.apache.spark.mllib.tree.model.DecisionTreeModel
 ```
 ```scala
 val model = DecisionTree.trainClassifier(trainRDD, 2, Map[Int, Int](), "entropy", 5, 5)
@@ -113,7 +113,7 @@ val Array(trainRDD, validationRDD) = scaledRDD.randomSplit(Array(0.8, 0.2))
 ### 訓練模型
 ```scala
 import org.apache.spark.mllib.classification.LogisticRegressionWithSGD
-//import org.apache.spark.mllib.classification.LogisticRegressionModel
+import org.apache.spark.mllib.classification.LogisticRegressionModel
 ```
 ```scala
 val model = LogisticRegressionWithSGD.train(trainRDD, 5, 50, 0.5)
