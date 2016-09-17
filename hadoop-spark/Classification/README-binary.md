@@ -129,3 +129,38 @@ val matrics = new BinaryClassificationMetrics(scoreAndLabels)
 val AUC = matrics.areaUnderROC
 //> AUC: Double = 0.6297526762643042
 ```
+
+## SVMWithSGD
+
+### 訓練資料集
+因為 Numerical Features 欄位單位不同，數字差異很大，無法彼此比較。需要使用標準化，讓數值特徵欄位有共同的標準。
+
+```scala
+import org.apache.spark.mllib.feature.StandardScaler
+```
+```scala
+val stdScaler = new StandardScaler(withMean=true, withStd=true).fit(labeledPointRDD.map(_.features))
+val scaledRDD = labeledPointRDD.map(lp => LabeledPoint(lp.label, stdScaler.transform(lp.features)))
+val Array(trainRDD, validationRDD) = scaledRDD.randomSplit(Array(0.8, 0.2))
+```
+
+### 訓練模型
+```scala
+import org.apache.spark.mllib.classification.SVMWithSGD
+import org.apache.spark.mllib.classification.SVMModel
+```
+```scala
+val model = SVMWithSGD.train(trainRDD, 25, 50.0, 1.0)
+```
+
+### 評估模型
+```scala
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
+```
+```scala
+val scoreAndLabels = validationRDD.map{ lp => (model.predict(lp.features), lp.label) }
+val matrics = new BinaryClassificationMetrics(scoreAndLabels)
+val AUC = matrics.areaUnderROC
+//> AUC: Double = 0.6475482958041099
+```
+
