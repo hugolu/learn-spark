@@ -16,6 +16,8 @@ test.tsv  | 測試資料集 (features)
 - 26: label
 
 ### 預處理
+去除表格標頭
+
 ```shell
 wc -l train.tsv           # 7396
 wc -l test.tsv            # 3172
@@ -26,6 +28,8 @@ sed '1d' < test.tsv > test-noheader.tsv
 wc -l train-noheader.tsv  # 7395
 wc -l test-noheader.tsv   # 3171
 ```
+
+## DecisionTreeBinary
 
 ### 訓練資料集
 ```scala
@@ -90,4 +94,38 @@ val testRDD = testData.map{ fields =>
 ```scala
 model.predict(testRDD.first.features)           //> res3: Double = 1.0
 model.predict(testRDD.map(_.features)).take(5)  //> res4: Array[Double] = Array(1.0, 1.0, 0.0, 0.0, 0.0)
+```
+
+## LogisticRegressionWithSGDBiary
+
+### 訓練資料集
+因為 Numerical Features 欄位單位不同，數字差異很大，無法彼此比較。需要使用標準化，讓數值特徵欄位有共同的標準。
+
+```scala
+import org.apache.spark.mllib.feature.StandardScaler
+```
+```scala
+val stdScaler = new StandardScaler(withMean=true, withStd=true).fit(labeledPointRDD.map(_.features))
+val scaledRDD = labeledPointRDD.map(lp => LabeledPoint(lp.label, stdScaler.transform(lp.features)))
+val Array(trainRDD, validationRDD) = scaledRDD.randomSplit(Array(0.8, 0.2))
+```
+
+### 訓練模型
+```scala
+import org.apache.spark.mllib.classification.LogisticRegressionWithSGD
+//import org.apache.spark.mllib.classification.LogisticRegressionModel
+```
+```scala
+val model = LogisticRegressionWithSGD.train(trainRDD, 5, 50, 0.5)
+```
+
+### 評估模型
+```scala
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
+```
+```scala
+val scoreAndLabels = validationRDD.map{ lp => (model.predict(lp.features), lp.label) }
+val matrics = new BinaryClassificationMetrics(scoreAndLabels)
+val AUC = matrics.areaUnderROC
+//> AUC: Double = 0.6297526762643042
 ```
