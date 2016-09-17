@@ -266,3 +266,39 @@ covtype.data | 訓練資料集 (features + label)
 - 54: label
 
 ## DecisionTree Multi-classs Classification
+
+### 訓練資料集
+```scala
+import org.apache.spark.mllib.regression.LabeledPoint
+import org.apache.spark.mllib.linalg.Vectors
+```
+```
+val dataRDD = sc.textFile("data/covtype.data").map(_.split(",")).map{ fields =>
+  val features = fields.slice(0, fields.size-1).map(_.toDouble)
+  val label = fields.last.toDouble - 1
+  LabeledPoint(label, Vectors.dense(features))
+}
+
+val Array(trainRDD, validationRDD) = dataRDD.randomSplit(Array(0.8, 0.2))
+```
+- DecisionTree label 要由 0 開始，所以減 1
+
+### 訓練模型
+```scala
+import org.apache.spark.mllib.tree.DecisionTree
+import org.apache.spark.mllib.tree.DecisionTreeModel
+```
+```scala
+val model = DecisionTree.trainClassifier(trainRDD, 7, Map[Int, Int](), "entropy", 20, 100)
+```
+
+### 評估模型
+```scala
+import org.apache.spark.mllib.evaluation.MulticlassMetrics
+```
+```scala
+val scoreAndLabels = validationRDD.map{ lp => (model.predict(lp.features), lp.label) }
+val matrics = new MulticlassMetrics(scoreAndLabels)
+val precision = matrics.precision
+//> precision: Double = 0.9168196034843746
+```
