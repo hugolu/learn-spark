@@ -2,6 +2,29 @@
 
 ## 重點整理
 
+### 資料集格式
+```scala
+case class LabeledPoint(label: Double, features: Vector) extends Product with Serializable
+```
+
+### 訓練模型 (DecisionTree)
+```scala
+def trainRegressor(input: RDD[LabeledPoint], categoricalFeaturesInfo: Map[Int, Int], impurity: String, maxDepth: Int, maxBins: Int): DecisionTreeModel
+```
+
+### 預測資料 (DecisionTreeModel)
+```scala
+def predict(features: RDD[Vector]): RDD[Double]
+def predict(features: Vector): Double
+```
+
+### 評估模型 (RegressionMetrics)
+```scala
+def meanAbsoluteError: Double
+def meanSquaredError: Double
+def rootMeanSquaredError: Double
+```
+
 ## Bike Share 資料集
 資料來源: [Bike Sharing Dataset Data Set](http://archive.ics.uci.edu/ml/datasets/bike+sharing+dataset)
 
