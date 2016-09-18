@@ -24,3 +24,39 @@ idx | 欄位 | 說明
 14 | casual | count of casual users
 15 | registered | count of registered users
 16 | cnt | count of total rental bikes including both casual and registered
+
+### 訓練資料集
+```scala
+import org.apache.spark.mllib.regression.LabeledPoint
+import org.apache.spark.mllib.linalg.Vectors
+```
+```scala
+val records = sc.textFile("data/hour-noheader.csv").map(_.split(","))
+val data = records.map{ fields =>
+  val label = fields.last.toDouble
+  val featureSeason = fields.slice(2, 3).map(_.toDouble)
+  val features = fields.slice(4, fields.size - 3).map(_.toDouble)
+  LabeledPoint(label, Vectors.dense(featureSeason ++ features))
+}
+val Array(trainRDD, validationRDD) = data.randomSplit(Array(0.8, 0.2))
+```
+
+### 訓練模型
+```scala
+import org.apache.spark.mllib.tree.DecisionTree
+import org.apache.spark.mllib.tree.model.DecisionTreeModel
+```
+```scala
+val model = DecisionTree.trainRegressor(trainRDD, Map[Int, Int](), "variance", 10, 50)
+```
+
+### 評估模型
+```scala
+import org.apache.spark.mllib.evaluation.RegressionMetrics
+```
+```scala
+val scoreAndLabels = validationRDD.map{ lp => (model.predict(lp.features), lp.label) }
+val metrics = new RegressionMetrics(scoreAndLabels)
+val RMSE = metrics.rootMeanSquaredError
+//> RMSE: Double = 78.02248183419584
+```
