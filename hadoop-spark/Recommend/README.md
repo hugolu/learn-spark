@@ -156,3 +156,32 @@ val predictAndRatings = predictRDD.map(t => ((t.user, t.product), t.rating)).joi
 val rmse = math.sqrt(predictAndRatings.map(t => math.pow(t._1 - t._2, 2)).reduce(_+_) / predictAndRatings.count)
 //> rmse: Double = 0.91382775129132
 ```
+
+### 關於一個 SparkException
+```scala
+val a = model.predict(validationRDD.map(t => (t.user, t.product)))
+val b = validationRDD.map(t => model.predict(t.user, t.product))
+```
+
+`a` 跟 `b` 很像，但執行 `b.first` 會產生以下錯誤訊息
+```
+org.apache.spark.SparkException: This RDD lacks a SparkContext. It could happen in the following cases:
+(1) RDD transformations and actions are NOT invoked by the driver, but inside of other transformations; for example, rdd1.map(x => rdd2.values.count() * x) is invalid because the values transformation and count action cannot be performed inside of the rdd1.map transformation. For more information, see SPARK-5063.
+(2) When a Spark Streaming job recovers from checkpoint, this exception will be hit if a reference to an RDD not defined by the streaming job is used in DStream operations. For more information, See SPARK-13758.
+```
+
+雖然 `model: org.apache.spark.mllib.recommendation.MatrixFactorizationModel` 看起來不像 RDD，但是裡面的元素有兩個是RDD
+- rank: Int
+- userFeatures: RDD[(Int, Array[Double])]
+- productFeatures: RDD[(Int, Array[Double])]
+
+`b` 這個 RDD 的 transform 會牽涉另一個 RDD 的 action，所以發生錯誤。
+
+Spark does not support nested RDDs or performing Spark actions inside of transformations. 例如
+```scala
+val rdd1 = sc.parallelize(1 to 10)
+val rdd2 = sc.parallelize(1 to 10)
+val rdd3 = rdd1.map(x => rdd2.map(y => y))
+//> 16/09/18 12:04:48 WARN MapPartitionsRDD: Spark does not support nested RDDs (see SPARK-5063)
+//> rdd3: org.apache.spark.rdd.RDD[org.apache.spark.rdd.RDD[Int]] = MapPartitionsRDD[871] at map at <console>:29
+```
