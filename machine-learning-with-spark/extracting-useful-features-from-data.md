@@ -62,6 +62,32 @@ Bag-of-word 是一個簡單且標準化的文本處理方式，過程：
   - 从学习理论的角度来说，L2范数可以防止过拟合，提升模型的泛化能力。
   - 从优化或者数值计算的角度来说，L2范数有助于处理 condition number不好的情况下矩阵求逆很困难的问题。(让优化求解变得稳定和快速)
 
+### 手動計算正則化的特徵向量
+
+```scala
+np.random.seed(42)
+
+x = np.random.randn(10)                             # 返回常態分佈樣本
+norm_of_x = np.linalg.norm(x)                       # 計算二階泛數
+normalized_x = x / norm_of_x                        # 正則化特徵向量
+norm_of_normalized_x = np.linalg.norm(normalized_x) # 計算正則化向量的二階泛數
+```
+
+```scala
+norm_of_x_by_hand = np.sqrt(reduce(lambda a,b: a+b, map(lambda n: n*n, x)))
+```
+- 向量各元素的平方和然后求平方根
+
+### 使用 Normalizer 轉換
+```scala
+from pyspark.mllib.feature import Normalizer
+
+normalizer = Normalizer()
+vector = sc.parallelize([x])
+
+normalized_x = normalizer.transform(vector).first().toArray()
+```
+
 ## 用軟件包提取特徵
 
 借助 scala, java, python 語言言提供的軟件包，使用完善的工具實現特徵的處理與提取，以及向量表示。
