@@ -146,6 +146,8 @@ val sortedSims = sims.top(10)(Ordering.by[(Int, Double), Double] { case (id, sim
   - 比較方法 `Ordering.by`，輸入 (id, similarity)，比較 similarity (降冪排序)
 - 等同於 `sims.top(10)(Ordering.by[(Int, Double), Double](_._2))`
 
+> 使用 `top()` 分散式排序有比 `sims.sortBy(_._2).take(10)` 更高效嗎？
+
 > 更多 `Ordering.by` 的細節，參考 [比較集合內的元素](https://github.com/hugolu/learn-scala/blob/master/myNote/ordered-ordering.md)
 
 ## 應用標準的評估指標來評估該模型的預測能力
