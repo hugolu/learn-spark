@@ -157,6 +157,18 @@ val rmse = math.sqrt(predictAndRatings.map(t => math.pow(t._1 - t._2, 2)).reduce
 //> rmse: Double = 0.91382775129132
 ```
 
+### 關於可讀性
+```scala
+val ratingsRDD = rawRatings.map(r => Rating(r(0).toInt, r(1).toInt, r(2).toDouble))
+```
+```scala
+val ratingsRDD = rawRatings.map{ case Array(user, product, rating) =>
+  Rating(user.toInt, product.toInt, rating.toDouble)
+}
+```
+
+後者雖然囉唆，但可讀性比前者強多了
+
 ### 關於一個 SparkException
 ```scala
 val a = model.predict(validationRDD.map(t => (t.user, t.product)))
