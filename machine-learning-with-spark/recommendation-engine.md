@@ -265,3 +265,75 @@ val rankingMetrics = new RankingMetrics(predictedAndTrueForRanking)
 rankingMetrics.meanAveragePrecision   //> 0.1905180005743294
 ```
 - `predictedAndTrueForRanking: org.apache.spark.rdd.RDD[(Array[Int], Array[Int])]`
+
+## 另一種玩法
+### 原來計算 MAP 的方式
+```scala
+import org.apache.spark.mllib.recommendation.{ALS, Rating}
+import org.jblas.DoubleMatrix
+import org.apache.spark.mllib.evaluation.RankingMetrics
+
+val ratings = sc.textFile("../ml-100k/u.data").map(_.split("\t").take(3)).map{case Array(u,p,r) => Rating(u.toInt, p.toInt, r.toDouble)}
+
+val model = ALS.train(ratings, 50, 10, 0.01)
+
+val userFactors = model.userFeatures.map{case (id, factor) => factor}.collect
+val userMatrix = new DoubleMatrix(userFactors)
+println(userMatrix.rows, userMatrix.columns)  //> (943,50)
+
+val itemFactors = model.productFeatures.map{case (id, factor) => factor}.collect
+val itemMatrix = new DoubleMatrix(itemFactors)
+println(itemMatrix.rows, itemMatrix.columns)  //> (1682,50)
+
+val imBroadcast = sc.broadcast(itemMatrix)
+val allRecs = model.userFeatures.map{ case (userId, array) =>
+  val userVector = new DoubleMatrix(array)
+  val scores = imBroadcast.value.mmul(userVector)
+  val sortedWithId = scores.data.zipWithIndex.sortBy(-_._1)
+  val recommendedIds = sortedWithId.map(_._2 + 1).toSeq
+  (userId, recommendedIds)
+}
+
+val userMovies = ratings.map{ case Rating(user, product, rating) => (user, product)}.groupByKey
+
+val predictedAndTrueRanking = allRecs.join(userMovies).map{ case (userId, (predicted, actual)) => (predicted.toArray, actual.toArray) }
+
+val rankingMetrics = new RankingMetrics(predictedAndTrueRanking)
+rankingMetrics.meanAveragePrecision           //> res2: Double = 0.19042544203054956
+```
+
+### 另一種計算 MAP 的方式
+不同於前者分別預測每個用戶選擇的電影，下面直接計算 user factor matrix 與 item factor matrix 相乘，然後根據 userMovies 得到真實與預測的電影排名。
+
+```scala
+import org.apache.spark.mllib.recommendation.{ALS, Rating}
+import org.jblas.DoubleMatrix
+import org.apache.spark.mllib.evaluation.RankingMetrics
+
+val ratings = sc.textFile("../ml-100k/u.data").map(_.split("\t").take(3)).map{case Array(u,p,r) => Rating(u.toInt, p.toInt, r.toDouble)}
+
+val model = ALS.train(ratings, 50, 10, 0.01)
+
+val userFactors = model.userFeatures.map{case (id, factor) => factor}.collect
+val userMatrix = new DoubleMatrix(userFactors)
+println(userMatrix.rows, userMatrix.columns)  //> (943,50)
+
+val itemFactors = model.productFeatures.map{case (id, factor) => factor}.collect
+val itemMatrix = new DoubleMatrix(itemFactors)
+println(itemMatrix.rows, itemMatrix.columns)  //> (1682,50)
+
+val scoreMatrix = userMatrix.mmul(itemMatrix.transpose)
+println(scoreMatrix.rows, scoreMatrix.columns)//> (943,1682)
+
+val userMovies = ratings.map{ case Rating(user, product, rating) => (user, product)}.groupByKey
+
+val predictedAndTrueRanking = userMovies.map{ case (userId, actual) =>
+  val scores = scoreMatrix.getRow(userId-1)
+  val sortedWithIdx = scores.data.zipWithIndex.sortBy(-_._1)
+  val recommendedIds = sortedWithIdx.map(_._2 + 1).toSeq
+  (recommendedIds.toArray, actual.toArray)
+}
+
+val rankingMetrics = new RankingMetrics(predictedAndTrueRanking)
+rankingMetrics.meanAveragePrecision           //> res3: Double = 0.1921245427658284
+```
