@@ -24,6 +24,8 @@ val spark = SparkSession.builder().getOrCreate()
 - `SparkSession`: 使用 Spark 操作 Dataset 與 DataFrame 的進入點
 
 ### 由 json 檔案產生 DataFrame
+- [people.json](https://github.com/apache/spark/blob/master/examples/src/main/resources/people.json)
+
 ```scala
 val df = spark.read.json("people.json")
 
@@ -36,3 +38,44 @@ df.show()
 // |  19| Justin|
 // +----+-------+
 ```
+
+### 操作 DataFrame (Untyped Dataset)
+參考: [org.apache.spark.sql.Dataset](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.Dataset)
+
+```scala
+df.printSchema()                      // Print the schema in a tree format
+df.select("name").show()              // Select only the "name" column
+df.select($"name", $"age" + 1).show() // Select everybody, but increment the age by 1
+df.filter($"age" > 21).show()         // Select people older than 21
+df.groupBy("age").count().show()      // Count people by age
+```
+
+### RDD, DataFrame, DataSet
+參考: [RDD、DataFrame和DataSet的区别](http://www.jianshu.com/p/c0181667daa0)
+
+#### RDD vs DataFrame
+![RDD vs DataFrame](https://raw.githubusercontent.com/jacksu/utils4s/master/spark-knowledge/images/rdd-dataframe-dataset/rdd-dataframe.png)
+
+RDD | DataFrame
+----|----------
+以Person为类型参数，但Spark框架本身不了解Person类的内部结构 | 提供了详细的结构信息，使得Spark SQL可以清楚地知道该数据集中包含哪些列，每列的名称和类型各是什么
+分布式的Java对象的集合 | 分布式的Row对象的集合
+
+DataFrame除了提供了比RDD更丰富的算子以外，更重要的特点是提升执行效率、减少数据读取以及执行计划的优化，比如filter下推、裁剪等。
+
+#### RDD vs DataSet
+RDD | DataSet
+----|--------
+依赖于运行时反射机制 | 以Catalyst逻辑执行计划表示，并且数据以编码的二进制形式被存储，不需要反序列化就可以执行sorting、shuffle等操作。
+
+DataSet的性能比RDD的要好很多
+
+#### DataFrame vs DataSet
+Dataset可以认为是DataFrame的一个特例，主要区别是Dataset每一个record存储的是一个强类型值而不是一个Row。
+
+DataSet | DataFrame
+--------|-----------
+在编译时检查类型 | DataFrame会继承DataSet
+面向对象的编程接口 | 面向Spark SQL的接口
+
+DataFrame和DataSet可以相互转化，`df.as[ElementType]`这样可以把DataFrame转化为DataSet，`ds.toDF()`这样可以把DataSet转化为DataFrame。
