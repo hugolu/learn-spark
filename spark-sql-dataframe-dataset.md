@@ -28,13 +28,11 @@ val spark = SparkSession.builder().getOrCreate()
 val df = spark.read.json("people.json")
 
 df.show()
-```
-```
-+----+-------+
-| age|   name|
-+----+-------+
-|null|Michael|
-|  30|   Andy|
-|  19| Justin|
-+----+-------+
+// +----+-------+
+// | age|   name|
+// +----+-------+
+// |null|Michael|
+// |  30|   Andy|
+// |  19| Justin|
+// +----+-------+
 ```
