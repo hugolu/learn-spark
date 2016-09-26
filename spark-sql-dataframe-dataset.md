@@ -155,3 +155,30 @@ peopleDF.select("name").write.format("json").mode("error").save("people2.json")
 #### 儲存為持久化表格
 DataFrames can also be saved as persistent tables into Hive metastore using the saveAsTable command.
 
+### Parquet Files
+#### 合併 schema
+```scala
+val squaresDF = sc.parallelize(1 to 3).map(i => (i, i*i)).toDF("value", "square")
+squaresDF.write.parquet("data/test_table/key=1")
+
+val cubesDF = sc.parallelize(1 to 3).map(i => (i, i*i*i)).toDF("value", "cube")
+cubesDF.write.parquet("data/test_table/key=2")
+
+val mergedDF = spark.read.option("mergeSchema", "true").parquet("data/test_table")
+mergedDF.show
++-----+------+----+---+
+|value|square|cube|key|
++-----+------+----+---+
+|    1|     1|null|  1|
+|    2|     4|null|  1|
+|    3|     9|null|  1|
+|    1|  null|   1|  2|
+|    2|  null|   8|  2|
+|    3|  null|  27|  2|
++-----+------+----+---+
+```
+> 合併 schema 的用意是？
+
+### JSON Datasets
+### Hive Tables
+### JDBC To Other Databases
