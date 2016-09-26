@@ -112,7 +112,9 @@ spark.sql("SELECT name, age FROM people WHERE age BETWEEN 13 AND 19").show()
 
 ## Data Sources
 
-### 預設格式 Parquet
+### 儲存與載入
+
+#### 預設格式 Parquet
 參考: [深入分析Parquet列式存储格式](http://www.infoq.com/cn/articles/in-depth-analysis-of-parquet-column-storage-format)
 
 column-store 優點:
@@ -124,4 +126,32 @@ column-store 優點:
 val userDF = spark.read.load("users.parquet")
 userDF.select("name", "favorite_color").write.save("user2.parquet")
 ```
+
+#### 自定義格式
+透過 `format()` 定義 data source 格式 (json, parquet, jdbc)
+
+```scala
+val peopleDF = spark.read.format("json").load("people.json")
+peopleDF.select("name").write.format("json").save("people2.json")
+```
+
+#### 直接查詢檔案
+
+```scala
+spark.sql("SELECT * FROM parquet.`users.parquet`")
+```
+
+#### 定義儲存模式
+- `SaveMode.ErrorIfExists` (default) - "error"
+- `SaveMode.Append` - "append"
+- `SaveMode.Overwrite` - "overwrite"
+- `SaveMode.Ignore` - "ignore"
+
+```scala
+peopleDF.write.format("json").mode("overwrite").save("people2.json")
+peopleDF.select("name").write.format("json").mode("error").save("people2.json")
+```
+
+#### 儲存為持久化表格
+DataFrames can also be saved as persistent tables into Hive metastore using the saveAsTable command.
 
