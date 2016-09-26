@@ -109,3 +109,19 @@ spark.sql("SELECT name, age FROM people WHERE age BETWEEN 13 AND 19").show()
 // |Justin| 19|
 // +------+---+
 ```
+
+## Data Sources
+
+### 預設格式 Parquet
+參考: [深入分析Parquet列式存储格式](http://www.infoq.com/cn/articles/in-depth-analysis-of-parquet-column-storage-format)
+
+column-store 優點:
+- 可以跳过不符合条件的数据，只读取需要的数据，降低IO数据量。
+- 压缩编码可以降低磁盘存储空间。由于同一列的数据类型是一样的，可以使用更高效的压缩编码（例如Run Length Encoding和Delta Encoding）进一步节约存储空间。
+- 只读取需要的列，支持向量运算，能够获取更好的扫描性能。
+
+```scala
+val userDF = spark.read.load("users.parquet")
+userDF.select("name", "favorite_color").write.save("user2.parquet")
+```
+
