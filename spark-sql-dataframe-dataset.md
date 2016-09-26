@@ -24,7 +24,7 @@ val spark = SparkSession.builder().getOrCreate()
 - `SparkSession`: 使用 Spark 操作 Dataset 與 DataFrame 的進入點
 
 ### 由 json 檔案產生 DataFrame
-- [people.json](https://github.com/apache/spark/blob/master/examples/src/main/resources/people.json)
+資料來源: [people.json](https://github.com/apache/spark/blob/master/examples/src/main/resources/people.json)
 
 ```scala
 val df = spark.read.json("people.json")
@@ -79,3 +79,33 @@ DataSet | DataFrame
 面向对象的编程接口 | 面向Spark SQL的接口
 
 DataFrame和DataSet可以相互转化，`df.as[ElementType]`这样可以把DataFrame转化为DataSet，`ds.toDF()`这样可以把DataSet转化为DataFrame。
+
+### 定義 Schema
+當處理的資料尚未定義欄位 (例如資料來源為 string 或 text), DataFrame 要透過三個步驟以程式化方式定義
+
+1. 從原始 RDD 產生 RDD[Row]
+2. 產生由 `StructType` 表示的 schema 
+3. 將 schema 應用到 RDD[Row]
+
+資料來源: [people.txt](https://github.com/apache/spark/blob/master/examples/src/main/resources/people.txt)
+
+```scala
+import org.apache.spark.sql.types._
+import org.apache.spark.sql.Row
+
+val peopleRDD = sc.textFile("people.txt")
+val rowRDD = peopleRDD.map(_.split(",")).map{case Array(name, age) => Row(name, age.trim.toInt)}
+
+val fields = Array(StructField("name", StringType, nullable=true), StructField("age", IntegerType, nullable=true))
+val schema = StructType(fields)
+
+val peopleDF = spark.createDataFrame(rowRDD, schema)
+val people = peopleDF.createOrReplaceTempView("people")
+
+spark.sql("SELECT name, age FROM people WHERE age BETWEEN 13 AND 19").show()
+// +------+---+
+// |  name|age|
+// +------+---+
+// |Justin| 19|
+// +------+---+
+```
