@@ -306,3 +306,34 @@ WCSS for K=5 id 562.70
 WCSS for K=10 id 558.10
 WCSS for K=20 id 557.58
 ```
+
+#### 重點整理
+```scala
+import org.apache.spark.mllib.recommendation.{ALS, Rating}
+import org.apache.spark.mllib.linalg.Vectors
+import org.apache.spark.mllib.clustering.KMeans
+
+val ratings = sc.textFile("../ml-100k/u.data").map(_.split("\t").take(3)).map{ case Array(user, movie, rating) => Rating(user.toInt, movie.toInt, rating.toDouble) }.cache
+val alsModel = ALS.train(ratings, 50, 10, 0.1)
+
+val movieVectors = alsModel.productFeatures.map{ case (id, factor) => Vectors.dense(factor) }.cache
+val movieClusterModel = KMeans.train(movieVectors, 5, 10, 3)
+movieClusterModel.predict(movieVectors).take(5)
+movieClusterModel.computeCost(movieVectors)
+
+val userVectors = alsModel.userFeatures.map{ case (id, factor) => Vectors.dense(factor) }.cache
+val userClusterModel = KMeans.train(userVectors, 5, 10, 3)
+userClusterModel.predict(userVectors.first)
+userClusterModel.computeCost(userVectors)
+```
+1. 透過 ALS 算出 alsModel (MatrixFactorizationModel)
+2. 為電影聚類
+  - 由 alsModel.productFeatures 得到 movieVectors
+  - 由 movieVectors 得到 movieClusterModel (KMeansModel)
+  - 預測電影類簇
+  - 計算模型性能 (WCSS)
+3. 為顧客聚類
+  - 由 alsModel.userFeatures 得到 userVectors
+  - 由 userVectors 得到 userClusterModel (KMeansModel)
+  - 預測顧客類簇
+  - 計算模型性能 (WCSS)
