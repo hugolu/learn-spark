@@ -20,3 +20,21 @@
 - DStream 可以產生字輸入資料流如 Kafka, Flume, and Kinesis，或是來自高階操作或其他 DStream
 - DStream 在 Spark Streaming 內部表示為一系列的 RDD
 
+## 簡單範例
+source: [NetworkWordCount.scala](quick-example/NetworkWordCount.scala)
+
+```shell
+$ nc -lp 9999
+apple banana apple cherry apple banana orange apple
+```
+
+```shell
+$ spark-submit --class NetworkWordCount target/scala-2.11/scala-spark-app_2.11-1.0.jar localhost 9999
+-------------------------------------------
+Time: 1475052703000 ms
+-------------------------------------------
+(orange,1)
+(apple,4)
+(banana,2)
+(cherry,1)
+```
