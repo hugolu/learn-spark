@@ -1,4 +1,4 @@
-//package org.apache.spark.examples.streaming
+package org.apache.spark.examples.streaming
 
 import org.apache.spark.SparkConf
 import org.apache.spark.storage.StorageLevel
@@ -17,7 +17,6 @@ object NetworkWordCount {
 
     val lines = ssc.socketTextStream(args(0), args(1).toInt)
     val words = lines.flatMap(_.split(" "))
-
     val pairs = words.map(word => (word, 1))
     val wordCounts = pairs.reduceByKey(_+_)
 
