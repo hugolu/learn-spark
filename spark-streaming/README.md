@@ -23,13 +23,43 @@
 ## 簡單範例
 source: [NetworkWordCount.scala](quick-example/NetworkWordCount.scala)
 
+### 產生 StreamingContext
+```scala
+val conf = new SparkConf().setAppName("NetworkWordCount").setMaster("local[2]")
+val ssc = new StreamingContext(conf, Seconds(1))
+```
+
+### 從 socketTextStream 讀取資料並列印
+```scala
+val lines = ssc.socketTextStream(args(0), args(1).toInt)
+val words = lines.flatMap(_.split(" "))
+val pairs = words.map(word => (word, 1))
+val wordCounts = pairs.reduceByKey(_+_)
+wordCounts.print()
+```
+
+### 開始流計算
+```scala
+ssc.start()
+ssc.awaitTermination()
+```
+
+### 使用 netcat 傳輸資料
 ```shell
 $ nc -lp 9999
 apple banana apple cherry apple banana orange apple
 ```
 
+### 處理流數據
 ```shell
-$ spark-submit --class NetworkWordCount target/scala-2.11/scala-spark-app_2.11-1.0.jar localhost 9999
+$ spark-submit --class org.apache.spark.examples.streaming.NetworkWordCount target/scala-2.11/spark-streaming-app_2.11-1.0.jar localhost 9999
+```
+
+```shell
+$ run-example org.apache.spark.examples.streaming.NetworkWordCount localhost 9999
+```
+
+```
 -------------------------------------------
 Time: 1475052703000 ms
 -------------------------------------------
