@@ -13,7 +13,7 @@ object NetworkWordCount {
     }
 
     val conf = new SparkConf().setAppName("NetworkWordCount").setMaster("local[2]")
-    val ssc = new StreamingContext(conf, Seconds(1))
+    val ssc = new StreamingContext(conf, Seconds(5))
 
     val lines = ssc.socketTextStream(args(0), args(1).toInt)
     val words = lines.flatMap(_.split(" "))
