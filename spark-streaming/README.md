@@ -149,6 +149,10 @@ Kafka 與 Flume 的來源支援資料傳輸的確認。如果使用 Ack 從可�
 - Unreliable Receiver - 接收器不會傳送 ack 給資料源。可用在資料源不支援 ack 的情況，或是不需要處理複雜 ack 機制的情況
 
 ### DStream 轉換動作 (Transformations)
+
+- 支援與一般 RDD 相同的轉換: `map(func)`, `flatMap(func)`, `filter(func)`, `repartition(numPartitions)`, `union(otherStream)`, `count()`, `reduce(func)`, `countByValue()`, `reduceByKey(func, [numTasks])`, `join(otherStream, [numTasks]) `, `cogroup(otherStream, [numTasks])`, `transform(func)`, `updateStateByKey(func)`
+- 針對 window 的轉換: `window(windowLength, slideInterval)`, `countByWindow(windowLength, slideInterval)`, `reduceByWindow(func, windowLength, slideInterval)`, `reduceByKeyAndWindow(func, windowLength, slideInterval, [numTasks])`, `reduceByKeyAndWindow(func, invFunc, windowLength, slideInterval, [numTasks])`, `countByValueAndWindow(windowLength, slideInterval, [numTasks])`
+
 ### DStream 輸出操作 (Output Operations)
 
 ### Accumulators and Broadcast Variables
