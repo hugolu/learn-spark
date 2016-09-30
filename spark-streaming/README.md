@@ -117,7 +117,37 @@ val ssc = new StreamingContext(conf, Seconds(1))
 - 對 DStream 操作會被轉譯成對 RDD 的操作，底層 RDD 轉換由 spark engin 負責計算
 - DStream 操作隱藏大部分細節，開發者使用高階API
 
-### DStream 輸入來源與接收器
+### DStream 輸入源與接收器 (Input DStreams and Receivers)
+
+#### 輸入源
+- File Streams
+  - `StreamingContext.fileStream[K, V, F <: InputFormat[K, V]](directory: String)(implicit arg0: ClassTag[K], arg1: ClassTag[V], arg2: ClassTag[F]): InputDStream[(K, V)]`
+- Queue of RDDs as a Stream
+  - `StreamingContext.queueStream[T](queue: Queue[RDD[T]], oneAtATime: Boolean, defaultRDD: RDD[T])(implicit arg0: ClassTag[T]): InputDStream[T]`
+- Streams based on Custom Receivers
+  - `StreamingContext.receiverStream[T](receiver: Receiver[T])(implicit arg0: ClassTag[T]): ReceiverInputDStream[T]`
+- Streams of TCP socket connection
+  - `StreamingContext.socketStream[T](hostname: String, port: Int, converter: (InputStream) ⇒ Iterator[T], storageLevel: StorageLevel)(implicit arg0: ClassTag[T]): ReceiverInputDStream[T]`
+- Kafka
+  - [Receiver-based Approach](http://spark.apache.org/docs/latest/streaming-kafka-integration.html#approach-1-receiver-based-approach) `KafkaUtils.createStream(streamingContext, 
+     [ZK quorum], [consumer group id], [per-topic number of Kafka partitions to consume])`
+  - [Direct Approach (No Receivers)](http://spark.apache.org/docs/latest/streaming-kafka-integration.html#approach-2-direct-approach-no-receivers): `KafkaUtils.createDirectStream[
+     [key class], [value class], [key decoder class], [value decoder class] ](
+     streamingContext, [map of Kafka parameters], [set of topics to consume])`
+- Flume
+  - [Flume-style Push-based Approach](http://spark.apache.org/docs/latest/streaming-flume-integration.html#approach-1-flume-style-push-based-approach): `FlumeUtils.createStream(streamingContext, [chosen machine's hostname], [chosen port])`
+  - [Pull-based Approach using a Custom Sink](http://spark.apache.org/docs/latest/streaming-flume-integration.html#approach-2-pull-based-approach-using-a-custom-sink): `FlumeUtils.createPollingStream(streamingContext, [sink machine hostname], [sink port])`
+- Kinesis
+  - [Spark Streaming + Kinesis Integration](http://spark.apache.org/docs/latest/streaming-kinesis-integration.html#spark-streaming-kinesis-integration): `KinesisUtils.createStream(
+     streamingContext, [Kinesis app name], [Kinesis stream name], [endpoint URL],
+     [region name], [initial position], [checkpoint interval], StorageLevel.MEMORY_AND_DISK_2)`
+     
+#### 接收器
+Kafka 與 Flume 的來源支援資料傳輸的確認。如果使用 Ack 從可靠來源接收資料，可以確保資料不為因為任何故障而遺失。
+
+- Reliable Receiver - 當資料被成功接收並存在 Spark，接收器透過 ack 通知資料源
+- Unreliable Receiver - 接收器不會傳送 ack 給資料源。可用在資料源不支援 ack 的情況，或是不需要處理複雜 ack 機制的情況
+
 ### DStream 轉換動作 (Transformations)
 ### DStream 輸出操作 (Output Operations)
 
