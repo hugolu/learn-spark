@@ -8,7 +8,7 @@ object QueueStream {
     val conf = new SparkConf().setAppName("QueueStream").setMaster("local[2]")
     val ssc = new StreamingContext(conf, Seconds(5))
 
-    val rddQueue = new SynchronizedQueue[RDD[Int]]()
+    val rddQueue = new SynchronizedQueue[RDD[String]]()
     val inputStream = ssc.queueStream(rddQueue)
     val mappedStream = inputStream.map((_, 1))
     val reduceStream = mappedStream.reduceByKey(_+_)
@@ -16,7 +16,10 @@ object QueueStream {
 
     ssc.start()
     for (i <- 1 to 30) {
-      rddQueue += ssc.sparkContext.parallelize(1 to 100).map(_ % 10)
+      val alpha = Array("A","B","C","D","E","F")
+      def randNum = scala.util.Random.nextInt(alpha.length)
+      val alphas = (1 to 100).toSeq.map(n => alpha(randNum))
+      rddQueue += ssc.sparkContext.makeRDD(alphas)
       Thread.sleep(1000)
     }
     ssc.stop()
