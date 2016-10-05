@@ -2,28 +2,24 @@ import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.rdd.RDD
 import scala.collection.mutable.SynchronizedQueue
+import org.apache.log4j.{Logger, Level}
 
-object Stateful {
+object StatefulWordCount {
   def main(args: Array[String]) {
-    val conf = new SparkConf().setAppName("Stateful").setMaster("local[2]")
-    val ssc = new StreamingContext(conf, Seconds(5))
-    ssc.checkpoint(".")
+    Logger.getRootLogger().setLevel(Level.OFF)
 
-    val rddQueue = new SynchronizedQueue[RDD[String]]()
-    val inputStream = ssc.queueStream(rddQueue)
-    val mappedStream = inputStream.map((_, 1))
-    val reduceStream = mappedStream.updateStateByKey[Int](updateFunction _)
-    reduceStream.print()
+    val conf = new SparkConf().setAppName("StatefulWordCount").setMaster("local[2]")
+    val ssc = new StreamingContext(conf, Seconds(3))
+    ssc.checkpoint("checkpoint")
+
+    val lines = ssc.socketTextStream("localhost", 9999)
+    val words = lines.flatMap(_.split(" "))
+    val pairs = words.map(word => (word, 1))
+    val wordCounts = pairs.updateStateByKey[Int](updateFunction _)
+    wordCounts.print()
 
     ssc.start()
-    for (i <- 1 to 30) {
-      val alpha = Array("A","B","C","D","E","F")
-      def randNum = scala.util.Random.nextInt(alpha.length)
-      val alphas = (1 to 100).toSeq.map(n => alpha(randNum))
-      rddQueue += ssc.sparkContext.makeRDD(alphas)
-      Thread.sleep(1000)
-    }
-    ssc.stop()
+    ssc.awaitTermination()
   }
 
   def updateFunction(newValues: Seq[Int], runningCount: Option[Int]): Option[Int] = {

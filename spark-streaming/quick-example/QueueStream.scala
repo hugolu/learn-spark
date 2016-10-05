@@ -3,9 +3,9 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.rdd.RDD
 import scala.collection.mutable.SynchronizedQueue
 
-object QueueStream {
+object QueueWordCount {
   def main(args: Array[String]) {
-    val conf = new SparkConf().setAppName("QueueStream").setMaster("local[2]")
+    val conf = new SparkConf().setAppName("QueueWordCount").setMaster("local[2]")
     val ssc = new StreamingContext(conf, Seconds(5))
 
     val rddQueue = new SynchronizedQueue[RDD[String]]()

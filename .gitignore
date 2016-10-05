@@ -3,6 +3,3 @@ project/
 target/
 derby.log
 .*.swp
-.checkpoint*
-checkpoint*
-receivedBlockMetadata/
