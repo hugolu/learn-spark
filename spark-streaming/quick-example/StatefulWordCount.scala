@@ -2,12 +2,9 @@ import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.rdd.RDD
 import scala.collection.mutable.SynchronizedQueue
-import org.apache.log4j.{Logger, Level}
 
 object StatefulWordCount {
   def main(args: Array[String]) {
-    Logger.getRootLogger().setLevel(Level.OFF)
-
     val conf = new SparkConf().setAppName("StatefulWordCount").setMaster("local[2]")
     val ssc = new StreamingContext(conf, Seconds(3))
     ssc.checkpoint("checkpoint")
