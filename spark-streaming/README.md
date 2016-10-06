@@ -155,6 +155,12 @@ Kafka 與 Flume 的來源支援資料傳輸的確認。如果使用 Ack 從可�
 
 ### DStream 輸出操作 (Output Operations)
 
+DStream 的資料可以輸出到外部資料庫或檔案系統。因為允許資料累積在外部系統，所以會觸發真正的轉換動作。
+
+目前支援幾類輸出動作: `print()`, `saveAsTextFiles(prefix, [suffix])`, `saveAsObjectFiles(prefix, [suffix])`, `saveAsHadoopFiles(prefix, [suffix])`, `foreachRDD(func)`
+
+> 重點在 `foreachRDD(func)` 的用法，這是最通用的輸出方式，應用函數 `func` 把 RDD 中的數據保存到外部系統，如文件、或通過網路連接保存到資料庫。但我對資料庫的理解程度還不夠銜接，先 bookmark [Spark踩坑记——数据库（Hbase+Mysql）](http://www.cnblogs.com/xlturing/p/spark.html) 這篇文章，有機會再回過頭看。
+
 ### Accumulators and Broadcast Variables
 ### DataFrame and SQL Operations
 ### MLlib Operations
