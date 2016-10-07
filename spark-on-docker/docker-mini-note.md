@@ -1,4 +1,4 @@
-# Docker 簡易筆記
+# Docker 指令範例
 
 ## 參考
 - [《Docker —— 從入門到實踐》正體中文版](https://www.gitbook.com/book/philipzheng/docker_practice)
@@ -255,3 +255,18 @@ root@d3dc873a8516:/# echo "this is a test" >> /mydir/hello.txt
 bash: /mydir/hello.txt: Read-only file system
 ```
 - 透過 `:ro` 將資料卷設定為唯讀
+
+### 資料卷容器
+資料卷容器，其實就是一個正常的容器，專門用來提供資料卷供其它容器掛載的。
+
+```shell
+$ docker run -d -v /mydata --name mydata debian echo "data valume"
+$ docker run -it --volumes-from mydata --name node1 debian bash
+root@c67ac8df5381:/# echo "hello world" > /mydata/hello.txt
+root@c67ac8df5381:/# exit
+$ docker run -it --volumes-from mydata --name node2 debian bash
+root@7c9dbd0127c7:/# cat /mydata/hello.txt
+hello world
+root@7c9dbd0127c7:/# exit
+```
+- node1, node2 共用 mydata 容器的資料卷
