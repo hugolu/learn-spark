@@ -227,4 +227,31 @@ armbuild/debian                ARMHF port of debian                            8
 
 ### 資料卷
 
-### 
+### 建立一個資料卷
+```shell
+$ docker run -it -v /mydir debian /bin/bash
+root@e2c9cd9fee7e:/# ls /
+bin   dev  home  lib64 	mnt    opt   root  sbin  sys  usr
+boot  etc  lib 	 media 	mydir  proc  run   srv 	 tmp  var
+```
+- 建立一個資料卷並掛載到容器裡
+
+#### 掛載一個主機目錄作為資料卷
+```shell
+$ docker run -it -v ~/workspace.docker/mydir:/mydir debian:latest bash
+root@6bad5f805a94:/# echo "hello world" > /mydir/hello.txt
+root@6bad5f805a94:/# exit
+exit
+$ cat ~/workspace.docker/mydir/hello.txt
+hello world
+```
+- 指定掛載一個本地主機的目錄到容器中，目錄不存在 Docker 會自動為你建立它
+
+```shell
+$ docker run -it -v ~/workspace.docker/mydir:/mydir:ro debian:latest bash
+root@d3dc873a8516:/# cat /mydir/hello.txt
+hello world
+root@d3dc873a8516:/# echo "this is a test" >> /mydir/hello.txt
+bash: /mydir/hello.txt: Read-only file system
+```
+- 透過 `:ro` 將資料卷設定為唯讀
