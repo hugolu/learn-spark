@@ -131,3 +131,72 @@ hello world
 hello world
 ...
 ```
+
+### 終止容器
+```shell
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+0d6dd07e1248        debian:latest       "/bin/bash -c 'while "   6 seconds ago       Up 5 seconds                            angry_payne
+```
+```shell
+$ docker stop 0d6dd07e1248
+```
+
+### 重新啟動
+```shell
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                       PORTS               NAMES
+0d6dd07e1248        debian:latest       "/bin/bash -c 'while "   5 minutes ago       Exited (137) 3 minutes ago                       angry_payne
+```
+```shell
+$ docker start 0d6dd07e1248
+```
+
+### 進入容器
+```shell
+$ docker run -idt debian
+$ docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+fa3819af1f0c        debian              "/bin/bash"         31 seconds ago      Up 30 seconds                           compassionate_bartik
+```
+```shell
+$ docker exec -it fa3819af1f0c bash
+root@fa3819af1f0c:/# exit
+```
+```shell
+$ docker attach fa3819af1f0c
+root@fa3819af1f0c:/# exit
+```
+- 使用 attach 命令有時候並不方便。當多個窗口同時 attach 到同一個容器的時候，所有窗口都會同步顯示。當某個窗口因命令阻塞時,其他窗口也無法執行操作了。
+
+### 匯出容器快照
+```shell
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+fa3819af1f0c        debian              "/bin/bash"         2 hours ago         Up About an hour                        compassionate_bartik
+$ docker export fa3819af1f0c > debian.tar
+```
+
+### 從容器快照中匯入映像檔
+```shell
+$ cat debian.tar | docker import - debian:mytest
+$ docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+debian              mytest              b2d03ac11799        10 seconds ago      123 MB
+debian              latest              ddf73f48a05d        13 days ago         123 MB
+```
+
+命令 | 動作 | 說明
+----|----|----
+`load` | 匯入映像檔儲存檔案到本地映像檔庫 | 保存完整記錄，檔案體積也跟著變大
+`import` | 匯入容器快照檔案到本地映像檔庫 | 丟棄所有的歷史記錄和原始資料訊息 (僅保存容器當時的快照狀態)
+
+### 刪除容器
+```shell
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS                       PORTS               NAMES
+0d6dd07e1248        debian:latest       "/bin/bash -c 'while "   5 minutes ago       Exited (137) 3 minutes ago                       angry_payne
+```
+```shell
+$ docker rm 0d6dd07e1248
+```
