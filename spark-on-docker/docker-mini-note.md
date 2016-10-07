@@ -200,3 +200,31 @@ CONTAINER ID        IMAGE               COMMAND                  CREATED        
 ```shell
 $ docker rm 0d6dd07e1248
 ```
+
+## 倉庫
+
+### Docker Hub
+```shell
+$ docker search debian
+NAME                           DESCRIPTION                                     STARS     OFFICIAL   AUTOMATED
+debian                         Debian is a Linux distribution that's comp...   1714      [OK]
+neurodebian                    NeuroDebian provides neuroscience research...   28        [OK]
+jesselang/debian-vagrant       Stock Debian Images made Vagrant-friendly ...   9                    [OK]
+armbuild/debian                ARMHF port of debian                            8                    [OK]
+```
+- 映像檔名字、描述、星級、是否官方建立、是否自動建立。 官方的映像檔說明是官方專案組建立和維護的，automated 資源允許使用者驗證映像檔的來源和內容。
+
+自動建立（Automated Builds）功能對於需要經常升級映像檔內程式來說，十分方便。 有時候，使用者建立了映像檔，安裝了某個軟體，如果軟體發布新版本則需要手動更新映像檔。而自動建立允許使用者透過 Docker Hub 指定跟蹤一個目標網站（目前支援 GitHub 或 BitBucket）上的專案，一旦專案發生新的提交，則自動執行建立。
+
+### 私有倉庫
+
+有時候使用 Docker Hub 這樣的公共倉庫可能不方便，使用者可以建立一個本地倉庫供私人使用。
+
+(指令略)
+
+## 資料管理
+如何在 Docker 內部以及容器之間管理資料
+
+### 資料卷
+
+### 
