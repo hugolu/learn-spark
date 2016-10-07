@@ -44,7 +44,7 @@ $ docker --version
 $ docker run hello-world
 ```
 
-## Docker Image
+## 映像檔
 
 在執行**容器**前需要本地端存在對應的**映像檔**，如果映像檔不存在本地端，Docker 會從映像檔**倉庫**下載。
 
@@ -94,3 +94,40 @@ $ docker rmi hello-world
 Docker 使用 [Union FS](https://en.wikipedia.org/wiki/UnionFS) 
 - 將不同層的增量修改結合到一個映像檔
 - 將一個唯讀的分支和一個可寫的分支聯合在一起，在映像檔不變的基礎上允許使用者在其上進行一些寫操作
+
+## 容器
+
+- 容器 = 執行的應用 & 執行環境
+- 虛擬機器 = 執行的應用 & 模擬環境 (一整套作業系統，提供了執行態環境和其他系統環境)
+
+### 啟動容器
+```shell
+$ docker run debian:latest /bin/echo 'hello world'
+hello world
+```
+- 執行 echo hello world，後終止容器
+
+```shell
+$ $ docker run -t -i debian:latest /bin/bash
+root@a999b45c2534:/#
+```
+- `-t` 分配虛擬終端並綁定到容器的標準輸入上
+- `-i` 讓容器的標準輸入保持打開
+
+### 守護態執行 (Daemonized)
+```shell
+$ docker run -d debian:latest /bin/bash -c "while true; do echo hello world; sleep 1; done"
+0d6dd07e12486c0b31ea0e1b5053b63d2f75aeeac779586027ef66a1886e7376
+```
+```shell
+$ docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+0d6dd07e1248        debian:latest       "/bin/bash -c 'while "   6 seconds ago       Up 5 seconds                            angry_payne
+```
+```shell
+$ docker logs 0d6dd07e1248
+hello world
+hello world
+hello world
+...
+```
