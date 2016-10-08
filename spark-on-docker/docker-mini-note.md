@@ -108,11 +108,16 @@ hello world
 - 執行 echo hello world，後終止容器
 
 ```shell
-$ $ docker run -t -i debian:latest /bin/bash
+$ docker run -t -i debian:latest /bin/bash
 root@a999b45c2534:/#
 ```
 - `-t` 分配虛擬終端並綁定到容器的標準輸入上
 - `-i` 讓容器的標準輸入保持打開
+
+```shell
+$ docker run --rm hello-world
+```
+- `--rm` Automatically remove the container when it exits
 
 ### 守護態執行 (Daemonized)
 ```shell
@@ -274,3 +279,60 @@ hello world
 root@8cea6a320e2d:/# exit
 ```
 - node1, node2 共用 data 容器的資料卷
+
+## 使用網路
+
+### 存取外部容器
+
+#### 隨機映射連接埠 `-P`
+```shell
+$ docker run -d -P training/webapp python app.py
+```
+```shell
+$ docker ps -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                     NAMES
+057eef7d8782        training/webapp     "python app.py"     7 seconds ago       Up 6 seconds        0.0.0.0:32769->5000/tcp   pedantic_tesla
+```
+
+#### 映射所有遠端位址 `-p hostPort:containerPort`
+```shell
+$ docker run -d -p 5000:5000 training/webapp python app.py
+```
+```shell
+$ docker ps -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                    NAMES
+36eeb4a79745        training/webapp     "python app.py"     19 seconds ago      Up 18 seconds       0.0.0.0:5000->5000/tcp   loving_pasteur
+```
+
+#### 映射到指定位址的指定連接埠 `-p ip:hostPort:containerPort`
+```shell
+$ docker run -d -p 127.0.0.1:5000:5000 training/webapp python app.py
+```
+```shell
+~/workspace.docker$ docker ps -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                      NAMES
+a09fc5f3e52a        training/webapp     "python app.py"     5 seconds ago       Up 3 seconds        127.0.0.1:5000->5000/tcp   ecstatic_lamport
+```
+
+#### 映射到指定位址的任意連接埠 `-p ip::containerPort`
+```shell
+$ docker run -d -p 127.0.0.1::5000 training/webapp python app.py
+```
+```shell
+$ docker ps -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                       NAMES
+1de70b0b181b        training/webapp     "python app.py"     27 seconds ago      Up 26 seconds       127.0.0.1:32768->5000/tcp   amazing_elion
+```
+
+#### 查看映射連接埠配置
+```shell
+$ docker ps -l
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS                      NAMES
+a09fc5f3e52a        training/webapp     "python app.py"     5 seconds ago       Up 3 seconds        127.0.0.1:5000->5000/tcp   ecstatic_lamport
+```
+```shell
+$ docker port ecstatic_lamport
+5000/tcp -> 127.0.0.1:5000
+```
+
+### 容器互連
