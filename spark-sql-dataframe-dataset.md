@@ -100,7 +100,26 @@ val fields = Array(StructField("name", StringType, nullable=true), StructField("
 val schema = StructType(fields)
 
 val peopleDF = spark.createDataFrame(rowRDD, schema)
-val people = peopleDF.createOrReplaceTempView("people")
+peopleDF.createOrReplaceTempView("people")
+
+spark.sql("SELECT name, age FROM people WHERE age BETWEEN 13 AND 19").show()
+// +------+---+
+// |  name|age|
+// +------+---+
+// |Justin| 19|
+// +------+---+
+```
+
+### 透過 Reflection 推測 Schema
+```scala
+import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
+import org.apache.spark.sql.Encoder
+import spark.implicits._
+
+case class Person(name: String, age: Long)
+
+val peopleDF = spark.sparkContext.textFile("people.txt").map(_.split(", ")).map(attr => Person(attr(0), attr(1).toInt)).toDF()
+peopleDF.createOrReplaceTempView("people")
 
 spark.sql("SELECT name, age FROM people WHERE age BETWEEN 13 AND 19").show()
 // +------+---+
