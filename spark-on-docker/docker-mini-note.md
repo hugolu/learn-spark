@@ -260,13 +260,17 @@ bash: /mydir/hello.txt: Read-only file system
 資料卷容器，其實就是一個正常的容器，專門用來提供資料卷供其它容器掛載的。
 
 ```shell
-$ docker run -d -v /mydata --name mydata debian echo "data valume"
-$ docker run -it --volumes-from mydata --name node1 debian bash
-root@c67ac8df5381:/# echo "hello world" > /mydata/hello.txt
-root@c67ac8df5381:/# exit
-$ docker run -it --volumes-from mydata --name node2 debian bash
-root@7c9dbd0127c7:/# cat /mydata/hello.txt
-hello world
-root@7c9dbd0127c7:/# exit
+$ docker run -d -v /data --name data debian bash :              # hold a data volume /data
 ```
-- node1, node2 共用 mydata 容器的資料卷
+```shell
+$ docker run -it --volumes-from data --name node1 debian bash
+root@8fd3f0040a65:/# echo "hello world" > /data/hello.txt       # create a file in /data
+root@8fd3f0040a65:/# exit
+```
+```shell
+$ docker run -it --volumes-from data --name node2 debian bash
+root@8cea6a320e2d:/# cat /data/hello.txt                        # read a file in /data
+hello world
+root@8cea6a320e2d:/# exit
+```
+- node1, node2 共用 data 容器的資料卷
