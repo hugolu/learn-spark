@@ -336,3 +336,43 @@ $ docker port ecstatic_lamport
 ```
 
 ### 容器互連
+```shell
+$ docker run -d --name db training/postgres
+$ docker run -d -P --name web --link db:db training/webapp python app.py
+```
+- `--link name:alias`，其中 name 是要連接的容器名稱，alias 是這個連接的別名。
+
+```shell
+$ docker exec -it web bash
+root@cd4b7660ef9a:/opt/webapp# env
+HOSTNAME=cd4b7660ef9a
+DB_NAME=/web/db
+DB_PORT=tcp://172.17.0.2:5432
+... (skipped)
+root@cd4b7660ef9a:/opt/webapp# cat /etc/hosts
+127.0.0.1      	localhost
+172.17.0.2     	db 0dc415ed5ad5
+172.17.0.3     	cd4b7660ef9a
+root@cd4b7660ef9a:/opt/webapp# ping db
+PING db (172.17.0.2) 56(84) bytes of data.
+64 bytes from db (172.17.0.2): icmp_seq=1 ttl=64 time=0.300 ms
+64 bytes from db (172.17.0.2): icmp_seq=2 ttl=64 time=0.078 ms
+^C
+--- db ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1003ms
+rtt min/avg/max/mdev = 0.078/0.189/0.300/0.111 ms
+root@cd4b7660ef9a:/opt/webapp# exit
+exit
+```
+```shell
+$ docker exec -it db bash
+# ping 172.16.0.3
+PING 172.16.0.3 (172.16.0.3) 56(84) bytes of data.
+64 bytes from 172.16.0.3: icmp_seq=1 ttl=37 time=0.196 ms
+64 bytes from 172.16.0.3: icmp_seq=2 ttl=37 time=0.352 ms
+^C
+--- 172.16.0.3 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1001ms
+rtt min/avg/max/mdev = 0.196/0.274/0.352/0.078 ms
+root@0dc415ed5ad5:/# exit
+```
