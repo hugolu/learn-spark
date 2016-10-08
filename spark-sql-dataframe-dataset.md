@@ -111,6 +111,11 @@ spark.sql("SELECT name, age FROM people WHERE age BETWEEN 13 AND 19").show()
 ```
 
 ### 透過 Reflection 推測 Schema
+從包含 case class 的 RDD 轉換成 DataFrame
+- case class 定義 table schema
+- case class 參數名稱使用 reflection 讀取，變成 column 名稱
+- case class 可以是巢狀結構，包含更複雜的型別，像是 Seq 或是 Array
+
 ```scala
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 import org.apache.spark.sql.Encoder
