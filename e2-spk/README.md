@@ -28,6 +28,7 @@ $ spark-submit --class cc.eighty20.spark.s02.df01 target/scala-2.11/e2-spk-app_2
 3. 透過 Spark SQL 來分析
 
 ```shell
-$ spark-submit --class cc.eighty20.spark.s02.ebay00 target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
-$ spark-submit --class cc.eighty20.spark.s02.sfpd00 --jars jars/spark-csv_2.10-1.4.0.jar,jars/commons-csv-1.1.jar target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
+$ spark-submit --class cc.eighty20.spark.s02.ebay target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
+$ spark-submit --class cc.eighty20.spark.s02.sfpd --jars jars/spark-csv_2.10-1.4.0.jar,jars/commons-csv-1.1.jar target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
 ```
+- `spark.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/sfpd.csv")` 透過 spark-csv 處理 csv 讀取格式細節
