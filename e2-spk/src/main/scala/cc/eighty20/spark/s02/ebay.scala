@@ -1,8 +1,9 @@
 package cc.eighty20.spark.s02
 
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions._
 
-object ebay00 {
+object ebay {
   case class Auction(auctionid: String, bid: Float, bidtime: Float, bidder: String, bidderrate: Integer, openbid: Float, price: Float, item: String, daystolive: Integer)
 
   def main(args: Array[String]) {
@@ -23,9 +24,11 @@ object ebay00 {
     spark.sql("SELECT auctionid, item, count(bid) as bid_count FROM auction GROUP BY auctionid, item").show
 
     // the statistics (min/max/mean) of each auction
-    spark.sql("SELECT auctionid, MAX(price) as price_max, MIN(price) as price_min, AVG(price) as price_avg FROM auction GROUP BY item, auctionid").show
+    auction.select("auctionid", "item", "price").groupBy("auctionid", "item").agg(max("price"), min("price"), avg("price")).orderBy("auctionid", "item").show
+    spark.sql("SELECT auctionid, item, MAX(price), MIN(price), AVG(price) FROM auction GROUP BY item, auctionid ORDER BY auctionid, item DESC").show
 
     // find out the bid whose price is more than $100
+    auction.filter("price > 100").select("auctionid", "bid", "price").show
     spark.sql("SELECT auctionid, bid, price FROM auction WHERE price > 100").show
   }
 }

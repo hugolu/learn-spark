@@ -4,8 +4,10 @@ import org.apache.spark.sql.SparkSession
 
 object df01 {
   def main(args: Array[String]) {
-    val spark = SparkSession.builder().getOrCreate()
-    import spark.implicits._
+    val spark = SparkSession.builder()
+                  .appName("df01")
+                  .master("local")
+                  .getOrCreate()
 
     val df = spark.read.json("data/people.json")
     df.createOrReplaceTempView("people")
@@ -35,4 +37,3 @@ object df01 {
     spark.sql("SELECT age, count(*) as count FROM people GROUP BY age").show()
   }
 }
-

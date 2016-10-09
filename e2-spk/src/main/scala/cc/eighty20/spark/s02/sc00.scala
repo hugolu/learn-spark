@@ -8,18 +8,19 @@ object sc00 {
   def main(args: Array[String]) {
     val spark = SparkSession.builder().getOrCreate()
 
-    val fileName = "data/README.md"
-    val docs = spark.sparkContext.textFile(fileName)
-    val lower = docs.map(line => line.toLowerCase())
-    val words = lower.flatMap(line => line.split("\\s+"))
-    val wordsRow = words.map(Row(_))
+    // Step 1: data to RDD, preprocessing
+    val wordsRow = spark.sparkContext.textFile("data/README.md")
+                        .map(_.toLowerCase)
+                        .flatMap(_.split("\\s+"))
+                        .map(Row(_))
 
+    // Step 2: RDD to DataFrame, creating Table
     val fields = Array(StructField("text", StringType, nullable=true))
     val schema = StructType(fields)
-
     val wordsDF = spark.createDataFrame(wordsRow, schema)
     wordsDF.createOrReplaceTempView("words")
 
+    // Step 3: Analyzing with Spark SQL
     val topWords = spark.sql("SELECT text, count(text) AS n FROM words GROUP BY text ORDER BY n DESC LIMIT 10")
     topWords.show()
   }
