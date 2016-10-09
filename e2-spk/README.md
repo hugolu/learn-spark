@@ -26,3 +26,8 @@ $ spark-submit --class cc.eighty20.spark.s02.df01 target/scala-2.11/e2-spk-app_2
 1. ￼收集資料並透過 Spark RDD 做基本前處理
 2. 將 RDD 轉換成 DataFrame 物件，並註冊成 Table
 3. 透過 Spark SQL 來分析
+
+```shell
+$ spark-submit --class cc.eighty20.spark.s02.ebay00 target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
+$ spark-submit --class cc.eighty20.spark.s02.sfpd00 --jars jars/spark-csv_2.10-1.4.0.jar,jars/commons-csv-1.1.jar target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
+```
