@@ -32,3 +32,17 @@ $ spark-submit --class cc.eighty20.spark.s02.ebay target/scala-2.11/e2-spk-app_2
 $ spark-submit --class cc.eighty20.spark.s02.sfpd --jars jars/spark-csv_2.10-1.4.0.jar,jars/commons-csv-1.1.jar target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
 ```
 - `spark.read.format("com.databricks.spark.csv").option("header", "true").option("inferSchema", "true").load("data/sfpd.csv")` 透過 spark-csv 處理 csv 讀取格式細節
+
+## Session 3
+source: [s03](src/main/scala/cc/eighty20/spark/s03)
+
+環境設定:
+```shell
+$ docker run -v $HOME/learn-spark/e2-spk:/common:ro --name db -e MYSQL_ROOT_PASSWORD=123 -d mariadb
+$ docker exec db mysql -uroot -p123 -e "source /common/data/northwind.sql"
+$ docker exec db mysql -uroot -p123 -e "show databases"
+$ docker exec db mysql -uroot -p123 -e "show tables" northwind
+```
+```shell
+$ docker run -v $HOME/learn-spark/e2-spk:/common:rw -p 8080:8080 --name zeppelin --link db:db -d dylanmei/zeppelin
+```
