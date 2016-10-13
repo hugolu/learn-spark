@@ -45,4 +45,10 @@ $ docker exec db mysql -uroot -p123 -e "show tables" northwind
 ```
 ```shell
 $ docker run -v $HOME/learn-spark/e2-spk:/common:rw -p 8080:8080 --name zeppelin --link db:db -d dylanmei/zeppelin
+$ docker exec -it zeppelin bash # 進入 zeppelin 操作 spark
+```
+
+@zeppelin:
+```
+# spark-submit --class cc.eighty20.spark.s03.zp00 /common/target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
 ```
