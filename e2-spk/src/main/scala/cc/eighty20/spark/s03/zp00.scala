@@ -17,6 +17,6 @@ object zp00 {
     bank.createOrReplaceTempView("bank")
 
     spark.sql("select age, count(1) value from bank where age < 30 group by age order by age").show
-    
+    spark.sql("select age, count(1) value from bank where marital=\"single\" group by age order by age").show
   }
 }
