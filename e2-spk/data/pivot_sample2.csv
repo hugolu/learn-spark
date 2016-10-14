@@ -1,0 +1,214 @@
+OrderID	Product	Category	Amount	Date	Country
+1	Carrots	Vegetables	4270	2012/1/6	United States
+2	Broccoli	Vegetables	8239	2012/1/7	United Kingdom
+3	Banana	Fruit	617	2012/1/8	United States
+4	Banana	Fruit	8384	2012/1/10	Canada
+5	Beans	Vegetables	2626	2012/1/10	Germany
+6	Orange	Fruit	3610	2012/1/11	United States
+7	Broccoli	Vegetables	9062	2012/1/11	Australia
+8	Banana	Fruit	6906	2012/1/16	New Zealand
+9	Apple	Fruit	2417	2012/1/16	France
+10	Apple	Fruit	7431	2012/1/16	Canada
+11	Banana	Fruit	8250	2012/1/16	Germany
+12	Broccoli	Vegetables	7012	2012/1/18	United States
+13	Carrots	Vegetables	1903	2012/1/20	Germany
+14	Broccoli	Vegetables	2824	2012/1/22	Canada
+15	Apple	Fruit	6946	2012/1/24	France
+16	Banana	Fruit	2320	2012/1/27	United Kingdom
+17	Banana	Fruit	2116	2012/1/28	United States
+18	Banana	Fruit	1135	2012/1/30	United Kingdom
+19	Broccoli	Vegetables	3595	2012/1/30	United Kingdom
+20	Apple	Fruit	1161	2012/2/2	United States
+21	Orange	Fruit	2256	2012/2/4	France
+22	Banana	Fruit	1004	2012/2/11	New Zealand
+23	Banana	Fruit	3642	2012/2/14	Canada
+24	Banana	Fruit	4582	2012/2/17	United States
+25	Beans	Vegetables	3559	2012/2/17	United Kingdom
+26	Carrots	Vegetables	5154	2012/2/17	Australia
+27	Mango	Fruit	7388	2012/2/18	France
+28	Beans	Vegetables	7163	2012/2/18	United States
+29	Beans	Vegetables	5101	2012/2/20	Germany
+30	Apple	Fruit	7602	2012/2/21	France
+31	Mango	Fruit	1641	2012/2/22	United States
+32	Apple	Fruit	8892	2012/2/23	Australia
+33	Apple	Fruit	2060	2012/2/29	France
+34	Broccoli	Vegetables	1557	2012/2/29	Germany
+35	Apple	Fruit	6509	2012/3/1	France
+36	Apple	Fruit	5718	2012/3/4	Australia
+37	Apple	Fruit	7655	2012/3/5	United States
+38	Carrots	Vegetables	9116	2012/3/5	United Kingdom
+39	Banana	Fruit	2795	2012/3/15	United States
+40	Banana	Fruit	5084	2012/3/15	United States
+41	Carrots	Vegetables	8941	2012/3/15	United Kingdom
+42	Broccoli	Vegetables	5341	2012/3/16	France
+43	Banana	Fruit	135	2012/3/19	Canada
+44	Banana	Fruit	9400	2012/3/19	Australia
+45	Beans	Vegetables	6045	2012/3/21	Germany
+46	Apple	Fruit	5820	2012/3/22	New Zealand
+47	Orange	Fruit	8887	2012/3/23	Germany
+48	Orange	Fruit	6982	2012/3/24	United States
+49	Banana	Fruit	4029	2012/3/26	Australia
+50	Carrots	Vegetables	3665	2012/3/26	Germany
+51	Banana	Fruit	4781	2012/3/29	France
+52	Mango	Fruit	3663	2012/3/30	Australia
+53	Apple	Fruit	6331	2012/4/1	France
+54	Apple	Fruit	4364	2012/4/1	Canada
+55	Carrots	Vegetables	607	2012/4/3	United Kingdom
+56	Banana	Fruit	1054	2012/4/6	New Zealand
+57	Carrots	Vegetables	7659	2012/4/6	United States
+58	Broccoli	Vegetables	277	2012/4/12	Germany
+59	Banana	Fruit	235	2012/4/17	United States
+60	Orange	Fruit	1113	2012/4/18	Australia
+61	Apple	Fruit	1128	2012/4/21	United States
+62	Broccoli	Vegetables	9231	2012/4/22	Canada
+63	Banana	Fruit	4387	2012/4/23	United States
+64	Apple	Fruit	2763	2012/4/25	Canada
+65	Banana	Fruit	7898	2012/4/27	United Kingdom
+66	Banana	Fruit	2427	2012/4/30	France
+67	Banana	Fruit	8663	2012/5/1	New Zealand
+68	Carrots	Vegetables	2789	2012/5/1	Germany
+69	Banana	Fruit	4054	2012/5/2	United States
+70	Mango	Fruit	2262	2012/5/2	United States
+71	Mango	Fruit	5600	2012/5/2	United Kingdom
+72	Banana	Fruit	5787	2012/5/3	United States
+73	Orange	Fruit	6295	2012/5/3	Canada
+74	Banana	Fruit	474	2012/5/5	Germany
+75	Apple	Fruit	4325	2012/5/5	France
+76	Banana	Fruit	592	2012/5/6	United States
+77	Orange	Fruit	4330	2012/5/8	United States
+78	Banana	Fruit	9405	2012/5/8	United Kingdom
+79	Apple	Fruit	7671	2012/5/8	France
+80	Carrots	Vegetables	5791	2012/5/8	United Kingdom
+81	Banana	Fruit	6007	2012/5/12	Canada
+82	Banana	Fruit	5030	2012/5/14	Germany
+83	Carrots	Vegetables	6763	2012/5/14	United Kingdom
+84	Banana	Fruit	4248	2012/5/15	Australia
+85	Banana	Fruit	9543	2012/5/16	France
+86	Broccoli	Vegetables	2054	2012/5/16	United Kingdom
+87	Beans	Vegetables	7094	2012/5/16	Germany
+88	Carrots	Vegetables	6087	2012/5/18	United States
+89	Apple	Fruit	4264	2012/5/19	Australia
+90	Mango	Fruit	9333	2012/5/20	United States
+91	Mango	Fruit	8775	2012/5/22	Germany
+92	Broccoli	Vegetables	2011	2012/5/23	United Kingdom
+93	Banana	Fruit	5632	2012/5/25	United States
+94	Banana	Fruit	4904	2012/5/25	New Zealand
+95	Beans	Vegetables	1002	2012/5/25	Australia
+96	Orange	Fruit	8141	2012/5/26	United Kingdom
+97	Orange	Fruit	3644	2012/5/26	Canada
+98	Orange	Fruit	1380	2012/5/26	Australia
+99	Broccoli	Vegetables	8354	2012/5/26	Germany
+100	Banana	Fruit	5182	2012/5/27	United States
+101	Apple	Fruit	2193	2012/5/27	France
+102	Mango	Fruit	3647	2012/5/28	United States
+103	Apple	Fruit	4104	2012/5/28	United States
+104	Carrots	Vegetables	7457	2012/5/28	United States
+105	Mango	Fruit	3767	2012/5/29	Canada
+106	Broccoli	Vegetables	4685	2012/5/30	Germany
+107	Banana	Fruit	3917	2012/6/4	United States
+108	Apple	Fruit	521	2012/6/4	Canada
+109	Apple	Fruit	5605	2012/6/10	France
+110	Broccoli	Vegetables	9630	2012/6/11	Germany
+111	Banana	Fruit	6941	2012/6/20	Canada
+112	Broccoli	Vegetables	7231	2012/6/20	United Kingdom
+113	Broccoli	Vegetables	8891	2012/6/23	Australia
+114	Banana	Fruit	107	2012/6/25	France
+115	Banana	Fruit	4243	2012/6/26	United States
+116	Orange	Fruit	4514	2012/6/27	United States
+117	Mango	Fruit	5480	2012/7/2	United States
+118	Banana	Fruit	5002	2012/7/2	France
+119	Banana	Fruit	8530	2012/7/5	Canada
+120	Orange	Fruit	4819	2012/7/7	New Zealand
+121	Broccoli	Vegetables	6343	2012/7/11	United Kingdom
+122	Orange	Fruit	2318	2012/7/13	United Kingdom
+123	Orange	Fruit	220	2012/7/20	United Kingdom
+124	Orange	Fruit	6341	2012/7/20	New Zealand
+125	Apple	Fruit	330	2012/7/20	Germany
+126	Broccoli	Vegetables	3027	2012/7/20	United Kingdom
+127	Orange	Fruit	850	2012/7/22	New Zealand
+128	Banana	Fruit	8986	2012/7/23	United Kingdom
+129	Broccoli	Vegetables	3800	2012/7/25	United States
+130	Carrots	Vegetables	5751	2012/7/28	United Kingdom
+131	Apple	Fruit	1704	2012/7/29	United Kingdom
+132	Banana	Fruit	7966	2012/7/30	Australia
+133	Banana	Fruit	852	2012/7/31	United States
+134	Beans	Vegetables	8416	2012/7/31	Australia
+135	Banana	Fruit	7144	2012/8/1	France
+136	Broccoli	Vegetables	7854	2012/8/1	United States
+137	Orange	Fruit	859	2012/8/3	United States
+138	Broccoli	Vegetables	8049	2012/8/12	United States
+139	Banana	Fruit	2836	2012/8/13	Germany
+140	Carrots	Vegetables	1743	2012/8/19	United States
+141	Apple	Fruit	3844	2012/8/23	France
+142	Apple	Fruit	7490	2012/8/24	France
+143	Broccoli	Vegetables	4483	2012/8/25	Germany
+144	Apple	Fruit	7333	2012/8/27	Canada
+145	Carrots	Vegetables	7654	2012/8/28	United States
+146	Apple	Fruit	3944	2012/8/29	United Kingdom
+147	Beans	Vegetables	5761	2012/8/29	Germany
+148	Banana	Fruit	6864	2012/9/1	New Zealand
+149	Banana	Fruit	4016	2012/9/1	Germany
+150	Banana	Fruit	1841	2012/9/2	United States
+151	Banana	Fruit	424	2012/9/5	Australia
+152	Banana	Fruit	8765	2012/9/7	United Kingdom
+153	Banana	Fruit	5583	2012/9/8	United States
+154	Broccoli	Vegetables	4390	2012/9/9	New Zealand
+155	Broccoli	Vegetables	352	2012/9/9	Canada
+156	Apple	Fruit	8489	2012/9/11	United States
+157	Banana	Fruit	7090	2012/9/11	France
+158	Banana	Fruit	7880	2012/9/15	United States
+159	Orange	Fruit	3861	2012/9/18	United States
+160	Broccoli	Vegetables	7927	2012/9/19	Germany
+161	Banana	Fruit	6162	2012/9/20	United States
+162	Mango	Fruit	5523	2012/9/25	Australia
+163	Broccoli	Vegetables	5936	2012/9/25	United Kingdom
+164	Carrots	Vegetables	7251	2012/9/26	Germany
+165	Orange	Fruit	6187	2012/9/27	Australia
+166	Banana	Fruit	3210	2012/9/29	Germany
+167	Carrots	Vegetables	682	2012/9/29	Germany
+168	Banana	Fruit	793	2012/10/3	Australia
+169	Carrots	Vegetables	5346	2012/10/4	Germany
+170	Banana	Fruit	7103	2012/10/7	New Zealand
+171	Carrots	Vegetables	4603	2012/10/10	United States
+172	Apple	Fruit	8160	2012/10/16	France
+173	Apple	Fruit	7171	2012/10/23	United Kingdom
+174	Banana	Fruit	3552	2012/10/23	New Zealand
+175	Banana	Fruit	7273	2012/10/25	Australia
+176	Banana	Fruit	2402	2012/10/26	Germany
+177	Banana	Fruit	1197	2012/10/26	Australia
+178	Beans	Vegetables	5015	2012/10/26	Australia
+179	Orange	Fruit	5818	2012/11/2	United States
+180	Banana	Fruit	4399	2012/11/3	United Kingdom
+181	Carrots	Vegetables	3011	2012/11/3	United States
+182	Apple	Fruit	4715	2012/11/9	United Kingdom
+183	Apple	Fruit	5321	2012/11/12	France
+184	Banana	Fruit	8894	2012/11/15	United States
+185	Carrots	Vegetables	4846	2012/11/25	United Kingdom
+186	Broccoli	Vegetables	284	2012/11/25	Germany
+187	Orange	Fruit	8283	2012/11/26	United Kingdom
+188	Orange	Fruit	9990	2012/11/28	Canada
+189	Banana	Fruit	9014	2012/11/28	Australia
+190	Apple	Fruit	1942	2012/11/29	France
+191	Banana	Fruit	7223	2012/11/30	United States
+192	Carrots	Vegetables	4673	2012/12/2	United States
+193	Carrots	Vegetables	9104	2012/12/4	France
+194	Apple	Fruit	6078	2012/12/5	United States
+195	Beans	Vegetables	3278	2012/12/6	Germany
+196	Banana	Fruit	136	2012/12/12	Canada
+197	Banana	Fruit	8377	2012/12/12	Australia
+198	Banana	Fruit	2382	2012/12/12	United States
+199	Banana	Fruit	8702	2012/12/15	Germany
+200	Banana	Fruit	5021	2012/12/16	United States
+201	Apple	Fruit	1760	2012/12/16	Australia
+202	Banana	Fruit	4766	2012/12/18	Germany
+203	Beans	Vegetables	1541	2012/12/19	United Kingdom
+204	Orange	Fruit	2782	2012/12/20	United Kingdom
+205	Apple	Fruit	2455	2012/12/20	Canada
+206	Apple	Fruit	4512	2012/12/22	New Zealand
+207	Apple	Fruit	8752	2012/12/22	Germany
+208	Carrots	Vegetables	9127	2012/12/25	United States
+209	Apple	Fruit	1777	2012/12/28	France
+210	Beans	Vegetables	680	2012/12/28	France
+211	Orange	Fruit	958	2012/12/29	United States
+212	Carrots	Vegetables	2613	2012/12/29	Australia
+213	Carrots	Vegetables	339	2012/12/30	Australia
