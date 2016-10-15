@@ -54,3 +54,10 @@ $ docker exec -it zeppelin bash # 進入 zeppelin 操作 spark
 # spark-submit --class cc.eighty20.spark.s03.zp01 --jars /common/jars/commons-csv-1.1.jar,/common/jars/spark-csv_2.10-1.4.0.jar  /common/target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
 # spark-submit --class cc.eighty20.spark.s03.zp02 --jars /common/jars/commons-csv-1.1.jar,/common/jars/spark-csv_2.10-1.4.0.jar,/common/jars/mysql-connector-java-5.1.39-bin.jar /common/target/scala-2.11/e2-spk-app_2.11-1.0.0.jar
 ```
+
+## Session 4
+<img src="http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-1-layout.png" width="50%">
+
+<img src="http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-2-layout.png" width="50%">
+
+<img src="http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-3-layout.png" width="50%">
