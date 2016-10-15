@@ -56,8 +56,14 @@ $ docker exec -it zeppelin bash # 進入 zeppelin 操作 spark
 ```
 
 ## Session 4
-<img src="http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-1-layout.png" width="50%">
+Type | Data source | Computing 
+-----|-------------|-----------
+![](http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-1-layout.png)| centralized | centralized
+![](http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-2-layout.png)| centralized | distributed
+![](http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-3-layout.png)| distributed | distributed
 
-<img src="http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-2-layout.png" width="50%">
-
-<img src="http://eighty20.cc/apps/e2-spk-v01/present/e2-spk-s04/assets/imgs/team-3-layout.png" width="50%">
+為什麼 Sorting 對分散式計算這麼重要?
+- At the core of sorting is the **shuffle** operation, which moves data across all machines.
+- **Shuffle** underpins almost all distributed data processing workloads.
+- **Sorting**, however, is one of the most challenging because there is no reduction of data along the pipeline.
+- 了解Sorting的概念對於設計Spark程式與運維Spark是很重要的
