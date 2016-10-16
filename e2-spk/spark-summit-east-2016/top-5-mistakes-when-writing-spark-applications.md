@@ -3,7 +3,7 @@
 ## 錯誤一
 環境：6 nodes, 16 cores each, 64GB of RAM each
 
-分配多少 executors, cores, memory？
+應該分配多少 executors, cores, memory？
 - `--num-executors`
 - `--executor-cores`
 - `--executor-memory`
@@ -67,7 +67,48 @@ java.lang.IllegalArgumentException: Size exceeds Integer.MAX_VALUE
 - 如果 partition 數目接近 2000，但少於 2000，使用大於 2000 的數目
 
 ## 錯誤三
+執行 map 很快，但是 join 或 shuffle 卻很慢！？
+
+### Skew
+一個任務有 24 個單位工作量，單一執行緒運算需要 24 小時。
+- 理論上，六個執行緒運算只需 4 小時 (每個分擔 4 個單位工作量)
+- skew 發生時，六個執行緒運算卻需要 23 小時 (某一個執行緒負責 23 個工作量，其他分攤 1 個工作量)
+
+### 解法：Salting
+- Normal key: "Foo"
+- Salted Key: "Foo" + random.nextInt(saltFactor)
+- 將原先對應某 key 的一大群 value 打散
+
+步驟：
+- Data Source → 
+- Map convert to salted key & value tuple → 
+- Reduce by salted key →
+- Map convert results to key & value tuple →
+- Reduce by key →
+- Results
+
+其他變形：
+- Isolation Salting
+- Isolation Map Joins
 
 ## 錯誤四
+- 用光記憶體
+- 超過 20 個 stages
+- driver 做太多事情
+
+### 避開 DAG Management 地雷
+- 避免 shuffle
+- `ReduceByKey` 優於 `GroupByKey`
+- `TreeReduce` 優於 `Reduce` (executor 多做點事情，driver 就不用那麼忙)
+- 使用複合型別
+- 如果可能，map 與 reduce 在同一台機器做
+- 先考慮 partitioning/bucketing
+- 盡可能用一次 shuffle 完成
+- 只傳送必須傳送的資料
+- 避免 skew 與 cartesain
 
 ## 錯誤五
+```
+java.lang.NoSuchMethodError
+```
+- App guava 的版本與 Spark guava 版本不同
