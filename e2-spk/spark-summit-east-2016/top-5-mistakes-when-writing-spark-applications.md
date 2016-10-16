@@ -43,6 +43,28 @@
 - 5 core/executor
 
 ## 錯誤二
+```
+java.lang.IllegalArgumentException: Size exceeds Integer.MAX_VALUE
+```
+- Spark shuffle block 不能超過 2GB
+
+### Spark SQL
+- Spark SQL 常見問題
+- 執行 shuffle 時，預設 partition 數目是 200
+
+### 怎麼做
+- 增加 partition 數目 （減少 partition 大小)
+- 排除資料 skew 問題
+
+### 實際設定
+- Spark SQL: 增加 `spark.sql.shuffle.partitions`
+- Spark App: 設定 `rdd.repartition()` 或 `rdd.coalesce()`
+
+### 總結
+- 不要使用太大的 partition size
+- 不要使用太少的 partition number 
+- 經驗法則: 128MB / partition
+- 如果 partition 數目接近 2000，但少於 2000，使用大於 2000 的數目
 
 ## 錯誤三
 
