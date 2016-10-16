@@ -53,3 +53,14 @@ HDFD ← Spark ← Tableau
 ## 優點：機器學習 & 資料科學
 使用 MLlib, GraphX, Spark packages，好處
 - 內建分散式演算法
+- In-memory 適合迭代性工作
+- 資料清潔、特徵化、訓練、測試...
+
+#### 缺點：搜尋內容
+```
+sqlContext.sql("select * from mytable where name like '%xyz%'")
+```
+- spark 會找遍所有資料
+
+解方：
+- 使用 elastic, solr
