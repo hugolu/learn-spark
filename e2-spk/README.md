@@ -89,3 +89,9 @@ $ docker run --name kafka -p 9092:9092 -p 7203:7203 --env KAFKA_ADVERTISED_HOST_
 $ docker run --rm -i ches/kafka kafka-console-consumer.sh --topic test --from-beginning --zookeeper ${ZOOKEEPER_HOST_IP}:2181
 $ docker run --rm -i ches/kafka kafka-console-producer.sh --topic test --broker-list ${KAFKA_HOST_IP}:9092
 ```
+
+[Apache Kafka](http://kafka.apache.org/) 與傳統訊息佇列不同處：
+- ￼￼￼￼Scalability: 能水平擴展，增加處理訊息的能力
+- Distributed: 分散應付許多訊息 publisher 與 subscriber
+- Reliability: 能穩定傳送訊息，發生錯誤時能自動平衡附載
+- High-Throughput: 提供高訊息吞吐量
