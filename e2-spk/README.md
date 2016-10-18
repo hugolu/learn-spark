@@ -77,14 +77,14 @@ Type | Data source | Computing
 
 環境設定:
 ```shell
-$ KAFKA_HOST_IP=127.0.0.1
-$ ZOOKEEPER_HOST_IP=127.0.0.1
+# source env.sh 192.168.0.101
+export ZOOKEEPER_HOST_IP=$1
+export KAFKA_HOST_IP=$1
 ```
 ```shell
 $ docker run --name zookeeper -p 2181:2181 -p 2888:2888 -p 3888:3888 -d jplock/zookeeper
 $ docker run --name kafka -p 9092:9092 -p 7203:7203 --env KAFKA_ADVERTISED_HOST_NAME=${KAFKA_HOST_IP} --env ZOOKEEPER_IP=${ZOOKEEPER_HOST_IP} -d ches/kafka
 ```
-
 ```shell
 $ docker run --rm -i ches/kafka kafka-console-consumer.sh --topic test --from-beginning --zookeeper ${ZOOKEEPER_HOST_IP}:2181
 $ docker run --rm -i ches/kafka kafka-console-producer.sh --topic test --broker-list ${KAFKA_HOST_IP}:9092
