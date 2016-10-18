@@ -95,3 +95,19 @@ $ docker run --rm -i ches/kafka kafka-console-producer.sh --topic test --broker-
 - Distributed: 分散應付許多訊息 publisher 與 subscriber
 - Reliability: 能穩定傳送訊息，發生錯誤時能自動平衡附載
 - High-Throughput: 提供高訊息吞吐量
+
+### Kafka 實體元件
+元件 | 說明
+----|----
+Producer  | 將訊息傳入 ￼￼Borker 的訊息產生者
+Consumer  | 從 Broker 收取訊息的訊息消費者
+Broker    | Kafka cluster 的節點
+Zookeeper | Kafka cluster 不同 Broker 的協調者 (選舉 master、資料 deplication)
+
+### Kafka 邏輯元件
+元件 | 說明
+----|----
+Topic     | 訊息傳進 Borker 的目的地名稱
+Partition | 一個 Topic 可以有多個 partition (Kafka 平行處理的基本單位)
+Message   | 鍵值對 - Key 決定訊息落在哪個 partition，value 存放訊息內容。
+
