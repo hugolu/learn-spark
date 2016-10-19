@@ -119,3 +119,26 @@ Topic     | 訊息傳進 Borker 的目的地名稱
 Partition | 一個 Topic 可以有多個 partition (Kafka 平行處理的基本單位)
 Message   | 鍵值對 - Key 決定訊息落在哪個 partition，value 存放訊息內容。
 
+### 訊息佇列 (one partition, one consumer)
+
+```shell
+$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_01_Heartbeat_Publisher \
+-b ${KAFKA_HOST_IP}:9092 \
+-n 1 \
+-t S05_01 \
+-u hugo \
+-r 5
+```
+```shell
+$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_02_Heartbeat_Subscriber \
+-b ${KAFKA_HOST_IP}:9092 \
+-t S05_01 \
+-g consumer_group
+```
+```shell
+$ docker run --rm -i ches/kafka \
+> kafka-topics.sh --zookeeper ${ZOOKEEPER_HOST_IP}:2181 \
+> --describe --topic S05_01
+Topic:S05_01   	PartitionCount:1       	ReplicationFactor:1    	Configs:
+       	Topic: S05_01  	Partition: 0   	Leader: 0      	Replicas: 0    	Isr: 0
+```
