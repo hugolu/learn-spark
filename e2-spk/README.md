@@ -244,3 +244,26 @@ $ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_02_Heartbeat_Subscri
 -r 10
 ```
 
+### KAFKA 消費群組 (consumer group)
+#### 設定 Topic
+```shell
+$ docker run --rm -i ches/kafka \
+kafka-topics.sh \
+--zookeeper ${ZOOKEEPER_HOST_IP}:2181 \
+--create --topic S05_04 \
+--partitions 1 \
+--replication-factor 1 \
+--config cleanup.policy=compact
+```
+
+#### 檢視 Topic
+```shell
+$ docker run --rm -i ches/kafka \
+kafka-topics.sh \
+--zookeeper ${ZOOKEEPER_HOST_IP}:2181 \
+--describe \
+--topic S05_04
+
+Topic:S05_04   	PartitionCount:1       	ReplicationFactor:1    	Configs:cleanup.policy=compact
+       	Topic: S05_04  	Partition: 0   	Leader: 0      	Replicas: 0    	Isr: 0
+```
