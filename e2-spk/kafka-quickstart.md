@@ -50,3 +50,18 @@ $ docker run --rm ches/kafka kafka-topics.sh --list \
 --zookeeper ${ZOOKEEPER_HOST_IP}:2181
 ```
 
+## 單一 Pruducer, 單一 Consumer
+```shell
+$ docker run --rm -i ches/kafka kafka-console-producer.sh \
+--broker-list ${KAFKA_HOST_IP}:9092 \
+--topic test
+This is a message
+This is another message
+```
+```shell
+$ docker run --rm -i ches/kafka kafka-console-consumer.sh \
+--zookeeper ${ZOOKEEPER_HOST_IP}:2181 \
+--topic test --from-beginning
+This is a message
+This is another message
+```
