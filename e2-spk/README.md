@@ -86,8 +86,16 @@ $ docker run --name zookeeper -p 2181:2181 -p 2888:2888 -p 3888:3888 -d jplock/z
 $ docker run --name kafka -p 9092:9092 -p 7203:7203 --env KAFKA_ADVERTISED_HOST_NAME=${KAFKA_HOST_IP} --env ZOOKEEPER_IP=${ZOOKEEPER_HOST_IP} -d ches/kafka
 ```
 ```shell
-$ docker run --rm -i ches/kafka kafka-console-consumer.sh --topic test --from-beginning --zookeeper ${ZOOKEEPER_HOST_IP}:2181
-$ docker run --rm -i ches/kafka kafka-console-producer.sh --topic test --broker-list ${KAFKA_HOST_IP}:9092
+$ docker run --rm -i ches/kafka \
+kafka-console-consumer.sh \
+--topic test \
+--from-beginning \
+--zookeeper ${ZOOKEEPER_HOST_IP}:2181
+
+$ docker run --rm -i ches/kafka \
+kafka-console-producer.sh \
+--topic test \
+--broker-list ${KAFKA_HOST_IP}:9092
 ```
 
 [Apache Kafka](http://kafka.apache.org/) 與傳統訊息佇列不同處：
