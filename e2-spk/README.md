@@ -267,3 +267,6 @@ kafka-topics.sh \
 Topic:S05_04   	PartitionCount:1       	ReplicationFactor:1    	Configs:cleanup.policy=compact
        	Topic: S05_04  	Partition: 0   	Leader: 0      	Replicas: 0    	Isr: 0
 ```
+
+## Session 6
+參考資料: [Spark Streaming + Kafka Integration Guide](https://spark.apache.org/docs/2.0.0-preview/streaming-kafka-integration.html)
