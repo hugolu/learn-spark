@@ -120,21 +120,9 @@ Partition | 一個 Topic 可以有多個 partition (Kafka 平行處理的基本�
 Message   | 鍵值對 - Key 決定訊息落在哪個 partition，value 存放訊息內容。
 
 ### 訊息佇列 (one partition, one consumer)
-#### Message Publisher
 ```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_01_Heartbeat_Publisher \
--b ${KAFKA_HOST_IP}:9092 \
--n 1 \
--t S05_01 \
--u hugo \
--r 5
-```
-#### Message Subscriber 
-```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_02_Heartbeat_Subscriber \
--b ${KAFKA_HOST_IP}:9092 \
--t S05_01 \
--g consumer_group
+$ sbt "run-main cc.eighty20.spark.s05.S05_01_Heartbeat_Publisher -b ${KAFKA_HOST_IP}:9092 -n 1 -t S05_01 -u hugo -r 5"
+$ sbt "run-main cc.eighty20.spark.s05.S05_02_Heartbeat_Subscriber -b ${KAFKA_HOST_IP}:9092 -t S05_01 -g consumer_group"
 ```
 #### 檢查 topic
 ```shell
@@ -147,31 +135,10 @@ Topic:S05_01   	PartitionCount:1       	ReplicationFactor:1    	Configs:
 ```
 
 ### 訊息發佈/訂閱 (one partition, multiple consumer)
-#### 訊息發佈
 ```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_01_Heartbeat_Publisher \
--b ${KAFKA_HOST_IP}:9092 \
--n 1 \
--t S05_02 \
--u hugo
-```
-#### 訊息訂閱#1
-```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_02_Heartbeat_Subscriber \
--b ${KAFKA_HOST_IP}:9092 \
--t S05_02 \
--g consumer_group_01 \
--v true \
--r 10
-```
-#### 訊息訂閱#2
-```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_02_Heartbeat_Subscriber \
--b ${KAFKA_HOST_IP}:9092 \
--t S05_02 \
--g consumer_group_02 \
--v true \
--r 10
+$ sbt "run-main cc.eighty20.spark.s05.S05_01_Heartbeat_Publisher -b ${KAFKA_HOST_IP}:9092 -n 1 -t S05_02 -u hugo -r 5"
+$ sbt "run-main cc.eighty20.spark.s05.S05_02_Heartbeat_Subscriber -b ${KAFKA_HOST_IP}:9092 -t S05_02 -g group1 -v true -r 10"
+$ sbt "run-main cc.eighty20.spark.s05.S05_02_Heartbeat_Subscriber -b ${KAFKA_HOST_IP}:9092 -t S05_02 -g group2 -v true -r 10"
 ```
 
 ### 多個分割區
@@ -198,50 +165,16 @@ Topic:S05_03   	PartitionCount:3       	ReplicationFactor:1      	Configs:
 ```
 
 ### Message With Key + Multi-parition Topic
-#### 訊息發佈
 ```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_01_Heartbeat_Publisher \
--b ${KAFKA_HOST_IP}:9092 \
--n 1 \
--t S05_03 \
--u hugo
-```
-```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_01_Heartbeat_Publisher \
--b ${KAFKA_HOST_IP}:9092 \
--n 1 \
--t S05_03 \
--u eddy
-```
-
-#### 訊息訂閱
-```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_02_Heartbeat_Subscriber \
--b ${KAFKA_HOST_IP}:9092 \
--t S05_03 \
--g consumer_group \
--v true \
--r 10
+$ sbt "run-main cc.eighty20.spark.s05.S05_01_Heartbeat_Publisher -b ${KAFKA_HOST_IP}:9092 -n 1 -t S05_03 -u hugo"
+$ sbt "run-main cc.eighty20.spark.s05.S05_01_Heartbeat_Publisher -b ${KAFKA_HOST_IP}:9092 -n 1 -t S05_03 -u eddy"
+$ sbt "run-main cc.eighty20.spark.s05.S05_02_Heartbeat_Subscriber -b ${KAFKA_HOST_IP}:9092 -t S05_03 -g group -v true -r 10"
 ```
 
 ### Message Without Key + Multi-parition Topic
-#### 訊息發佈
 ```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_05_Heartbeat_Publisher_WithoutKey \
--b ${KAFKA_HOST_IP}:9092 \
--n 1 \
--t S05_03 \
--u hugo
-```
-
-#### 訊息訂閱
-```shell
-$ java -cp jars/e2-spk-s05-1.0.jar cc.eighty20.e2spks05.S05_02_Heartbeat_Subscriber \
--b ${KAFKA_HOST_IP}:9092 \
--t S05_03 \
--g consumer_group \
--v true \
--r 10
+$ sbt "run-main cc.eighty20.spark.s05.S05_05_Heartbeat_Publisher_WithoutKey -b ${KAFKA_HOST_IP}:9092 -n 1 -t S05_03 -u hugo"
+$ sbt "run-main cc.eighty20.spark.s05.S05_02_Heartbeat_Subscriber -b ${KAFKA_HOST_IP}:9092 -t S05_03 -g group -v true -r 10"
 ```
 
 ### KAFKA 消費群組 (consumer group)
