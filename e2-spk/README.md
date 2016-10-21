@@ -272,6 +272,13 @@ Topic:S05_04   	PartitionCount:1       	ReplicationFactor:1    	Configs:cleanup.
 參考資料: [Spark Streaming + Kafka Integration Guide](https://spark.apache.org/docs/2.0.0-preview/streaming-kafka-integration.html)
 
 ```shell
-$ sbt "run-main cc.eighty20.spark.s06.ss00 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5 data/README.md"
-$ sbt "run-main cc.eighty20.spark.s06.ss01 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5"
+$ sbt "run-main cc.eighty20.spark.s06.ss00 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5 data/README.md" # string stream publisher
+$ sbt "run-main cc.eighty20.spark.s06.ss01 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5"                # string stream processor
+$ sbt "run-main cc.eighty20.spark.s06.ss02 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5"                # string stream processor
+$ sbt "run-main cc.eighty20.spark.s06.ss03 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5"                # string stream processor
+$ sbt "run-main cc.eighty20.spark.s06.ss04 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5"                # string stream processor
 ```
+- ss01: 顯示收到的訊息
+- ss02: 找出 tumbling window 中出現文字的 topN，對每個 RDD 處理，計算出現最多的文字
+- ss03: 找出 tumbling window 中出現文字的 topN，將把 TopN 的運算拉出 RDD 外面
+- ss04: 找出 tumbling window 中出現文字的 topN，將每個 RDD 轉成 Dataframe，使用 Spark SQL 找出 TopN
