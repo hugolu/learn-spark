@@ -11,7 +11,6 @@ object ss00 {
       System.err.println("Usage: ss00 <metadataBrokerList> <topic> <messagesPerSec> <dataFile>")
       System.exit(1)
     }
-
     val Array(brokers, topic, messagesPerSec, dataFile) = args
 
     val listOfLines = Source.fromFile(dataFile).getLines().toArray
@@ -24,15 +23,14 @@ object ss00 {
     props.put("retries", "0")
     props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    val producer = new KafkaProducer[String, String](props)
 
+    val producer = new KafkaProducer[String, String](props)
     sys.ShutdownHookThread {
       producer.close()
     }
 
     while(true) {
-      val a = 0
-      for( a <- 1 to messagesPerSec.toInt) {
+      for(a <- 1 to messagesPerSec.toInt) {
         val line = listOfLines(random.nextInt(linesCount))
         val message = new ProducerRecord[String, String](topic, null, line)
 
