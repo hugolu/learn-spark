@@ -5,8 +5,6 @@ import org.apache.spark.streaming._
 import org.apache.spark.streaming.kafka._
 import org.apache.spark.SparkConf
 import java.util.Date
-import org.apache.log4j.Logger
-import org.apache.log4j.Level
 
 object ss03 {
   def main(args: Array[String]) {
@@ -24,7 +22,6 @@ object ss03 {
     val masterURL = if (System.getProperty("spark.master") == null || System.getProperty("spark.master").isEmpty) "local" else System.getProperty("spark.master")
     val sparkConf = new SparkConf().setAppName("ss03").setMaster(masterURL)
     val ssc = new StreamingContext(sparkConf, Seconds(1))
-    Logger.getRootLogger.setLevel(Level.ERROR)
 
     val topicsSet = topics.split(",").toSet
     val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
