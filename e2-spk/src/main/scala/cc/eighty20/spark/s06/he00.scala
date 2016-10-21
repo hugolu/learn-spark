@@ -1,8 +1,8 @@
 package cc.eighty20.spark.s06
 
-import java.util.HashMap
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
-import com.fasterxml.jackson.databind._
+import java.util.Properties
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import com.fasterxml.jackson.databind.ObjectMapper
 import scala.io.Source
 import scala.util.Random
 import cc.eighty20.spark.s06.dto.Heartbeat
@@ -18,7 +18,7 @@ object he00 {
     val pauseMillis = Math.round(60000/Integer.parseInt(beatsPerMinute))
     val om = new ObjectMapper()
 
-    val props = new HashMap[String, Object]()
+    val props = new Properties()
     props.put("bootstrap.servers", brokers)
     props.put("acks", "all")
     props.put("retries", "0")

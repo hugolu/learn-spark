@@ -1,6 +1,6 @@
 package cc.eighty20.spark.s06
 
-import java.util.HashMap
+import java.util.Properties
 import java.util.Arrays
 import org.apache.kafka.clients.consumer.{KafkaConsumer, ConsumerRecord}
 import scala.io.Source
@@ -11,10 +11,9 @@ object he01 {
       System.err.println("Usage he01 <brokers> <topic> <subGroup>")
       System.exit(1)
     }
-
     val Array(brokers, topic, subGroup) = args;
 
-    val props = new HashMap[String, Object]()
+    val props = new Properties()
     props.put("bootstrap.servers", brokers)
     props.put("group.id",subGroup)
     props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
@@ -25,7 +24,6 @@ object he01 {
 
     val consumer = new KafkaConsumer[String, String](props)
     consumer.subscribe(Arrays.asList(topic))
-
     sys.ShutdownHookThread {
       consumer.close()
     }
