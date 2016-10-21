@@ -278,7 +278,7 @@ $ sbt "run-main cc.eighty20.spark.s06.ss02 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5" 
 $ sbt "run-main cc.eighty20.spark.s06.ss03 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5"                # string stream processor
 $ sbt "run-main cc.eighty20.spark.s06.ss04 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5"                # string stream processor
 ```
-- ss01: 顯示收到的訊息
+- ss01: 直接顯示收到的訊息
 - ss02: 找出 tumbling window 中出現文字的 topN，對每個 RDD 處理，計算出現最多的文字
 - ss03: 找出 tumbling window 中出現文字的 topN，將把 TopN 的運算拉出 RDD 外面
 - ss04: 找出 tumbling window 中出現文字的 topN，將每個 RDD 轉成 Dataframe，使用 Spark SQL 找出 TopN
@@ -287,4 +287,11 @@ $ sbt "run-main cc.eighty20.spark.s06.ss04 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5" 
 $ sbt "run-main cc.eighty20.spark.s06.he00 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREAM hugo 65"    # heartbeat event producer
 $ sbt "run-main cc.eighty20.spark.s06.he00 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREAM eddy 65"    # heartbeat event producer
 $ sbt "run-main cc.eighty20.spark.s06.he01 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREAM group0"     # heartbeat event consumer
+$ sbt "run-main cc.eighty20.spark.s06.he02 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREAM"            # heartbeat event consumer
+$ sbt "run-main cc.eighty20.spark.s06.he03 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREAM /tmp/cp"    # heartbeat event consumer
+$ sbt "run-main cc.eighty20.spark.s06.he04 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREAM /tmp/cp"    # heartbeat event consumer
 ```
+- he01: 直接顯示收到的 heartbeat events
+- he02: 使用 SparkSession 讀取 Json 訊息，然後透過 Spark SQL 計算一秒內的 heartbeat events
+- he03: 使用 countByWindow 計算一分鐘內總共出現幾次 heartbeat events
+- he04: 使用 reduceByKeyAndWindow 計算一分鐘內每個人出現幾次 heartbeat events
