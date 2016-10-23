@@ -4,5 +4,5 @@
 
 ## 環境
 ```shell
-$ $ docker run --name spark -v /Users/hugo/learn-spark/spark-streaming-kafka-integration:/volume -d gettyimages/spark:2.0.1-hadoop-2.7
+$ docker run --name spark -v /Users/hugo/learn-spark/spark-streaming-kafka-integration:/volume -d gettyimages/spark:2.0.1-hadoop-2.7
 ```
