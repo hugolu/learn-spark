@@ -5,6 +5,7 @@ import java.util.Arrays
 import org.apache.kafka.clients.consumer.{KafkaConsumer, ConsumerRecord}
 import scala.io.Source
 import scala.util.Random
+import collection.JavaConversions._
 
 object ss01 {
   def main(args: Array[String]) {
@@ -24,7 +25,8 @@ object ss01 {
     props.put("session.timeout.ms", "30000")
 
     val consumer = new KafkaConsumer[String, String](props)
-    consumer.subscribe(Arrays.asList(topic))
+    val topics: java.util.Collection[String] = topic.split(",").toSeq
+    consumer.subscribe(topics)
     sys.ShutdownHookThread {
       consumer.close()
     }
@@ -35,7 +37,7 @@ object ss01 {
         val itr = records.iterator()
         while(itr.hasNext()){
           val record = itr.next()
-          println(s"receiving: ${record.value}")
+          println(s"${record.topic}: ${record.value}")
         }
       }
     } finally {
