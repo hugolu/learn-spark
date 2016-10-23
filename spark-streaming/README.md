@@ -21,7 +21,7 @@
 - DStream 在 Spark Streaming 內部表示為一系列的 RDD
 
 ## 簡單範例
-source: [NetworkWordCount.scala](quick-example/NetworkWordCount.scala)
+source: [SocketWordCount.scala](quick-example/SocketWordCount.scala)
 
 ### 產生 StreamingContext
 ```scala
