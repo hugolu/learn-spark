@@ -42,6 +42,7 @@ $ docker run --name spark -v /Users/hugo/learn-spark/spark-on-docker:/volume -d 
 ```
 
 ### Word Count
+source: [wordCount.scala](wordCount.scala)
 ```shell
 $ docker exec -it spark bash
 root@ada019d9cc5e:/usr/spark-2.0.1# cd /volume
