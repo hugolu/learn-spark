@@ -204,6 +204,7 @@ Topic:S05_04   	PartitionCount:1       	ReplicationFactor:1    	Configs:cleanup.
 ## Session 6
 參考資料: [Spark Streaming + Kafka Integration Guide](http://spark.apache.org/docs/latest/streaming-kafka-0-10-integration.html)
 
+### Streaming String
 ```shell
 $ sbt "run-main cc.eighty20.spark.s06.ss00 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5 data/README.md" # string stream publisher
 $ sbt "run-main cc.eighty20.spark.s06.ss01 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5"                # string stream processor
@@ -216,6 +217,14 @@ $ sbt "run-main cc.eighty20.spark.s06.ss04 ${KAFKA_HOST_IP}:9092 CHAT_STREAM 5" 
 - ss03: 找出 tumbling window 中出現文字的 topN，將把 TopN 的運算拉出 RDD 外面
 - ss04: 找出 tumbling window 中出現文字的 topN，將每個 RDD 轉成 Dataframe，使用 Spark SQL 找出 TopN
 
+Consumer 接收多個 Topics:
+```shell
+$ sbt "run-main cc.eighty20.spark.s06.ss00 ${KAFKA_HOST_IP}:9092 TOPIC1 3 data/README.md"
+$ sbt "run-main cc.eighty20.spark.s06.ss00 ${KAFKA_HOST_IP}:9092 TOPIC2 3 data/README.md"
+$ sbt "run-main cc.eighty20.spark.s06.ss01 192.168.0.110:9092 TOPIC1,TOPIC2 group"
+```
+
+### Heartbeat Event
 ```shell
 $ sbt "run-main cc.eighty20.spark.s06.he00 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREAM hugo 65"    # heartbeat event producer
 $ sbt "run-main cc.eighty20.spark.s06.he00 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREAM eddy 65"    # heartbeat event producer
@@ -228,3 +237,10 @@ $ sbt "run-main cc.eighty20.spark.s06.he04 ${KAFKA_HOST_IP}:9092 HEARTBEAT_STREA
 - he02: 使用 SparkSession 讀取 Json 訊息，然後透過 Spark SQL 計算一秒內的 heartbeat events
 - he03: 使用 countByWindow 計算一分鐘內總共出現幾次 heartbeat events
 - he04: 使用 reduceByKeyAndWindow 計算一分鐘內每個人出現幾次 heartbeat events
+
+Consumer 接收多個 Topics: 
+```shell
+$ sbt "run-main cc.eighty20.spark.s06.he00 ${KAFKA_HOST_IP}:9092 HEARTBEAT1 hugo 65"
+$ sbt "run-main cc.eighty20.spark.s06.he00 ${KAFKA_HOST_IP}:9092 HEARTBEAT2 eddy 55"
+$ sbt "run-main cc.eighty20.spark.s06.he01 ${KAFKA_HOST_IP}:9092 HEARTBEAT1,HEARTBEAT2 group"
+```
