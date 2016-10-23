@@ -191,6 +191,12 @@ debian              mytest              b2d03ac11799        10 seconds ago      
 debian              latest              ddf73f48a05d        13 days ago         123 MB
 ```
 
+### 匯出同時匯入
+```shell
+$ docker export fa3819af1f0c | docker import - debian:mytest
+```
+
+### 比較 `load` 與 `import`
 命令 | 動作 | 說明
 ----|----|----
 `load` | 匯入映像檔儲存檔案到本地映像檔庫 | 保存完整記錄，檔案體積也跟著變大
