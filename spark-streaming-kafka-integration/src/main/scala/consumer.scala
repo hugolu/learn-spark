@@ -35,8 +35,7 @@ object Consumer {
     )
 
     stream.foreachRDD{ (rdd, time) =>
-      val messages = rdd.map(_.value)
-      messages.foreach(println)
+      rdd.foreach(record => println(s"${record.key}: ${record.value}"))
     }
 
     streamingContext.start()
