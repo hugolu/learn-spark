@@ -26,4 +26,9 @@ $ docker run --name spark -v /Users/hugo/learn-spark/spark-streaming-kafka-integ
 - `ConsumerStrategies.SubscribePattern` 允許使用正規表示法描述訂閱的 topic
 - `ConsumerStrategies.Assign` 允許定義一些固定的 partition
 
-## 
+<< TBC >>
+
+## Creating an RDD
+## Obtaining Offsets
+## SSL / TLS
+## Deploying
