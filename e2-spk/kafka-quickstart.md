@@ -16,13 +16,13 @@ $ docker run -d --name zookeeper jplock/zookeeper
 $ docker run -d --name kafka --link zookeeper:zookeeper ches/kafka
 ```
 
-## 取得 server ip
+### 取得 server ip
 ```shell
 export ZOOKEEPER_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' zookeeper)
 export KAFKA_IP=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' kafka)
 ```
 
-## 創建 topic
+### 創建 topic
 ```shell
 $ docker run --rm ches/kafka kafka-topics.sh --create \
 --zookeeper ${ZOOKEEPER_IP}:2181 \
@@ -35,18 +35,20 @@ $ docker run --rm ches/kafka kafka-topics.sh --list \
 --zookeeper ${ZOOKEEPER_IP}:2181
 ```
 
-## 單一 Pruducer, 單一 Consumer
+## One Partition, One Consumer
 ```shell
 $ docker run --rm -i ches/kafka kafka-console-producer.sh \
 --broker-list ${KAFKA_IP}:9092 \
---topic test
+--topic topic1
 This is a message
 This is another message
 ```
 ```shell
 $ docker run --rm -i ches/kafka kafka-console-consumer.sh \
 --zookeeper ${ZOOKEEPER_IP}:2181 \
---topic test --from-beginning
-This is a message
-This is another message
+--topic topic1 --from-beginning
 ```
+
+## One Partition, Multiple Consumers
+## Multiple Partitions
+## Consumer Group
