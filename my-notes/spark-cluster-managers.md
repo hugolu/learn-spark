@@ -31,6 +31,33 @@ Spark on Mesos:
 
 ## High Availability
 
+Standalone:
+- automatic recovery of the master by using standby masters in a ZooKeeper quorum.
+- manual recovery using the file system.
+
+Spark on Yarn:
+- manual recovery using a command line utility 
+- automatic recovery via a Zookeeper-based ActiveStandbyElector embedded in the ResourceManager
+
+Spark on Mesos:
+- automatic recovery of the master using Apache ZooKeeper
+- Tasks which are currently executing continue to do so in the case of failover.
+
 ## Security
+
+Standalone:
+The standalone manager requires the user configure each of the nodes with the shared secret. 
+- Data can be encrypted using SSL for the communication protocols.
+- Access to Spark applications in the Web UI can be controlled via access control lists.
+
+Spark on Yarn:
+- Hadoop authentication uses Kerberos to verify that each user and service is authenticated by Kerberos.
+- Access to the Hadoop services can be finely controlled via access control lists.
+- data and communication between clients and services can be encrypted using SSL and data transferred between the Web console and clients with HTTPS
+
+Spark on Mesos:
+- Mesos’ default authentication module, Cyrus SASL, can be replaced with a custom module. 
+- Access control lists are used to authorize access to services in Mesos.
+- By default, communication between the modules in Mesos is unencrypted. SSL/TLS can be enabled to encrypt this communication. HTTPS is supported for the Mesos WebUI.
 
 ## Monitoring
