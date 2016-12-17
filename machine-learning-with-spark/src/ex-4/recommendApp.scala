@@ -9,7 +9,7 @@ object RecommendationApp {
     val sc = new SparkContext(new SparkConf().setAppName("RecommendationApp").setMaster("local[4]"))
 
     // Extracting features
-    val rawData = sc.textFile("../ml-100k/u.data")
+    val rawData = sc.textFile("../../../data/ml-100k/u.data")
     val rawRatings = rawData.map(_.split("\t").take(3))
     val ratings = rawRatings.map{ case Array(user, product, rating) => Rating(user.toInt, product.toInt, rating.toDouble) }
 
