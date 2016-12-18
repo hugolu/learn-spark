@@ -73,6 +73,10 @@
 ## 使用用戶偏好資料來建立推薦模型
 source: [src/ex-4](src/ex-4)
 
+```shell
+$ spark-submit --class RecommendationApp --jars /learn-spark/jars/jblas-1.2.4.jar target/scala-2.11/recommendation-app_2.11-1.0.jar
+```
+
 ### 從 MovieLens 100K 提取特徵
 ```scala
 val rawData = sc.textFile("../ml-100k/u.data")
