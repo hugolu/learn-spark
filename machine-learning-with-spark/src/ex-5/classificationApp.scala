@@ -21,7 +21,7 @@ object classificationApp {
     val maxTreeDepth = 5
 
     // Extracting data
-    val rawData = sc.textFile("../data/train_noheader.tsv")
+    val rawData = sc.textFile("../../../data/train_noheader.tsv")
     val records = rawData.map(line => line.split("\t"))
     records.first().foreach(println)
 
