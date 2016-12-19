@@ -9,3 +9,6 @@ $ unzip ml-100k.zip
 
 ## StumbleUpon Evergreen Classification Challenge
 URL: https://www.kaggle.com/c/stumbleupon/data
+```shell
+$ sed 1d train.tsv > train_noheader.tsv
+```
