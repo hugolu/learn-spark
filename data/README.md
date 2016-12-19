@@ -6,3 +6,6 @@ URL: http://grouplens.org/datasets/movielens/
 $ wget http://files.grouplens.org/datasets/movielens/ml-100k.zip
 $ unzip ml-100k.zip
 ```
+
+## StumbleUpon Evergreen Classification Challenge
+URL: https://www.kaggle.com/c/stumbleupon/data
