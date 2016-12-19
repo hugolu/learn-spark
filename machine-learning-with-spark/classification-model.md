@@ -73,6 +73,10 @@ SVM 是一個最大區間的分類氣，它試圖訓練一個使得類別盡可�
 ## Spark 建構分類模型
 source: [src/ex-5](src/ex-5)
 
+```shell
+$ spark-submit --class classificationApp target/scala-2.11/classification-app_2.11-1.0.jar 
+```
+
 ### 從數據抽取合適的特徵
 下載資料: http://www.kaggle.com/c/stumbleupon/data
 
