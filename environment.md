@@ -3,7 +3,7 @@
 ## Source code
 
 ### Create the working directory
-```shell
+```
 $ mkdir -p $HOME/github
 $ git clone https://github.com/hugolu/learn-spark
 $ cd $HOME/github/learn-spark
