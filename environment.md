@@ -19,7 +19,8 @@ $ git push
 
 ### Download docker image
 ```
-$ docker pull gettyimages/spark
+$ docker pull gettyimages/spark:2.0.2-hadoop-2.7
+$ docker tag gettyimages/spark:2.0.2-hadoop-2.7 gettyimages/spark:latest
 ```
 
 ### Run the docker container
